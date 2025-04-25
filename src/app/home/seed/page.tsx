@@ -5,6 +5,23 @@ import Navbar from '../../../components/Navbar';
 // 定义分类类型
 type Category = '全部' | '电影' | '剧集' | '音乐' | '动漫' | '游戏' | '综艺' | '体育' | '软件' | '学习' | '纪录片' | '其他';
 
+// 定义种子项类型
+interface SeedItem {
+    id: number;
+    category: string;
+    name: string;
+    size: string;
+    files: number;
+    clicks: number;
+    publishDate: string;
+    seeds: number;
+    downloads: number;
+    completions: number;
+    publisher: string;
+    details?: string;
+    tags?: string[];
+}
+
 export default function SeedCenter() {
     // 当前选中的分类
     const [currentCategory, setCurrentCategory] = useState<Category>('电影');
@@ -41,8 +58,64 @@ export default function SeedCenter() {
             resolutions: ['1080P', '720P', '480P', '其他'],
             formats: ['BDMV', 'MKV', 'MP4', 'RMVB', 'AVI', 'WMV', 'ISO', 'FLAC', 'APE', 'MP3', 'ZIP', 'RAR', '其他']
         },
-        // 其他分类的筛选条件可以类似添加
+        // 其他分类的筛选条件...
     };
+
+    // 模拟种子数据
+    const seedItems: SeedItem[] = [
+        {
+            id: 1,
+            category: '电影',
+            name: '[大陆][2018][西红柿首富/Hello Mr. Billionaire]沈腾/宋芸桦/张一鸣/张晨光/常远/魏翔[喜剧]WEB-DL[4K][自带中英字幕]',
+            size: '6.94 GB',
+            files: 1,
+            clicks: 101,
+            publishDate: '2024-11-16 10:59',
+            seeds: 2,
+            downloads: 0,
+            completions: 13,
+            publisher: 'bingzhixie'
+        },
+        {
+            id: 2,
+            category: '电影',
+            name: '[大陆][2024][逆行人生][Upstream 2024 2160p WEB-DL DDP5.1 H265-HDSWEB]徐峥/李乃文/王影璐[剧情/喜剧]WEB-DL[4K][自带中文字幕]',
+            size: '3.57 GB',
+            files: 1,
+            clicks: 449,
+            publishDate: '2024-10-03 21:25',
+            seeds: 9,
+            downloads: 0,
+            completions: 178,
+            publisher: '祖国山河一片红'
+        },
+        {
+            id: 3,
+            category: '电影',
+            name: '[大陆][2024][抓娃娃][Successor2024 2160p WEB-DL H265 HDR DDP2.05.1-HHWEB]沈腾/马丽/史彭元/李勤勤/肖帛辰[喜剧]WEB-DL[4K][自带中文字幕]',
+            size: '5.38 GB',
+            files: 1,
+            clicks: 206,
+            publishDate: '2024-10-03 14:27',
+            seeds: 8,
+            downloads: 0,
+            completions: 81,
+            publisher: 'Laoking'
+        },
+        {
+            id: 4,
+            category: '电影',
+            name: '[美国][2024][死侍与金刚狼/死侍3/死侍与金刚狼(台)/死侍与狼人(港)]Deadpool.and.Wolverine.2024.[iTunes.WEB-DL 4K HEVC.HDR.DDP-ARF)]瑞安·雷诺兹/休·杰克曼/艾玛·科林/达芙妮·基恩[喜剧/动作/科幻][WEB-DL][4K][制作中英字幕]',
+            size: '23.01 GB',
+            files: 1,
+            clicks: 360,
+            publishDate: '2024-10-01 20:05',
+            seeds: 8,
+            downloads: 0,
+            completions: 99,
+            publisher: 'Laoking'
+        }
+    ];
 
     // 切换选择状态
     const toggleSelection = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
@@ -103,54 +176,7 @@ export default function SeedCenter() {
                         </div>
                     </>
                 );
-            case '剧集':
-                return (
-                    <>
-                        <div>
-                            <h3 className="font-medium mb-2">地区:</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {filterConditions.剧集.regions.map(region => (
-                                    <button
-                                        key={region}
-                                        onClick={() => toggleSelection(selectedRegions, setSelectedRegions, region)}
-                                        className={`px-3 py-1 rounded text-sm ${selectedRegions.includes(region) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                                    >
-                                        {region}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <div>
-                            <h3 className="font-medium mb-2">格式:</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {filterConditions.剧集.formats.map(format => (
-                                    <button
-                                        key={format}
-                                        onClick={() => toggleSelection(selectedYears, setSelectedYears, format)}
-                                        className={`px-3 py-1 rounded text-sm ${selectedYears.includes(format) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                                    >
-                                        {format}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <div>
-                            <h3 className="font-medium mb-2">发布组:</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {filterConditions.剧集.releaseGroups.map(group => (
-                                    <button
-                                        key={group}
-                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, group)}
-                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(group) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                                    >
-                                        {group}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </>
-                );
-            // 其他分类的渲染逻辑可以类似添加
+            // 其他分类的渲染逻辑...
             default:
                 return <div>暂无筛选条件</div>;
         }
@@ -197,7 +223,55 @@ export default function SeedCenter() {
                     </div>
                 </div>
 
-                {/* 这里可以添加种子列表的显示 */}
+                {/* 种子列表表格 */}
+                <div className="overflow-x-auto">
+                    <table className="min-w-full bg-white border">
+                        <thead className="bg-gray-100">
+                        <tr>
+                            <th className="py-2 px-4 text-left border">类别</th>
+                            <th className="py-2 px-4 text-left border">名称 (种子数目:263)</th>
+                            <th className="py-2 px-4 text-left border">操作</th>
+                            <th className="py-2 px-4 text-left border">大小</th>
+                            <th className="py-2 px-4 text-left border">文件</th>
+                            <th className="py-2 px-4 text-left border">点击</th>
+                            <th className="py-2 px-4 text-left border">发布时间</th>
+                            <th className="py-2 px-4 text-left border">种子</th>
+                            <th className="py-2 px-4 text-left border">下载</th>
+                            <th className="py-2 px-4 text-left border">完成</th>
+                            <th className="py-2 px-4 text-left border">发布者</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {seedItems.map(item => (
+                            <tr key={item.id} className="border-b hover:bg-gray-50">
+                                <td className="py-2 px-4 border">{item.category}</td>
+                                <td className="py-2 px-4 border">
+                                    <div className="font-medium">{item.name}</div>
+                                    {item.details && <div className="text-sm text-gray-500">{item.details}</div>}
+                                    {item.tags && (
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                            {item.tags.map(tag => (
+                                                <span key={tag} className="text-xs bg-gray-100 px-2 py-0.5 rounded">{tag}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </td>
+                                <td className="py-2 px-4 border">
+                                    <button className="text-blue-500 hover:text-blue-700">感谢</button>
+                                </td>
+                                <td className="py-2 px-4 border">{item.size}</td>
+                                <td className="py-2 px-4 border">{item.files}</td>
+                                <td className="py-2 px-4 border">{item.clicks}</td>
+                                <td className="py-2 px-4 border">{item.publishDate}</td>
+                                <td className="py-2 px-4 border">{item.seeds}</td>
+                                <td className="py-2 px-4 border">{item.downloads}</td>
+                                <td className="py-2 px-4 border">{item.completions}</td>
+                                <td className="py-2 px-4 border">{item.publisher}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </Navbar>
     );
