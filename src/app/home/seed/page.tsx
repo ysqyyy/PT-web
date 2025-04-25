@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Navbar from '../../../components/Navbar';
+import { useRouter } from 'next/navigation'; // 引入路由
 
 // 定义分类类型
 type Category = '全部' | '电影' | '剧集' | '音乐' | '动漫' | '游戏' | '综艺' | '体育' | '软件' | '学习' | '纪录片' | '其他';
@@ -23,6 +24,7 @@ interface SeedItem {
 }
 
 export default function SeedCenter() {
+    const router = useRouter(); // 使用路由
     // 当前选中的分类
     const [currentCategory, setCurrentCategory] = useState<Category>('电影');
 
@@ -124,6 +126,11 @@ export default function SeedCenter() {
         } else {
             setList([...list, item]);
         }
+    };
+
+    // 点击种子名称跳转到详情页
+    const handleSeedClick = (seedId: number) => {
+        router.push(`/home/seed/detail/${seedId}`); //
     };
 
     // 渲染筛选条件
@@ -246,7 +253,12 @@ export default function SeedCenter() {
                             <tr key={item.id} className="border-b hover:bg-gray-50">
                                 <td className="py-2 px-4 border">{item.category}</td>
                                 <td className="py-2 px-4 border">
-                                    <div className="font-medium">{item.name}</div>
+                                    <div
+                                        className="font-medium cursor-pointer hover:text-blue-500"
+                                        onClick={() => handleSeedClick(item.id)}
+                                    >
+                                        {item.name}
+                                    </div>
                                     {item.details && <div className="text-sm text-gray-500">{item.details}</div>}
                                     {item.tags && (
                                         <div className="flex flex-wrap gap-1 mt-1">
