@@ -34,7 +34,6 @@ interface SeedDetail {
 export default function SeedDetailPage() {
     const params = useParams();
     const seedId = params.id; // 获取路由中的种子ID
-
     // 模拟种子详情数据 - 实际应用中应该根据seedId从API获取
     const seedDetail: SeedDetail = {
         id: 1,

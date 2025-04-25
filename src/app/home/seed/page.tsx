@@ -132,7 +132,6 @@ export default function SeedCenter() {
     const handleSeedClick = (seedId: number) => {
         router.push(`/home/seed/detail/${seedId}`); //
     };
-
     // 渲染筛选条件
     const renderFilterConditions = () => {
         switch (currentCategory) {
