@@ -4,7 +4,7 @@ import Navbar from '../../../components/Navbar';
 import { useRouter } from 'next/navigation'; // 引入路由
 
 // 定义分类类型
-type Category = '全部' | '电影' | '剧集' | '音乐' | '动漫' | '游戏' | '综艺' | '体育' | '软件' | '学习' | '纪录片' | '其他';
+type Category =  '电影' | '剧集' | '音乐' | '动漫' | '游戏' | '综艺' | '体育' | '软件' | '学习' | '纪录片' ;
 
 // 定义种子项类型
 interface SeedItem {
@@ -35,7 +35,7 @@ export default function SeedCenter() {
     const [searchTerm, setSearchTerm] = useState('');
 
     // 分类列表
-    const categories: Category[] = ['全部', '电影', '剧集', '音乐', '动漫', '游戏', '综艺', '体育', '软件', '学习', '纪录片', '其他'];
+    const categories: Category[] = ['电影', '剧集', '音乐', '动漫', '游戏', '综艺', '体育', '软件', '学习', '纪录片'];
 
     // 各分类的筛选条件
     const filterConditions = {
@@ -133,6 +133,7 @@ export default function SeedCenter() {
         router.push(`/home/seed/detail/${seedId}`); //
     };
     // 渲染筛选条件
+    // 渲染筛选条件
     const renderFilterConditions = () => {
         switch (currentCategory) {
             case '电影':
@@ -182,10 +183,376 @@ export default function SeedCenter() {
                         </div>
                     </>
                 );
-            // 其他分类的渲染逻辑...
+
+            case '剧集':
+                return (
+                    <>
+                        <div>
+                            <h3 className="font-medium mb-2">地区:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {filterConditions.剧集.regions.map(region => (
+                                    <button
+                                        key={region}
+                                        onClick={() => toggleSelection(selectedRegions, setSelectedRegions, region)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedRegions.includes(region) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {region}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">格式:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {filterConditions.剧集.formats.map(format => (
+                                    <button
+                                        key={format}
+                                        onClick={() => toggleSelection(selectedYears, setSelectedYears, format)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedYears.includes(format) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {format}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">压制组:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {filterConditions.剧集.releaseGroups.map(group => (
+                                    <button
+                                        key={group}
+                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, group)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(group) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {group}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                );
+
+            case '动漫':
+                return (
+                    <>
+                        <div>
+                            <h3 className="font-medium mb-2">类型:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {filterConditions.动漫.types.map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => toggleSelection(selectedRegions, setSelectedRegions, type)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedRegions.includes(type) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">分辨率:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {filterConditions.动漫.resolutions.map(resolution => (
+                                    <button
+                                        key={resolution}
+                                        onClick={() => toggleSelection(selectedYears, setSelectedYears, resolution)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedYears.includes(resolution) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {resolution}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">格式:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {filterConditions.动漫.formats.map(format => (
+                                    <button
+                                        key={format}
+                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, format)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(format) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {format}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                );
+
+            case '音乐':
+                return (
+                    <>
+                        <div>
+                            <h3 className="font-medium mb-2">类型:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {filterConditions.音乐.types.map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => toggleSelection(selectedRegions, setSelectedRegions, type)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedRegions.includes(type) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">地区:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {filterConditions.音乐.regions.map(region => (
+                                    <button
+                                        key={region}
+                                        onClick={() => toggleSelection(selectedYears, setSelectedYears, region)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedYears.includes(region) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {region}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">格式:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {filterConditions.音乐.formats.map(format => (
+                                    <button
+                                        key={format}
+                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, format)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(format) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {format}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                );
+
+            case '游戏':
+                return (
+                    <>
+                        <div>
+                            <h3 className="font-medium mb-2">游戏类型:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['动作', '冒险', '角色扮演', '策略', '模拟', '体育', '竞速', '格斗', '射击', '益智', '其他'].map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, type)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(type) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">平台:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['PC', 'Switch', 'PS5', 'PS4', 'Xbox', '手机', '模拟器', '其他'].map(platform => (
+                                    <button
+                                        key={platform}
+                                        onClick={() => toggleSelection(selectedRegions, setSelectedRegions, platform)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedRegions.includes(platform) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {platform}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">格式:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['ISO', '压缩包', '绿色版', '安装版', '镜像', '其他'].map(format => (
+                                    <button
+                                        key={format}
+                                        onClick={() => toggleSelection(selectedYears, setSelectedYears, format)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedYears.includes(format) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {format}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                );
+
+            case '综艺':
+                return (
+                    <>
+                        <div>
+                            <h3 className="font-medium mb-2">类型:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['真人秀', '选秀', '脱口秀', '竞技', '访谈', '美食', '旅游', '其他'].map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, type)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(type) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                    </>
+                );
+
+            case '体育':
+                return (
+                    <>
+                        <div>
+                            <h3 className="font-medium mb-2">运动类型:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['足球', '篮球', '网球', 'F1', '高尔夫', '游泳', '田径', '电竞', '其他'].map(sport => (
+                                    <button
+                                        key={sport}
+                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, sport)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(sport) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {sport}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">赛事:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['世界杯', '奥运会', '欧冠', 'NBA', '英超', '西甲', '中超', '其他'].map(event => (
+                                    <button
+                                        key={event}
+                                        onClick={() => toggleSelection(selectedRegions, setSelectedRegions, event)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedRegions.includes(event) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {event}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                    </>
+                );
+
+            case '软件':
+                return (
+                    <>
+                        <div>
+                            <h3 className="font-medium mb-2">软件类型:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['操作系统', '办公软件', '图形图像', '多媒体', '安全相关', '网络工具', '编程开发', '系统工具', '其他'].map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, type)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(type) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">平台:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['Windows', 'Mac', 'Linux', 'Android', 'iOS', '跨平台', '其他'].map(platform => (
+                                    <button
+                                        key={platform}
+                                        onClick={() => toggleSelection(selectedRegions, setSelectedRegions, platform)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedRegions.includes(platform) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {platform}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">语言:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['中文', '英文', '多国语言', '其他'].map(lang => (
+                                    <button
+                                        key={lang}
+                                        onClick={() => toggleSelection(selectedYears, setSelectedYears, lang)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedYears.includes(lang) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {lang}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                );
+
+            case '学习':
+                return (
+                    <>
+                        <div>
+                            <h3 className="font-medium mb-2">资料类型:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['电子书', '视频教程', '音频课程', '文档资料', '考试题库', '学术论文', '其他'].map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, type)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(type) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">学科:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['计算机', '语言', '数学', '物理', '化学', '生物', '医学', '经济', '法律', '人文', '其他'].map(subject => (
+                                    <button
+                                        key={subject}
+                                        onClick={() => toggleSelection(selectedRegions, setSelectedRegions, subject)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedRegions.includes(subject) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {subject}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="font-medium mb-2">语言:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['中文', '英文', '日文', '韩文', '其他'].map(lang => (
+                                    <button
+                                        key={lang}
+                                        onClick={() => toggleSelection(selectedYears, setSelectedYears, lang)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedYears.includes(lang) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {lang}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                );
+
+            case '纪录片':
+                return (
+                    <>
+                        <div>
+                            <h3 className="font-medium mb-2">类型:</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['自然', '历史', '科学', '社会', '人文', '旅行', '美食', '军事', '其他'].map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => toggleSelection(selectedGenres, setSelectedGenres, type)}
+                                        className={`px-3 py-1 rounded text-sm ${selectedGenres.includes(type) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+
+                    </>
+                );
             default:
                 return <div>暂无筛选条件</div>;
         }
+
     };
 
     return (
