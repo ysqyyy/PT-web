@@ -1,4 +1,3 @@
-// /home/seed/publish/page.tsx
 'use client';
 import React, { useState } from 'react';
 import Navbar from '../../../../components/Navbar';
@@ -10,7 +9,14 @@ export default function SeedPublish() {
         title: '',
         category: '电影',
         description: '',
-        // 其他表单字段...
+        region: '',
+        year: '',
+        chineseName: '',
+        englishName: '',
+        actors: '',
+        types: [],
+        releaseGroup: '',
+        seedPrice: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -24,7 +30,7 @@ export default function SeedPublish() {
     return (
         <Navbar name="发布种子">
             <div className="bg-white rounded-lg shadow p-6">
-                <h1 className="text-2xl font-bold mb-6">发布新种子</h1>
+                <h1 className="text-2xl font-bold mb-6">发布种子</h1>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -59,6 +65,124 @@ export default function SeedPublish() {
                     </div>
 
                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">地区</label>
+                        <select
+                            value={formData.region}
+                            onChange={(e) => setFormData({...formData, region: e.target.value})}
+                            className="w-full p-2 border border-gray-300 rounded"
+                            required
+                        >
+                            <option value="">请选择</option>
+                            {/* 添加更多地区选项 */}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">年份</label>
+                        <select
+                            value={formData.year}
+                            onChange={(e) => setFormData({...formData, year: e.target.value})}
+                            className="w-full p-2 border border-gray-300 rounded"
+                            required
+                        >
+                            <option value="">请选择</option>
+                            {/* 添加更多年份选项 */}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">中文名</label>
+                        <input
+                            type="text"
+                            value={formData.chineseName}
+                            onChange={(e) => setFormData({...formData, chineseName: e.target.value})}
+                            className="w-full p-2 border border-gray-300 rounded"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">英文名</label>
+                        <input
+                            type="text"
+                            value={formData.englishName}
+                            onChange={(e) => setFormData({...formData, englishName: e.target.value})}
+                            className="w-full p-2 border border-gray-300 rounded"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">主演</label>
+                        <input
+                            type="text"
+                            value={formData.actors}
+                            onChange={(e) => setFormData({...formData, actors: e.target.value})}
+                            className="w-full p-2 border border-gray-300 rounded"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">类型</label>
+                        <div className="flex flex-wrap gap-2">
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.types.includes('剧情')}
+                                    onChange={(e) => {
+                                        const types = formData.types.includes('剧情') ? formData.types.filter(t => t !== '剧情') : [...formData.types, '剧情'];
+                                        setFormData({...formData, types: types});
+                                    }}
+                                />
+                                剧情
+                            </label>
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.types.includes('喜剧')}
+                                    onChange={(e) => {
+                                        const types = formData.types.includes('喜剧') ? formData.types.filter(t => t !== '喜剧') : [...formData.types, '喜剧'];
+                                        setFormData({...formData, types: types});
+                                    }}
+                                />
+                                喜剧
+                            </label>
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.types.includes('家庭')}
+                                    onChange={(e) => {
+                                        const types = formData.types.includes('家庭') ? formData.types.filter(t => t !== '家庭') : [...formData.types, '家庭'];
+                                        setFormData({...formData, types: types});
+                                    }}
+                                />
+                                家庭
+                            </label>
+                            {/* 添加更多类型选项 */}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">发布组</label>
+                        <input
+                            type="text"
+                            value={formData.releaseGroup}
+                            onChange={(e) => setFormData({...formData, releaseGroup: e.target.value})}
+                            className="w-full p-2 border border-gray-300 rounded"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">种子售价</label>
+                        <select
+                            value={formData.seedPrice}
+                            onChange={(e) => setFormData({...formData, seedPrice: e.target.value})}
+                            className="w-full p-2 border border-gray-300 rounded"
+                        >
+                            <option value="免费">免费</option>
+                            {/* 添加更多售价选项 */}
+                        </select>
+                    </div>
+
+                    <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">描述</label>
                         <textarea
                             value={formData.description}
@@ -67,8 +191,6 @@ export default function SeedPublish() {
                             rows={4}
                         />
                     </div>
-
-                    {/* 可以添加更多表单字段，如文件上传、标签等 */}
 
                     <div className="flex justify-end gap-4">
                         <button
