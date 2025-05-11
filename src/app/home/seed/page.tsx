@@ -25,6 +25,9 @@ interface SeedItem {
 
 export default function SeedCenter() {
     const router = useRouter(); // 使用路由
+    const handlePublishClick = () => {
+        router.push('/home/seed/publish');
+    };
     // 当前选中的分类
     const [currentCategory, setCurrentCategory] = useState<Category>('电影');
 
@@ -558,6 +561,16 @@ export default function SeedCenter() {
     return (
         <Navbar name="种子中心">
             <div className="bg-white rounded-lg shadow p-6">
+                {/* 顶部添加发布按钮 */}
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold">种子中心</h1>
+                    <button
+                        onClick={handlePublishClick}
+                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                    >
+                        发布种子
+                    </button>
+                </div>
                 {/* 分类导航 */}
                 <div className="flex flex-wrap gap-2 mb-6 border-b pb-4">
                     {categories.map(category => (
