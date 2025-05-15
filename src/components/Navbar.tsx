@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import React, { ReactNode } from "react";
 
@@ -17,26 +16,23 @@ const navItems = [
 ];
 
 export default function Navbar({ children, name }: NavbarProps) {
-  const pathname = usePathname();
-
   return (
     <div>
-    <nav className="bg-white shadow-md px-6 py-4 flex gap-6">
-      {navItems.map(item => (
-        <Link
-          key={item.path}
-          href={item.path}
-          className={clsx(
-            'font-medium hover:text-blue-600 transition-colors',
-            pathname === item.path ? 'text-blue-600' : 'text-gray-700'
-          )}
-        >
-          {item.name}
-        </Link>
-      ))}
-      <h1 className="text-2xl -bold">{name}</h1>
-    </nav>
-    <main className="p-6">{children}</main>
-</div>
+      <nav className="bg-teal-800 shadow-md px-6 py-4 flex gap-6 rounded">
+        {navItems.map(item => (
+          <Link
+            key={item.path}
+            href={item.path}
+            className={clsx(
+              'font-medium transition-colors px-3 py-1 rounded',
+              name == item.name
+                ? 'text-white bg-teal-700 shadow'
+                : 'text-white/80 hover:text-white hover:bg-teal-900 hover:shadow-md'
+            )}
+          >{item.name}</Link>
+        ))}
+      </nav>
+      <main className="p-3">{children}</main>
+    </div>
   );
 }

@@ -3,7 +3,7 @@
 import DashboardLayout from "../../../components/DashboardLayout";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend } from "chart.js";
-
+import Navbar from "@/components/Navbar";
 
 // 注册 chart.js 插件
 ChartJS.register(
@@ -42,38 +42,40 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <DashboardLayout title="数据分析">
-      <div className="bg-white rounded-xl shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">下载趋势</h2>
+    <Navbar name="个人中心">
+      <DashboardLayout title="数据分析">
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">下载趋势</h2>
 
-        {/* 统计图表 */}
-        <div className="mb-6">
-          <Line data={data} options={options} />
+          {/* 统计图表 */}
+          <div className="mb-6">
+            <Line data={data} options={options} />
+          </div>
+
+          {/* 数据统计 */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-gray-100 p-4 rounded-lg shadow">
+              <h3 className="text-lg font-semibold">总下载量</h3>
+              <p className="text-xl font-bold">341</p>
+            </div>
+
+            <div className="bg-gray-100 p-4 rounded-lg shadow">
+              <h3 className="text-lg font-semibold">月均下载量</h3>
+              <p className="text-xl font-bold">28.4</p>
+            </div>
+
+            <div className="bg-gray-100 p-4 rounded-lg shadow">
+              <h3 className="text-lg font-semibold">资源总数</h3>
+              <p className="text-xl font-bold">245</p>
+            </div>
+
+            <div className="bg-gray-100 p-4 rounded-lg shadow">
+              <h3 className="text-lg font-semibold">活跃用户数</h3>
+              <p className="text-xl font-bold">120</p>
+            </div>
+          </div>
         </div>
-
-        {/* 数据统计 */}
-        <div className="grid grid-cols-2 gap-6">
-          <div className="bg-gray-100 p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">总下载量</h3>
-            <p className="text-xl font-bold">341</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">月均下载量</h3>
-            <p className="text-xl font-bold">28.4</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">资源总数</h3>
-            <p className="text-xl font-bold">245</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">活跃用户数</h3>
-            <p className="text-xl font-bold">120</p>
-          </div>
-        </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </Navbar>
   );
 }

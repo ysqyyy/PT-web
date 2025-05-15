@@ -6,7 +6,7 @@ import Navbar from '../../../components/Navbar';
 
 export default function UserManagementPage() {
   return (
-     <Navbar name="个人中心">
+    <Navbar name="个人中心">
     <DashboardLayout title="用户管理">
       <div className="bg-white rounded-xl shadow p-6">
         <h2 className="text-xl font-semibold mb-4">用户管理</h2>

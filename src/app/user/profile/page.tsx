@@ -3,6 +3,7 @@
 import DashboardLayout from "../../../components/DashboardLayout";
 import ProfileCard from "../../../components/user/profile/ProfileCard";
 import MessageList from "../../../components/user/profile/MessageList";
+import Navbar from "@/components/Navbar";
 
 function updateInformation(username: string, avatarUrl: string, bio: string) {
   user.username = username;
@@ -19,22 +20,24 @@ const user = {
 };
 export default function ProfilePage() {
   return (
-    <DashboardLayout title="我的资料">
-      <div className="flex">
-        <div>
-          <ProfileCard
-            username={user.username}
-            email={user.email}
-            avatarUrl={user.avatarUrl} // 头像图片路径
-            bio={user.bio}
-            registrationDate={user.registrationDate}
-            updateInformation={updateInformation}
-          />
+    <Navbar name="个人中心">
+      <DashboardLayout title="我的资料">
+        <div className="flex">
+          <div>
+            <ProfileCard
+              username={user.username}
+              email={user.email}
+              avatarUrl={user.avatarUrl} // 头像图片路径
+              bio={user.bio}
+              registrationDate={user.registrationDate}
+              updateInformation={updateInformation}
+            />
+          </div>
+          <div className="ml-100">
+            <MessageList />
+          </div>
         </div>
-        <div className="ml-100">
-          <MessageList />
-        </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </Navbar>
   );
 }
