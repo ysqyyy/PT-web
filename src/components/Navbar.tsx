@@ -12,7 +12,7 @@ const navItems = [
   { name: '种子中心', path: '/home/seed' },
   { name: '资源悬赏', path: '/home/bounty' },
   { name: '兑换中心', path: '/home/exchange' },
-  { name: '个人中心', path: '/user' },
+  { name: '个人中心', path: '/home/user' },
 ];
 
 export default function Navbar({ children, name }: NavbarProps) {

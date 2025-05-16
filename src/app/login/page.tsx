@@ -49,16 +49,7 @@ export default function LoginPage() {
             required
           />
         </div>
-        <div>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="请输入邀请码（选填）"
-            required={false}
-          />
-        </div>
+
         <button
           type="submit"
           className="w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700 transition-colors"

@@ -17,12 +17,12 @@ type DashboardLayoutProps = {
 };
 
 const navItems = [
-  { label: "我的资料", icon: <FileText />, path: "/user/profile" },
-  { label: "我的下载", icon: <LayoutDashboard />, path: "/user/downloads" },
-  { label: "数据分析", icon: <BarChart />, path: "/user/analytics" },
-  { label: "用户管理", icon: <Users />, path: "/user/users" },
-  { label: "资源审核", icon: <CheckCircle />, path: "/user/review" },
-  { label: "我的悬赏", icon: <Medal />, path: "/user/bounties" },
+  { label: "我的资料", icon: <FileText />, path: "/home/user/profile" },
+  { label: "我的下载", icon: <LayoutDashboard />, path: "/home/user/downloads" },
+  { label: "数据分析", icon: <BarChart />, path: "/home/user/analytics" },
+  { label: "用户管理", icon: <Users />, path: "/home/user/users" },
+  { label: "资源审核", icon: <CheckCircle />, path: "/home/user/review" },
+  { label: "我的悬赏", icon: <Medal />, path: "/home/user/bounties" },
 ];
 
 export default function DashboardLayout({ children, title }: DashboardLayoutProps) {
