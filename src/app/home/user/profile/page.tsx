@@ -1,8 +1,8 @@
 "use client";
 
-import DashboardLayout from "../../../components/DashboardLayout";
-import ProfileCard from "../../../components/user/profile/ProfileCard";
-import MessageList from "../../../components/user/profile/MessageList";
+import DashboardLayout from "../../../../components/DashboardLayout";
+import ProfileCard from "../../../../components/user/profile/ProfileCard";
+import MessageList from "../../../../components/user/profile/MessageList";
 
 function updateInformation(username: string, avatarUrl: string, bio: string) {
   user.username = username;

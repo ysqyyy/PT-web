@@ -1,5 +1,5 @@
 // pages/dashboard/downloads.tsx
-import DashboardLayout from "../../../components/DashboardLayout";
+import DashboardLayout from "../../../../components/DashboardLayout";
 
 export default function DownloadsPage() {
   const downloadRecords = [

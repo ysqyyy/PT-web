@@ -1,6 +1,6 @@
 "use client";
 // pages/dashboard/analytics.tsx
-import DashboardLayout from "../../../components/DashboardLayout";
+import DashboardLayout from "../../../../components/DashboardLayout";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend } from "chart.js";
 

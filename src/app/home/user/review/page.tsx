@@ -1,7 +1,7 @@
 // pages/dashboard/review.tsx
 "use client";
 
-import DashboardLayout from "../../../components/DashboardLayout";
+import DashboardLayout from "../../../../components/DashboardLayout";
 
 export default function ResourceReviewPage() {
   return (
