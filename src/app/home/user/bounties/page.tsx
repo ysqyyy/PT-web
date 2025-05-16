@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import DashboardLayout from "@/components/DashboardLayout";
+import DashboardLayout from "../../../../components/DashboardLayout";
 import {
   getMyBounties,
   appendBounty,
@@ -10,7 +10,7 @@ import {
   confirmBounty,
   arbitrateBounty,
   publishBounty,
-} from "@/api/bounties";
+} from "../../../../api/bounties";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "@/components/Navbar";
 

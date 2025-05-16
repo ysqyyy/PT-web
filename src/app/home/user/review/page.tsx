@@ -1,7 +1,6 @@
 // pages/dashboard/review.tsx
 "use client";
 
-// Update the import path below to the correct location of DashboardLayout
 import DashboardLayout from "@/components/DashboardLayout";
 import Navbar from "@/components/Navbar";
 

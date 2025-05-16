@@ -2,7 +2,7 @@
 
 import DashboardLayout from "@/components/DashboardLayout";
 import ProfileCard from "@/components/user/profile/ProfileCard";
-import MessageList from "@/components/user/profile/MessageList";
+import MessageList from "../../../../components/user/profile/MessageList";
 import Navbar from "@/components/Navbar";
 
 function updateInformation(username: string, avatarUrl: string, bio: string) {

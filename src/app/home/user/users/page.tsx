@@ -1,8 +1,8 @@
 // pages/dashboard/users.tsx
 "use client";
 
-import DashboardLayout from "../../../components/DashboardLayout";
-import Navbar from '../../../components/Navbar';
+import DashboardLayout from "@/components/DashboardLayout";
+import Navbar from '@/components/Navbar';
 
 export default function UserManagementPage() {
   return (
