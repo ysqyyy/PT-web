@@ -23,6 +23,7 @@ const navItems = [
   { label: "用户管理", icon: <Users />, path: "/home/user/users" },
   { label: "资源审核", icon: <CheckCircle />, path: "/home/user/review" },
   { label: "我的悬赏", icon: <Medal />, path: "/home/user/bounties" },
+  { label: "仲裁管理", icon: <CheckCircle />, path: "/home/user/arbitration" },
 ];
 
 export default function DashboardLayout({ children, title }: DashboardLayoutProps) {

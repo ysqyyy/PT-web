@@ -3,8 +3,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { handleGetCode1, resetPassword } from "@/api/login";
+import { useDebounceFn } from "@/hooks/useDebounceFn";
 
 export default function CallBackPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -47,16 +48,13 @@ export default function CallBackPage() {
     const email = (form.querySelector('input[type="email"]') as HTMLInputElement)?.value;
     const captcha = (form.querySelector('input[type="captcha"]') as HTMLInputElement)?.value;
     const password = (form.querySelector('input[type="password"],input[type="text"][placeholder="设置新的密码"]') as HTMLInputElement)?.value;
-    if (!email) {
-      toast.error("请输入邮箱");
+    if (!email || !email.includes("@") || !email.includes(".") || email.length < 5
+      || email.length > 50 || !captcha || !password) {
+      toast.error("请检查你的输入");
       return;
     }
-    if (!captcha) {
-      toast.error("请输入验证码");
-      return;
-    }
-    if (!password) {
-      toast.error("请输入新密码");
+    if (password.length < 6 || password.length > 20) {
+      toast.error("密码长度应在6-20个字符之间");
       return;
     }
     try {
@@ -71,8 +69,12 @@ export default function CallBackPage() {
     }
   };
 
+  // 表单提交：重置密码（防抖）
+  const debouncedHandleSubmit = useDebounceFn((e: unknown) => { handleSubmit(e as React.FormEvent); }, 800);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <Toaster />
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg">
         <Image
           src="/RadioKing.png"
@@ -83,7 +85,7 @@ export default function CallBackPage() {
           className="mx-auto"
         />
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={debouncedHandleSubmit}>
           <>
             <input
               type="email"

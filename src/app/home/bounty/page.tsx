@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { getBountyList, submitSeed } from "../../../api/bounty";
 import type { BountyItem } from "../../../types/bounty";
 import Navbar from "../../../components/Navbar";
-import { Upload, Button, message } from 'antd';
+import { Upload, Button } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
+import { toast, Toaster } from 'react-hot-toast';
+import { useDebounceFn } from "@/hooks/useDebounceFn";
 
 export default function BountyPage() {
   const [bounties, setBounties] = useState<BountyItem[]>([]);
@@ -26,7 +28,7 @@ export default function BountyPage() {
   const handleSubmitSeed = async () => {
     if (!seedId ||  !seedFile) return;
     await submitSeed(seedId,seedFile);
-    message.success('已提交种子');
+    toast.success('已提交种子');
     closeSeedModal();
   };
 
@@ -47,9 +49,17 @@ export default function BountyPage() {
     setSeedFile(null);
   };
 
+  // 打开提交种子弹窗（防抖）
+  const debouncedOpenSeedModal = useDebounceFn((id: unknown) => openSeedModal(id as number), 800);
+  // 关闭弹窗（防抖）
+  const debouncedCloseSeedModal = useDebounceFn(closeSeedModal, 800);
+  // 提交种子（防抖）
+  const debouncedHandleSubmitSeed = useDebounceFn(handleSubmitSeed, 800);
+
   return (
     <div>
       <Navbar name="资源悬赏">
+        <Toaster />
         <h1 className="text-2xl font-bold mb-6">资源悬赏</h1>
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white shadow border rounded-lg">
@@ -74,7 +84,7 @@ export default function BountyPage() {
                   <td className="p-4 space-y-1 flex flex-col">
                     {item.status === "进行中" && (
                       <button
-                        onClick={() => openSeedModal(item.id)}
+                        onClick={() => debouncedOpenSeedModal(item.id)}
                         className="px-1 py-1 bg-teal-700 text-white rounded hover:bg-teal-900 mb-1"
                       >
                         提交种子
@@ -103,13 +113,13 @@ export default function BountyPage() {
               </Upload>
               <div className="flex justify-end space-x-2 mt-4">
                 <button
-                  onClick={closeSeedModal}
+                  onClick={debouncedCloseSeedModal}
                   className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
                 >
                   取消
                 </button>
                 <button
-                  onClick={handleSubmitSeed}
+                  onClick={debouncedHandleSubmitSeed}
                   className="px-4 py-1 bg-teal-700 text-white rounded hover:bg-teal-900"
                   disabled={!seedFile}
                 >

@@ -6,6 +6,7 @@ import { login } from "@/api/login";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/user";
+import { useDebounceFn } from "@/hooks/useDebounceFn";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("admin");
@@ -36,11 +37,14 @@ export default function LoginPage() {
     }
   };
 
+  // 提交登录（防抖）
+  const debouncedHandleSubmit = useDebounceFn( (e: unknown) => {handleSubmit(e as React.FormEvent)}, 800);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
       <Toaster />
       <form
-        onSubmit={handleSubmit}
+        onSubmit={debouncedHandleSubmit}
         className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-8 w-full max-w-md space-y-6"
       >
         <Image

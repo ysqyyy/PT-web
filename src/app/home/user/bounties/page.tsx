@@ -13,14 +13,8 @@ import {
 } from "../../../../api/bounties";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "@/components/Navbar";
-
-// 示例数据类型和数据
-interface MyBounty {
-  id: number;
-  title: string;
-  amount: number;
-  status: string;
-}
+import { useDebounceFn } from "@/hooks/useDebounceFn";
+import type { MyBounty } from "@/types/bounty";
 
 export default function MyBountiesPage() {
   const [bounties, setBounties] = useState<MyBounty[]>([]);
@@ -114,6 +108,27 @@ export default function MyBountiesPage() {
     closePublishModal();
   };
 
+  // 追加悬赏（弹窗提交）
+  const debouncedHandleAppend = useDebounceFn(handleAppend, 800);
+  // 取消求种请求
+  const debouncedHandleCancel = useDebounceFn((id: unknown) => handleCancel(id as number), 800);
+  // 确认资源成功
+  const debouncedHandleConfirm = useDebounceFn((id: unknown) => handleConfirm(id as number), 800);
+  // 打开追加悬赏弹窗
+  const debouncedOpenAppendModal = useDebounceFn((id: unknown) => openAppendModal(id as number), 800);
+  // 打开发布悬赏弹窗
+  const debouncedOpenPublishModal = useDebounceFn(openPublishModal, 800);
+  // 关闭发布悬赏弹窗
+  const debouncedClosePublishModal = useDebounceFn(closePublishModal, 800);
+  // 发布悬赏（弹窗提交）
+  const debouncedHandlePublish = useDebounceFn(handlePublish, 800);
+  // 打开仲裁弹窗
+  const debouncedOpenArbitrateModal = useDebounceFn((id: unknown) => openArbitrateModal(id as number), 800);
+  // 关闭仲裁弹窗
+  const debouncedCloseArbitrateModal = useDebounceFn(closeArbitrateModal, 800);
+  // 仲裁（弹窗提交）
+  const debouncedHandleArbitrate = useDebounceFn(handleArbitrate, 800);
+
   return (
     <Navbar name="个人中心">
       <DashboardLayout title="我的悬赏">
@@ -124,7 +139,7 @@ export default function MyBountiesPage() {
             <b className="text-lg">我的悬赏</b>
             <button
               className="px-3 py-1 bg-teal-700 text-white rounded hover:bg-teal-900"
-              onClick={openPublishModal}
+              onClick={debouncedOpenPublishModal}
             >
               发布悬赏
             </button>
@@ -152,13 +167,13 @@ export default function MyBountiesPage() {
                         <>
                           <button
                             className="px-3 py-1 bg-teal-700 text-white rounded hover:bg-teal-900"
-                            onClick={() => openAppendModal(item.id)}
+                            onClick={() => debouncedOpenAppendModal(item.id)}
                           >
                             追加悬赏
                           </button>
                           <button
                             className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
-                            onClick={() => handleCancel(item.id)}
+                            onClick={() => debouncedHandleCancel(item.id)}
                           >
                             取消求种
                           </button>
@@ -169,13 +184,13 @@ export default function MyBountiesPage() {
                         <>
                           <button
                             className="px-3 py-1 bg-teal-700 text-white rounded hover:bg-teal-900"
-                            onClick={() => handleConfirm(item.id)}
+                            onClick={() => debouncedHandleConfirm(item.id)}
                           >
                             确认资源
                           </button>
                           <button
                             className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
-                            onClick={() => openArbitrateModal(item.id)}
+                            onClick={() => debouncedOpenArbitrateModal(item.id)}
                           >
                             申请仲裁
                           </button>
@@ -211,7 +226,7 @@ export default function MyBountiesPage() {
                     取消
                   </button>
                   <button
-                    onClick={handleAppend}
+                    onClick={debouncedHandleAppend}
                     className="px-4 py-1 bg-teal-800 text-white rounded hover:bg-teal-900"
                     disabled={!appendAmount}
                   >
@@ -262,13 +277,13 @@ export default function MyBountiesPage() {
                 </div>
                 <div className="flex justify-end space-x-2">
                   <button
-                    onClick={closePublishModal}
+                    onClick={debouncedClosePublishModal}
                     className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
                   >
                     取消
                   </button>
                   <button
-                    onClick={handlePublish}
+                    onClick={debouncedHandlePublish}
                     className="px-4 py-1 bg-teal-700 text-white rounded hover:bg-teal-900"
                     disabled={!publishTitle || !publishAmount}
                   >
@@ -295,13 +310,13 @@ export default function MyBountiesPage() {
                 />
                 <div className="flex justify-end space-x-2">
                   <button
-                    onClick={closeArbitrateModal}
+                    onClick={debouncedCloseArbitrateModal}
                     className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
                   >
                     取消
                   </button>
                   <button
-                    onClick={handleArbitrate}
+                    onClick={debouncedHandleArbitrate}
                     className="px-4 py-1 bg-teal-700 text-white rounded hover:bg-teal-800"
                     disabled={!arbitrateReason}
                   >
