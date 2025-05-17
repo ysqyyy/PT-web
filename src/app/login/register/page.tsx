@@ -3,20 +3,46 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import toast, { Toaster } from "react-hot-toast";
+import { register, handleGetCode1 } from "@/api/login";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [method, setMethod] = useState<"invite" | "email">("email");
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     if (!agree) {
-      alert("请先勾选同意协议");
+      toast.error("请先勾选同意协议");
       return;
     }
-    // 表单提交逻辑...
-    alert("提交成功！");
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const invite = formData.get("invite") as string | undefined;
+    const captcha = formData.get("captcha") as string | undefined;
+
+    try {
+      setLoading(true);
+      const data = await register({ email, password, invite, captcha });
+      if (data.success) {
+        toast.success("注册成功");
+        router.push("/login");
+      } else {
+        toast.error(data.message || "注册失败");
+      }
+    } catch {
+      toast.error("请求出错");
+    } finally {
+      setLoading(false);
+    }
   };
   const [countdown, setCountdown] = useState(0);
 
@@ -28,18 +54,33 @@ export default function RegisterPage() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  const handleGetCode = () => {
+  const handleGetCode = async () => {
     if (countdown > 0) return;
-
-    // 模拟请求验证码 API
-    console.log("正在请求验证码...");
-
-    // 启动倒计时（例如60秒）
-    setCountdown(60);
+    // 获取邮箱输入框的值
+    const emailInput = document.querySelector(
+      'input[name="email"]'
+    ) as HTMLInputElement;
+    const email = emailInput?.value;
+    if (!email) {
+      toast.error("请输入邮箱");
+      return;
+    }
+    try {
+      const res = await handleGetCode1(email);
+      if (res.success) {
+        toast.success("验证码已发送");
+        setCountdown(60);
+      } else {
+        toast.error(res.message || "发送失败");
+      }
+    } catch {
+      toast.error("请求出错");
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <Toaster />
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg">
         <Image
           src="/RadioKing.png"
@@ -80,17 +121,40 @@ export default function RegisterPage() {
             <>
               <input
                 type="text"
+                name="email"
                 placeholder="请输入邮箱"
                 className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <input
                 type="text"
+                name="invite"
                 placeholder="请输入邀请码"
                 className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
+              <div className="flex">
+                <input
+                  type="captcha"
+                  name="captcha"
+                  placeholder="请输入验证码"
+                  className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+                <button
+                  type="button"
+                  onClick={handleGetCode}
+                  disabled={countdown > 0}
+                  className={`w-full sm:w-auto px-4 py-2 rounded text-xs font-semibold text-white transition whitespace-nowrap ${
+                    countdown > 0
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-teal-600 hover:bg-teal-700"
+                  }`}
+                >
+                  {countdown > 0 ? `重新发送 (${countdown}s)` : "获取验证码"}
+                </button>
+              </div>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   placeholder="请输入密码"
                   className="w-full border border-gray-300 rounded px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
@@ -109,12 +173,14 @@ export default function RegisterPage() {
             <>
               <input
                 type="email"
+                name="email"
                 placeholder="请输入邮箱"
                 className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <div className="flex">
                 <input
                   type="captcha"
+                  name="captcha"
                   placeholder="请输入验证码"
                   className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
@@ -135,6 +201,7 @@ export default function RegisterPage() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   placeholder="请输入密码"
                   className="w-full border border-gray-300 rounded px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
@@ -175,9 +242,9 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={!agree}
+            disabled={!agree || loading}
             className={`w-full py-2 rounded text-white font-semibold transition ${
-              agree
+              agree && !loading
                 ? "bg-teal-600 hover:bg-teal-700"
                 : "bg-gray-400 cursor-not-allowed"
             }`}
