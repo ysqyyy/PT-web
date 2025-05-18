@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import { handleGetCode1, resetPassword } from "@/api/login";
-import { useDebounceFn } from "@/hooks/useDebounceFn";
+import { useEventDebounce } from "@/hooks/useEventDebounce";
 
 export default function CallBackPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -70,7 +70,7 @@ export default function CallBackPage() {
   };
 
   // 表单提交：重置密码（防抖）
-  const debouncedHandleSubmit = useDebounceFn((e: unknown) => { handleSubmit(e as React.FormEvent); }, 800);
+  const debouncedHandleSubmit = useEventDebounce(handleSubmit, 800);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">

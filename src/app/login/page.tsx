@@ -6,7 +6,7 @@ import { login } from "@/api/login";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/user";
-import { useDebounceFn } from "@/hooks/useDebounceFn";
+import { useEventDebounce } from "@/hooks/useEventDebounce";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("admin");
@@ -24,9 +24,9 @@ export default function LoginPage() {
       if (res.success) {
         // 假设后端返回了 role 字段
         setUser({ username, role: res.role || "user" });
+        console.log("登录成功", res);
         toast.success("登录成功");
-        router.push("/home"); 
-        
+        router.push("/home");
       } else {
         toast.error(res.message || "登录失败");
       }
@@ -38,7 +38,9 @@ export default function LoginPage() {
   };
 
   // 提交登录（防抖）
-  const debouncedHandleSubmit = useDebounceFn( (e: unknown) => {handleSubmit(e as React.FormEvent)}, 800);
+  const debouncedHandleSubmit = useEventDebounce((e: React.FormEvent<HTMLFormElement>) => {
+    handleSubmit(e);
+  }, 800);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">

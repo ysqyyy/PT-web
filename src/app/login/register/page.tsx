@@ -6,7 +6,7 @@ import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import { register, handleGetCode1 } from "@/api/login";
 import { useRouter } from "next/navigation";
-import { useDebounceFn } from "@/hooks/useDebounceFn";
+import { useEventDebounce } from "@/hooks/useEventDebounce";
 
 export default function RegisterPage() {
   const [method, setMethod] = useState<"invite" | "email">("email");
@@ -46,7 +46,7 @@ export default function RegisterPage() {
     }
   };
   // 提交注册（防抖）
-  const debouncedHandleSubmit = useDebounceFn((e:unknown)=>{handleSubmit(e as React.FormEvent)}, 800);
+  const debouncedHandleSubmit = useEventDebounce((e:unknown)=>{handleSubmit(e as React.FormEvent)}, 800);
 
   const [countdown, setCountdown] = useState(0);
 
