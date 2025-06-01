@@ -10,6 +10,7 @@ import {
   confirmBounty,
   arbitrateBounty,
   publishBounty,
+  downloadBountyResource,
 } from "../../../../api/bounties";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "@/components/Navbar";
@@ -111,11 +112,20 @@ export default function MyBountiesPage() {
   // 追加悬赏（弹窗提交）
   const debouncedHandleAppend = useDebounceFn(handleAppend, 800);
   // 取消求种请求
-  const debouncedHandleCancel = useDebounceFn((id: unknown) => handleCancel(id as number), 800);
+  const debouncedHandleCancel = useDebounceFn(
+    (id: unknown) => handleCancel(id as number),
+    800
+  );
   // 确认资源成功
-  const debouncedHandleConfirm = useDebounceFn((id: unknown) => handleConfirm(id as number), 800);
+  const debouncedHandleConfirm = useDebounceFn(
+    (id: unknown) => handleConfirm(id as number),
+    800
+  );
   // 打开追加悬赏弹窗
-  const debouncedOpenAppendModal = useDebounceFn((id: unknown) => openAppendModal(id as number), 800);
+  const debouncedOpenAppendModal = useDebounceFn(
+    (id: unknown) => openAppendModal(id as number),
+    800
+  );
   // 打开发布悬赏弹窗
   const debouncedOpenPublishModal = useDebounceFn(openPublishModal, 800);
   // 关闭发布悬赏弹窗
@@ -123,11 +133,30 @@ export default function MyBountiesPage() {
   // 发布悬赏（弹窗提交）
   const debouncedHandlePublish = useDebounceFn(handlePublish, 800);
   // 打开仲裁弹窗
-  const debouncedOpenArbitrateModal = useDebounceFn((id: unknown) => openArbitrateModal(id as number), 800);
+  const debouncedOpenArbitrateModal = useDebounceFn(
+    (id: unknown) => openArbitrateModal(id as number),
+    800
+  );
   // 关闭仲裁弹窗
-  const debouncedCloseArbitrateModal = useDebounceFn(closeArbitrateModal, 800);
-  // 仲裁（弹窗提交）
+  const debouncedCloseArbitrateModal = useDebounceFn(closeArbitrateModal, 800); // 仲裁（弹窗提交）
   const debouncedHandleArbitrate = useDebounceFn(handleArbitrate, 800);
+
+  // 下载资源
+  const handleDownload = async (id: number) => {
+    try {
+      await downloadBountyResource(id);
+      toast.success("资源下载已开始");
+    } catch (error) {
+      toast.error("下载失败，请稍后重试");
+      console.error("下载错误:", error);
+    }
+  };
+
+  // 下载资源的防抖函数
+  const debouncedHandleDownload = useDebounceFn(
+    (id: unknown) => handleDownload(id as number),
+    800
+  );
 
   return (
     <Navbar name="个人中心">
@@ -150,16 +179,19 @@ export default function MyBountiesPage() {
               <thead>
                 <tr>
                   <th className="px-4 py-2 text-left">悬赏标题</th>
-                  <th className="px-4 py-2 text-left">金额</th>
+                  <th className="px-4 py-2 text-left">初始金额</th>
+                  <th className="px-4 py-2 text-left">当前金额</th>
                   <th className="px-4 py-2 text-left">状态</th>
                   <th className="px-4 py-2 text-left">操作</th>
+                  <th className="px-4 py-2 text-left">下载</th>
                 </tr>
               </thead>
               <tbody>
                 {bounties.map((item) => (
                   <tr key={item.id}>
                     <td className="px-4 py-2">{item.title}</td>
-                    <td className="px-4 py-2">{item.amount} 元</td>
+                    <td className="px-4 py-2">{item.reward_amount} 元</td>
+                    <td className="px-4 py-2">{item.total_amount} 元</td>
                     <td className="px-4 py-2">{item.status}</td>
                     <td className="px-4 py-2 space-x-2">
                       {/* 进行中显示追加和取消 */}
@@ -195,6 +227,33 @@ export default function MyBountiesPage() {
                             申请仲裁
                           </button>
                         </>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      {/* 只有在待确认和已完成状态下显示下载按钮 */}
+                      {(item.status === "待确认" ||
+                        item.status === "已完成" ||
+                        item.status === "待仲裁") && (
+                        <button
+                          className="px-3 py-1 bg-teal-600 text-white rounded hover:bg-teal-700 flex items-center"
+                          onClick={() => debouncedHandleDownload(item.id)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                            />
+                          </svg>
+                          下载
+                        </button>
                       )}
                     </td>
                   </tr>

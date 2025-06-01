@@ -10,7 +10,8 @@ export type BountyItem = {
 export interface MyBounty {
   id: number;
   title: string;
-  amount: number;
+  reward_amount: number;
+  total_amount: number;
   status: string;
 }
 
