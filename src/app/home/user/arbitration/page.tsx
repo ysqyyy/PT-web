@@ -4,10 +4,14 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import DashboardLayout from "@/components/DashboardLayout";
 import toast, { Toaster } from "react-hot-toast";
-import { getArbitrationBounties, rejectArbitration, approveArbitration } from "@/api/arbitration";
+import {
+  getArbitrationBounties,
+  rejectArbitration,
+  approveArbitration,
+} from "@/api/arbitration";
 import { downloadBountyResource } from "@/api/bounties";
 import type { ArbitrationBounty } from "@/types/bounty";
-
+import { BUTTON_STYLES } from "@/constants/buttonStyles";
 export default function ArbitrationPage() {
   const [bounties, setBounties] = useState<ArbitrationBounty[]>([]);
   const [loading, setLoading] = useState(false);
@@ -29,7 +33,7 @@ export default function ArbitrationPage() {
     } finally {
       setLoading(false);
     }
-  };  // 同意仲裁
+  }; // 同意仲裁
   const handleApprove = async (id: number) => {
     if (!window.confirm("确定要同意该仲裁请求吗？")) return;
     setLoading(true);
@@ -73,59 +77,79 @@ export default function ArbitrationPage() {
       <DashboardLayout title="仲裁管理">
         <Toaster />
         <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-lg font-bold mb-4">仲裁管理</h2>
-          {bounties.length === 0 ? (
+          <h2 className="text-lg font-bold mb-4">仲裁管理</h2>        {bounties.length === 0 ? (
             <div className="text-gray-400 text-center py-10">暂无仲裁请求</div>
           ) : (
-            <table className="min-w-full table-auto">              
-            <thead>
+            <div className="overflow-x-auto">
+              <table className="min-w-full table-auto">
+              <thead>
                 <tr>
                   <th className="px-4 py-2 text-left">标题</th>
-                  <th className="px-4 py-2 text-left">金额</th>
                   <th className="px-4 py-2 text-left">发布人</th>
+                  <th className="px-4 py-2 text-left">描述</th>
                   <th className="px-4 py-2 text-left">仲裁理由</th>
                   <th className="px-4 py-2 text-left">操作</th>
                   <th className="px-4 py-2 text-left">下载</th>
                 </tr>
               </thead>
-              <tbody>
-                {bounties.map((item) => (
+              <tbody>                {bounties.map((item) => (
                   <tr key={item.id}>
-                    <td className="px-4 py-2">{item.title}</td>
-                    <td className="px-4 py-2">{item.amount} 元</td>
-                    <td className="px-4 py-2">{item.publisher}</td>
-                    <td className="px-4 py-2">{item.arbitrationReason}</td>
+                    <td className="px-4 py-2">{item.name}</td>
+                    <td className="px-4 py-2">{item.publisher}</td>                    <td className="px-4 py-2">
+                      <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
+                        {item.description}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2">
+                      <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
+                        {item.reason}
+                      </div>
+                    </td>{" "}
                     <td className="px-4 py-2 space-x-2">
+                      <div className="flex gap-2">
                       <button
-                        className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+                        className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} text-white rounded ${BUTTON_STYLES.COLORS.primary.hover}`}
+                        onClick={() => handleApprove(item.id)}
+                        disabled={loading}
+                      >
+                        同意仲裁
+                      </button>
+                      <button
+                        className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.gray.bg} text-white rounded ${BUTTON_STYLES.COLORS.gray.hover}`}
                         onClick={() => handleReject(item.id)}
                         disabled={loading}
                       >
                         驳回仲裁
                       </button>
-                      <button
-                        className="px-3 py-1 bg-teal-700 text-white rounded hover:bg-teal-900"
-                        onClick={() => handleApprove(item.id)}
-                        disabled={loading}                      >
-                        同意仲裁
-                      </button>
-                    </td>
+                       </div> 
+                    </td>{" "}
                     <td className="px-4 py-2">
                       <button
-                        className="px-3 py-1 bg-teal-600 text-white rounded hover:bg-teal-700 flex items-center"
+                        className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.secondary.bg} text-white rounded ${BUTTON_STYLES.COLORS.secondary.hover} flex items-center`}
                         onClick={() => handleDownload(item.id)}
                         disabled={loading}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 mr-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                          />
                         </svg>
                         下载
                       </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
+                ))}              </tbody>
             </table>
+            </div>
           )}
         </div>
       </DashboardLayout>

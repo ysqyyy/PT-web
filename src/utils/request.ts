@@ -1,4 +1,3 @@
-// src/utils/request.ts
 /**
  * 请求中间件 - 封装fetch请求
  * 提供统一的请求处理、错误处理和拦截器功能
@@ -173,6 +172,46 @@ request.delete = <T = any>(url: string, options?: RequestOptions) =>
 
 request.patch = <T = any>(url: string, data?: any, options?: RequestOptions) => 
   request<T>(url, { method: 'PATCH', data, ...options });
+
+// 文件上传专用方法
+request.upload = async <T = any>(url: string, files: File | File[] | Record<string, File>, data?: Record<string, any>, options?: RequestOptions): Promise<T> => {
+  const formData = new FormData();
+  
+  // 处理文件
+  if (files instanceof File) {
+    // 单个文件
+    formData.append('file', files);
+  } else if (Array.isArray(files)) {
+    // 文件数组
+    files.forEach((file, index) => {
+      formData.append(`file${index}`, file);
+    });
+  } else {
+    // 键值对形式的文件
+    Object.entries(files).forEach(([key, file]) => {
+      formData.append(key, file);
+    });
+  }
+  
+  // 添加其他数据
+  if (data) {
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (typeof value === 'object') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      }
+    });
+  }
+  
+  return request<T>(url, {
+    method: 'POST',
+    body: formData,
+    ...options
+  });
+};
 
 // 添加用于下载文件的辅助方法
 request.download = async (url: string, filename?: string, options?: RequestOptions) => {
