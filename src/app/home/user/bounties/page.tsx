@@ -254,9 +254,7 @@ export default function MyBountiesPage() {
                             item.status === "已完成" ||
                             item.status === "待仲裁") && (
                             <DownloadBountyButton
-                              bountyId={item.id}
-                              bgColor="bg-teal-600"
-                              hoverColor="hover:bg-teal-700"
+                              id={item.id}
                             />
                           )}
                         </td>
@@ -324,9 +322,7 @@ export default function MyBountiesPage() {
                           {(item.status === "待确认" ||
                             item.status === "已完成") && (
                             <DownloadBountyButton
-                              bountyId={item.id}
-                              bgColor={BUTTON_STYLES.COLORS.secondary.bg}
-                              hoverColor={BUTTON_STYLES.COLORS.secondary.hover}
+                              id={item.id}
                             />
                           )}
                         </td>
@@ -384,9 +380,7 @@ export default function MyBountiesPage() {
                             item.status === "已完成" ||
                             item.status === "待仲裁") && (
                             <DownloadBountyButton
-                              bountyId={item.id}
-                              bgColor={BUTTON_STYLES.COLORS.secondary.bg}
-                              hoverColor={BUTTON_STYLES.COLORS.secondary.hover}
+                              id={item.id}
                             />
                           )}
                         </td>

@@ -1,8 +1,23 @@
 import request from '../utils/request';
+import { DownloadRecord } from '@/types/download';
+
+/**
+ * 获取用户的下载记录
+ * @returns Promise<DownloadRecord[]> 下载记录列表
+ */
+export async function getDownloadRecords(): Promise<DownloadRecord[]> {
+  try {
+    const response = await request.get('/api/request/download/records');
+    return response;
+  } catch (error) {
+    console.error('获取下载记录失败:', error);
+    throw new Error('获取下载记录失败');
+  }
+}
 
 /**
  * 根据资源ID下载文件
- * @param id 资源ID
+ * @param id 资源ID 或 悬赏ID
  * @param resourceType 资源类型，默认为'resource'
  * @returns Promise
  */
@@ -21,14 +36,4 @@ export async function downloadResource(id: number, resourceType: 'resource' | 'b
     console.error('下载资源出错:', error);
     throw error;
   }
-}
-
-/**
- * 通用文件下载函数
- * 已知URL和文件名的情况下使用
- * @param url 下载链接
- * @param filename 文件名
- */
-export function downloadFile(url: string, filename: string) {
-  return request.download(url, filename);
 }

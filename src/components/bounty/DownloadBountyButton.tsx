@@ -1,34 +1,39 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useDebounceFn } from "@/hooks/useDebounceFn";
-import { downloadBountyResource } from "@/api/bounties";
+import { downloadResource } from "@/api/download";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 
 interface DownloadBountyButtonProps {
-  bountyId: number;
-  bgColor?: string; // 按钮背景色，可选参数，默认为teal-600
-  hoverColor?: string; // 鼠标悬停时的背景色，可选参数，默认为teal-700
+  id: number;
+  type?: 'bounty' | 'resource';
+  bgColor?: string;
+  hoverColor?: string;
   onSuccess?: () => void; // 下载成功后的回调函数，可选参数
 }
 
 export default function DownloadBountyButton({
-  bountyId,
-  bgColor = "bg-teal-600",
-  hoverColor = "hover:bg-teal-700",
+  id,
+  type = 'bounty',
+  bgColor = BUTTON_STYLES.COLORS.secondary.bg,
+  hoverColor = BUTTON_STYLES.COLORS.secondary.hover,
   onSuccess,
 }: DownloadBountyButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   // 下载资源
   const handleDownload = async () => {
-    if (!bountyId) return;
+    if (!id) return;
     
     try {
       setIsLoading(true);
-      await downloadBountyResource(bountyId);
-      toast.success("资源下载已开始");
+      if (type === 'bounty') {
+        await downloadResource(id, 'bounty');
+      } else {
+        await downloadResource(id, 'resource');
+      }
       
-      // 如果有成功回调函数，则调用
+      toast.success("资源下载已开始");
       if (onSuccess) {
         onSuccess();
       }
@@ -39,8 +44,6 @@ export default function DownloadBountyButton({
       setIsLoading(false);
     }
   };
-
-  // 下载资源 - 防抖处理
   const debouncedHandleDownload = useDebounceFn(handleDownload, 800);
 
   return (

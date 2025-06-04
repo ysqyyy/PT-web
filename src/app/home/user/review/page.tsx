@@ -135,9 +135,8 @@ export default function ResourceReviewPage() {
                       </td>
                       <td className="px-4 py-2">
                         <DownloadBountyButton
-                          bountyId={item.id}
-                          bgColor={BUTTON_STYLES.COLORS.secondary.bg}
-                          hoverColor={BUTTON_STYLES.COLORS.secondary.hover}
+                          id={item.id}
+                          type="resource"
                         />
                       </td>
                     </tr>
