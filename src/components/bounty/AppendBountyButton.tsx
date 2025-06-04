@@ -6,18 +6,17 @@ import { BUTTON_STYLES } from "@/constants/buttonStyles";
 
 interface AppendBountyButtonProps {
   bountyId: number;
-  bgColor?: string; // 按钮背景色，可选参数，默认为gray-600
-  hoverColor?: string; // 鼠标悬停时的背景色，可选参数，默认为gray-700
+  bgColor?: string;
+  hoverColor?: string;
   onSuccess?: () => void; // 追加成功后的回调函数，可选参数
 }
 
 export default function AppendBountyButton({
   bountyId,
-  bgColor = "bg-gray-600",
-  hoverColor = "hover:bg-gray-700",
+  bgColor = BUTTON_STYLES.COLORS.gray.bg,
+  hoverColor = BUTTON_STYLES.COLORS.gray.hover,
   onSuccess,
 }: AppendBountyButtonProps) {
-  // 追加悬赏相关状态
   const [appendAmount, setAppendAmount] = useState<string>("");
   const [showAppendModal, setShowAppendModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

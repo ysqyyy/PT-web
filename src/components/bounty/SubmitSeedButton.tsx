@@ -7,15 +7,15 @@ import { UploadOutlined } from "@ant-design/icons";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 interface SubmitSeedButtonProps {
   bountyId: number;
-  bgColor?: string; // 按钮背景色，可选参数，默认为teal-700
-  hoverColor?: string; // 鼠标悬停时的背景色，可选参数，默认为teal-900
-  onSuccess?: () => void; // 提交成功后的回调函数，可选参数
+  bgColor?: string;
+  hoverColor?: string;
+  onSuccess?: () => void;
 }
 
 export default function SubmitSeedButton({
   bountyId,
-  bgColor = "bg-teal-700",
-  hoverColor = "hover:bg-teal-900",
+  bgColor = BUTTON_STYLES.COLORS.primary.bg,
+  hoverColor = BUTTON_STYLES.COLORS.primary.hover,
   onSuccess,
 }: SubmitSeedButtonProps) {
   // 弹窗相关状态

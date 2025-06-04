@@ -369,8 +369,6 @@ export default function MyBountiesPage() {
                           {item.status === "进行中" && (
                             <SubmitSeedButton
                               bountyId={item.id}
-                              bgColor={BUTTON_STYLES.COLORS.primary.bg}
-                              hoverColor={BUTTON_STYLES.COLORS.primary.hover}
                               onSuccess={loadData}
                             />
                           )}

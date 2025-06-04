@@ -7,7 +7,6 @@ import Navbar from "@/components/Navbar";
 import { Toaster } from "react-hot-toast";
 import AppendBountyButton from "@/components/bounty/AppendBountyButton";
 import SubmitSeedButton from "@/components/bounty/SubmitSeedButton";
-import { BUTTON_STYLES } from "@/constants/buttonStyles";
 
 export default function BountyPage() {
   const [bounties, setBounties] = useState<BountyListItem[]>([]);
@@ -46,14 +45,10 @@ export default function BountyPage() {
                       <div className="flex gap-2">
                         <SubmitSeedButton
                           bountyId={item.id}
-                          bgColor={`${BUTTON_STYLES.COLORS.primary.bg}`}
-                          hoverColor={`${BUTTON_STYLES.COLORS.primary.hover}`}
                           onSuccess={() => getBountyList().then(setBounties)}
                         />
                         <AppendBountyButton
                           bountyId={item.id}
-                          bgColor={`${BUTTON_STYLES.COLORS.gray.bg}`}
-                          hoverColor={`${BUTTON_STYLES.COLORS.gray.hover}`}
                           onSuccess={() => getBountyList().then(setBounties)}
                         />
                       </div>
