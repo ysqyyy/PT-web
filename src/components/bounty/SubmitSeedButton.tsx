@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useDebounceFn } from "@/hooks/useDebounceFn";
-import { submitSeed } from "@/api/bounty";
+import { submitSeed } from "@/api/bounties";
 import { Upload, Button } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";

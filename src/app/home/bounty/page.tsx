@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { BountyListItem } from "@/types/bounty";
-import { getBountyList } from "@/api/bounty";
+import { getBountyList } from "@/api/bounties";
 import Navbar from "@/components/Navbar";
 import { Toaster } from "react-hot-toast";
 import AppendBountyButton from "@/components/bounty/AppendBountyButton";

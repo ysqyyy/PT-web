@@ -1,4 +1,5 @@
 import request from '../utils/request';
+import type { BountyListItem } from '../types/bounty';
 
 // 获取我的悬赏列表
 export async function getMyBounties() {
@@ -58,4 +59,15 @@ export async function submitBountyResource(id: number, file: File, description: 
   return request.post(`/api/request/bounty/${id}/submit`, formData);
 }
 
+// 获取悬赏列表
+export async function getBountyList(): Promise<BountyListItem[]> {
+  return request.get('/api/request/bounty');
+}
 
+// 提交种子
+export async function submitSeed(id: number, seedFile: File | null) {
+  if (!seedFile) {
+    return Promise.reject(new Error('请选择种子文件'));
+  }
+  return request.upload(`/api/request/bounty/${id}/seed`, seedFile);
+}

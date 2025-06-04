@@ -163,8 +163,7 @@ export default function MyBountiesPage() {
             >
               我提交的悬赏
             </button>
-          </div>
-          {/* 发布悬赏按钮 */}{" "}
+          </div>          {/* 发布悬赏按钮 */}
           {activeTab === "published" && (
             <div className="flex justify-between mb-4">
               <b className="text-lg">我的悬赏</b>
@@ -175,14 +174,12 @@ export default function MyBountiesPage() {
                 发布悬赏
               </button>
             </div>
-          )}{" "}
+          )}
           {/* 表格 */}
           <div className="bg-white rounded-xl shadow p-6">
-            {" "}
             {activeTab === "published" && (
               <div className="overflow-x-auto">
                 <table className="min-w-full table-auto whitespace-nowrap">
-                  {" "}
                   <thead>
                     <tr>
                       <th className="px-4 py-2 text-left min-w-[120px]">
@@ -203,9 +200,8 @@ export default function MyBountiesPage() {
                       </th>
                       <th className="px-4 py-2 text-left min-w-[80px]">下载</th>
                     </tr>
-                  </thead>{" "}
+                  </thead>
                   <tbody>
-                    {" "}
                     {bounties.map((item) => (
                       <tr key={item.id}>
                         <td className="px-4 py-2">{item.name}</td>
@@ -218,16 +214,14 @@ export default function MyBountiesPage() {
                         <td className="px-4 py-2">{item.total_amount} 元</td>
                         <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 space-x-2">
-                          {" "}
-                          {/* 进行中显示追加和取消 */}
-                          {item.status === "进行中" && (
+                          {/* 进行中显示追加和取消 */}                          {item.status === "进行中" && (
                             <>
                               <AppendBountyButton
                                 bountyId={item.id}
                                 bgColor={BUTTON_STYLES.COLORS.primary.bg}
                                 hoverColor={BUTTON_STYLES.COLORS.primary.hover}
                                 onSuccess={loadData}
-                              />{" "}
+                              />
                               <button
                                 className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.gray.bg} text-white rounded ${BUTTON_STYLES.COLORS.gray.hover}`}
                                 onClick={() => debouncedHandleCancel(item.id)}
@@ -239,7 +233,6 @@ export default function MyBountiesPage() {
                           {/* 待确认显示确认资源和仲裁 */}
                           {item.status === "待确认" && (
                             <>
-                              {" "}
                               <button
                                 className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} text-white rounded ${BUTTON_STYLES.COLORS.primary.hover}`}
                                 onClick={() => debouncedHandleConfirm(item.id)}
@@ -248,15 +241,14 @@ export default function MyBountiesPage() {
                               </button>
                               <button
                                 className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.gray.bg} text-white rounded ${BUTTON_STYLES.COLORS.gray.hover} ml-1`}
-                                onClick={() =>
-                                  debouncedOpenArbitrateModal(item.id)
+                                onClick={() =>                                  debouncedOpenArbitrateModal(item.id)
                                 }
                               >
                                 申请仲裁
                               </button>
                             </>
                           )}
-                        </td>{" "}
+                        </td>
                         <td className="px-4 py-2">
                           {(item.status === "待确认" ||
                             item.status === "已完成" ||
@@ -270,15 +262,13 @@ export default function MyBountiesPage() {
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
+                  </tbody>                </table>
               </div>
-            )}{" "}
+            )}
             {activeTab === "appended" && (
               <div className="overflow-x-auto">
                 <table className="min-w-full table-auto whitespace-nowrap">
                   <thead>
-                    {" "}
                     <tr>
                       <th className="px-4 py-2 text-left min-w-[120px]">
                         悬赏标题
@@ -292,30 +282,26 @@ export default function MyBountiesPage() {
                       <th className="px-4 py-2 text-left min-w-[100px]">
                         当前金额
                       </th>
-                      <th className="px-4 py-2 text-left min-w-[80px]">状态</th>
-                      <th className="px-4 py-2 text-left min-w-[150px]">
+                      <th className="px-4 py-2 text-left min-w-[80px]">状态</th>                      <th className="px-4 py-2 text-left min-w-[150px]">
                         操作
                       </th>
                       <th className="px-4 py-2 text-left min-w-[80px]">下载</th>
                     </tr>
-                  </thead>{" "}
+                  </thead>
                   <tbody>
-                    {" "}
                     {appendedBounties.map((item) => (
-                      <tr key={item.id}>
-                        <td className="px-4 py-2">{item.name}</td>
+                      <tr key={item.id}>                        <td className="px-4 py-2">{item.name}</td>
                         <td className="px-4 py-2">
                           <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
                             {item.description}
                           </div>
-                        </td>{" "}
+                        </td>
                         <td className="px-4 py-2">{item.publisher}</td>
                         <td className="px-4 py-2">{item.total_amount} 元</td>
-                        <td className="px-4 py-2">{item.status}</td>{" "}
+                        <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 space-x-2">
                           {item.status === "进行中" && (
                             <>
-                              {" "}
                               <div className="flex gap-1">
                                 <AppendBountyButton
                                   bountyId={item.id}
@@ -332,9 +318,8 @@ export default function MyBountiesPage() {
                                   onSuccess={loadData}
                                 />
                               </div>
-                            </>
-                          )}
-                        </td>{" "}
+                            </>                          )}
+                        </td>
                         <td className="px-4 py-2">
                           {(item.status === "待确认" ||
                             item.status === "已完成") && (
@@ -348,14 +333,12 @@ export default function MyBountiesPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
-              </div>
-            )}{" "}
+                </table>              </div>
+            )}
             {activeTab === "submitted" && (
               <div className="overflow-x-auto">
                 <table className="min-w-full table-auto whitespace-nowrap">
                   <thead>
-                    {" "}
                     <tr>
                       <th className="px-4 py-2 text-left min-w-[120px]">
                         悬赏标题
@@ -372,23 +355,20 @@ export default function MyBountiesPage() {
                       <th className="px-4 py-2 text-left min-w-[80px]">状态</th>
                       <th className="px-4 py-2 text-left min-w-[150px]">
                         操作
-                      </th>
-                      <th className="px-4 py-2 text-left min-w-[80px]">下载</th>
+                      </th>                      <th className="px-4 py-2 text-left min-w-[80px]">下载</th>
                     </tr>
-                  </thead>{" "}
+                  </thead>
                   <tbody>
-                    {" "}
                     {submittedBounties.map((item) => (
                       <tr key={item.id}>
                         <td className="px-4 py-2">{item.name}</td>
-                        <td className="px-4 py-2">
-                          <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
+                        <td className="px-4 py-2">                          <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
                             {item.description}
                           </div>
-                        </td>{" "}
+                        </td>
                         <td className="px-4 py-2">{item.publisher}</td>
                         <td className="px-4 py-2">{item.total_amount} 元</td>
-                        <td className="px-4 py-2">{item.status}</td>{" "}
+                        <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 space-x-2">
                           {item.status === "进行中" && (
                             <SubmitSeedButton
@@ -454,8 +434,7 @@ export default function MyBountiesPage() {
                     value={publishDesc}
                     onChange={(e) => setPublishDesc(e.target.value)}
                     rows={3}
-                  />
-                </div>{" "}
+                  />                  </div>
                 <div className="flex justify-end space-x-2">
                   <button
                     onClick={debouncedClosePublishModal}
@@ -470,10 +449,9 @@ export default function MyBountiesPage() {
                   >
                     确认发布
                   </button>
-                </div>
-              </div>
+                </div>              </div>
             </div>
-          )}{" "}
+          )}
           {/* 仲裁弹窗 */}
           {showArbitrateModal && (
             <div
@@ -488,7 +466,7 @@ export default function MyBountiesPage() {
                   value={arbitrateReason}
                   onChange={(e) => setArbitrateReason(e.target.value)}
                   rows={3}
-                />{" "}
+                />
                 <div className="flex justify-end space-x-2">
                   <button
                     onClick={debouncedCloseArbitrateModal}
