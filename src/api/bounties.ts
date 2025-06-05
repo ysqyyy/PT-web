@@ -1,45 +1,54 @@
-// src/api/bounty.ts
+import request from '../utils/request';
+import type { BountyListItem } from '../types/bounty';
 
-// 获取我的悬赏列表（mock，可替换为真实接口），需传输当前用户id
+// 获取我的悬赏列表
 export async function getMyBounties() {
-  // const res = await fetch("/api/request/my-bounties");
-  // return res.json();
-  return [
-    { id: 1, title: "悬赏A", amount: 50, status: "进行中" },
-    { id: 2, title: "悬赏B", amount: 100, status: "已完成" },
-    { id: 3, title: "悬赏C", amount: 100, status: "待确认" },
-  ];
+  return request.get("/api/request/bounty/getMyBounties");
 }
+// 获取我追加的悬赏列表
+export async function getMyAppendedBounties() {
+  return request.get("/api/request/bounty/getMyAppendedBounties");
+}
+// 获取我提交的悬赏列表
+export async function getMySubmittedBounties() {
+  return request.get("/api/request/bounty/getMySubmittedBounties");
+}
+
+//追加悬赏
 export async function appendBounty(id: number, amount: number) {
-  return fetch(`/api/request/${id}/append`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount }),
-  });
+  return request.post(`/api/request/bounty/${id}/append`, { amount });
 }
-
+//取消悬赏
 export async function cancelBounty(id: number) {
-  return fetch(`/api/request/${id}/cancel`, { method: "POST" });
+  return request.post(`/api/request/bounty/${id}/cancel`);
 }
-
+//确认悬赏
 export async function confirmBounty(id: number) {
-  return fetch(`/api/request/${id}/confirm`, { method: "POST" });
+  return request.post(`/api/request/bounty/${id}/confirm`);
 }
-
+//申请仲裁
 export async function arbitrateBounty(id: number, reason: string) {
-  return fetch(`/api/request/${id}/arbitrate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
+  return request.post(`/api/request/bounty/${id}/arbitrate`, { reason });
 }
 
+//发布悬赏
 export async function publishBounty(title: string, bounty: number, description: string) {
-  return fetch(`/api/request`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, bounty, description, attachments: [] }),
+  return request.post(`/api/request/bounty`, { 
+    title, 
+    bounty, 
+    description, 
+    attachments: [] 
   });
 }
+// 获取悬赏列表
+export async function getBountyList(): Promise<BountyListItem[]> {
+  return request.get('/api/request/bounty');
+}
 
-
+// 提交种子
+export async function submitSeed(id: number, seedFile: File | null) {
+  if (!seedFile) {
+    return Promise.reject(new Error('请选择种子文件'));
+  }
+  return request.upload(`/api/request/bounty/${id}/seed`, seedFile);
+}

@@ -3,6 +3,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import toast, { Toaster } from "react-hot-toast";
+import { handleGetCode1, resetPassword } from "@/api/login";
+import { useEventDebounce } from "@/hooks/useEventDebounce";
 
 export default function CallBackPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,18 +20,61 @@ export default function CallBackPage() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  const handleGetCode = () => {
+  const handleGetCode = async () => {
     if (countdown > 0) return;
-
-    // 模拟请求验证码 API
-    console.log("正在请求验证码...");
-
-    // 启动倒计时（例如60秒）
-    setCountdown(60);
+    const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+    const email = emailInput?.value;
+    if (!email) {
+      toast.error("请输入邮箱");
+      return;
+    }
+    try {
+      const res = await handleGetCode1(email);
+      if (res.success) {
+        toast.success("验证码已发送");
+        setCountdown(60);
+      } else {
+        toast.error(res.message || "发送失败");
+      }
+    } catch {
+      toast.error("请求出错");
+    }
   };
+
+  // 表单提交：重置密码
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const email = (form.querySelector('input[type="email"]') as HTMLInputElement)?.value;
+    const captcha = (form.querySelector('input[type="captcha"]') as HTMLInputElement)?.value;
+    const password = (form.querySelector('input[type="password"],input[type="text"][placeholder="设置新的密码"]') as HTMLInputElement)?.value;
+    if (!email || !email.includes("@") || !email.includes(".") || email.length < 5
+      || email.length > 50 || !captcha || !password) {
+      toast.error("请检查你的输入");
+      return;
+    }
+    if (password.length < 6 || password.length > 20) {
+      toast.error("密码长度应在6-20个字符之间");
+      return;
+    }
+    try {
+      const data = await resetPassword({ email, captcha, password });
+      if (data.success) {
+        toast.success("密码重置成功，请重新登录");
+      } else {
+        toast.error(data.message || "重置失败");
+      }
+    } catch {
+      toast.error("请求出错");
+    }
+  };
+
+  // 表单提交：重置密码（防抖）
+  const debouncedHandleSubmit = useEventDebounce(handleSubmit, 800);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <Toaster />
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg">
         <Image
           src="/RadioKing.png"
@@ -39,7 +85,7 @@ export default function CallBackPage() {
           className="mx-auto"
         />
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={debouncedHandleSubmit}>
           <>
             <input
               type="email"

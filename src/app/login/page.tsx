@@ -2,21 +2,51 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { login } from "@/api/login";
+import toast, { Toaster } from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/user";
+import { useEventDebounce } from "@/hooks/useEventDebounce";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("adm123");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 模拟登录逻辑
-    alert(`用户名: ${username}\n密码: ${password}`);
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await login(username, password);
+      if (res.success) {
+        // 假设后端返回了 role 字段
+        setUser({ username, role: res.role || "user" });
+        console.log("登录成功", res);
+        toast.success("登录成功");
+        router.push("/home");
+      } else {
+        toast.error(res.message || "登录失败");
+      }
+    } catch (err) {
+      toast.error("请求出错：" + err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // 提交登录（防抖）
+  const debouncedHandleSubmit = useEventDebounce((e: React.FormEvent<HTMLFormElement>) => {
+    handleSubmit(e);
+  }, 800);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
+      <Toaster />
       <form
-        onSubmit={handleSubmit}
+        onSubmit={debouncedHandleSubmit}
         className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-8 w-full max-w-md space-y-6"
       >
         <Image
@@ -29,7 +59,6 @@ export default function LoginPage() {
         />
 
         <div>
-        
           <input
             type="text"
             value={username}
@@ -53,6 +82,7 @@ export default function LoginPage() {
         <button
           type="submit"
           className="w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700 transition-colors"
+          disabled={loading}
         >
           登录
         </button>
