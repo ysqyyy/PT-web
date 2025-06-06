@@ -1,10 +1,12 @@
 // 定义用户资料相关的类型
 export interface UserProfile {
+  id: number;             // 用户ID
   username: string;       // 用户名
   email: string;          // 邮箱
   avatarUrl: string;      // 头像URL
   bio: string;            // 个人简介
   registrationDate: string; // 注册日期
+  level: number;         // 用户等级
 }
 
 // 定义用户消息相关的类型

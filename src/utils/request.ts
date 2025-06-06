@@ -2,6 +2,7 @@
  * 请求中间件 - 封装fetch请求
  * 提供统一的请求处理、错误处理和拦截器功能
  */
+import auth from './auth';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>; // URL查询参数
@@ -41,6 +42,45 @@ const responseInterceptors: {
   onRejected?: (error: any) => any;
 }[] = [];
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+// 判断是否处于浏览器环境
+const isBrowser = typeof window !== 'undefined';
+// 判断是否使用代理 - 生产环境或指定环境不使用代理
+const useProxy = isBrowser && process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_USE_PROXY !== 'false';
+
+// 添加请求拦截器，自动从cookie中获取token并添加到请求头
+interceptors.request.use((options) => {
+  if (!(options.body instanceof FormData)) {
+    options.headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+  }
+  const token = auth.getToken();
+  if (token) {
+    options.headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${token}`
+    };
+  }
+  return options;
+});
+
+// 添加响应拦截器，处理401未授权错误
+interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // 检查是否是401错误
+    if (error && error.status === 401) {
+      auth.removeToken();
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * 请求函数
  * @param url 请求地址
@@ -49,7 +89,19 @@ const responseInterceptors: {
  */
 async function request<T = any>(url: string, options: RequestOptions = {}): Promise<T> {
   let mergedOptions = { ...options };
+  // 拼接 base url
+  if (!/^https?:\/\//.test(url)) {
+    url = BASE_URL + url;
+  }
   
+  // 如果是开发环境且请求的是localhost:8080，使用代理
+  if (useProxy && url.includes('localhost:8080')) {
+    // 将 localhost:8080 后面的路径提取出来
+    const path = url.split('localhost:8080')[1];
+    // 将请求重定向到我们的代理
+    url = `/api/proxy?url=${encodeURIComponent(path.startsWith('/') ? path.substring(1) : path)}`;
+  }
+
   // 默认携带凭证
   if (mergedOptions.credentials === undefined) {
     mergedOptions.credentials = 'include';
@@ -65,14 +117,10 @@ async function request<T = any>(url: string, options: RequestOptions = {}): Prom
     url = `${url}${separator}${queryString.toString()}`;
     delete mergedOptions.params;
   }
-
   // 处理请求体
   if (options.data) {
     if (!(options.body instanceof FormData)) {
-      mergedOptions.headers = {
-        'Content-Type': 'application/json',
-        ...mergedOptions.headers,
-      };
+      // Content-Type已经在请求拦截器中设置，这里只处理body
       mergedOptions.body = JSON.stringify(options.data);
     } else {
       mergedOptions.body = options.data;
@@ -134,10 +182,18 @@ async function request<T = any>(url: string, options: RequestOptions = {}): Prom
     for (const { onFulfilled } of responseInterceptors) {
       transformedResponse = await onFulfilled(transformedResponse);
     }
-    
-    // 检查HTTP状态码
+      // 检查HTTP状态码
     if (!response.ok) {
-      throw new Error(transformedResponse.statusText || `请求失败: ${response.status}`);
+      const error: any = new Error(transformedResponse.statusText || `请求失败: ${response.status}`);
+      error.status = response.status;
+      error.data = transformedResponse.data;
+      
+      // 如果是401错误，标记为未授权
+      if (response.status === 401) {
+        error.isUnauthorized = true;
+      }
+      
+      throw error;
     }
     
     return transformedResponse.data;

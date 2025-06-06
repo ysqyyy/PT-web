@@ -62,8 +62,22 @@ export async function uploadCategorizedFiles(
 /**
  * 上传用户头像
  * @param avatarFile 头像文件
- * @returns Promise
+ * @returns Promise<{avatarUrl: string}> 上传成功后返回的头像URL
  */
-export async function uploadAvatar(avatarFile: File) {
-  return request.upload('/api/request/user/avatar', avatarFile);
+export async function uploadAvatar(avatarFile: File): Promise<{avatarUrl: string}> {
+  try {
+    const formData = new FormData();
+    formData.append('avatar', avatarFile);
+    
+    const response = await request.post('http://localhost:8080/api/user/avatar/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    return { avatarUrl: response.data.avatar_url || response.data.avatarUrl };
+  } catch (error) {
+    console.error('上传头像失败:', error);
+    throw error;
+  }
 }

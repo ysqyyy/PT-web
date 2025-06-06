@@ -9,8 +9,8 @@ import { useUserStore } from "@/store/user";
 import { useEventDebounce } from "@/hooks/useEventDebounce";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("adm123");
+  const [username, setUsername] = useState("hua");
+  const [password, setPassword] = useState("123456789");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const setUser = useUserStore((state) => state.setUser);
@@ -21,7 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await login(username, password);
-      if (res.success) {
+      if (res.code===200) {
         // 假设后端返回了 role 字段
         setUser({ username, role: res.role || "user" });
         console.log("登录成功", res);

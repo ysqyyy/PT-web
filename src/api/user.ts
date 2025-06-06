@@ -3,15 +3,26 @@ import type { UserProfile, UpdateProfileParams, UserMessage } from '@/types/user
 
 /**
  * 获取用户资料
- * @returns Promise<UserProfile> 用户资料
  */
 export async function getUserProfile(): Promise<UserProfile> {
   try {
-    const response = await request.get('/api/request/user/profile');
-    return response;
+    const response = await request.get('http://localhost:8080/api/user/info');
+    const data = response.data;
+    // console.log('获取用户资料:', response);
+    const userProfile: UserProfile = {
+      id: data.user_id || 0,
+      username: data.user_name,
+      email: data.email,
+      bio: data.bio || '',
+      avatarUrl: data.avatar_url || '',
+      registrationDate: data.created_time || '',
+      level: data.level || 0, 
+    };
+    return userProfile;
   } catch (error) {
     console.error('获取用户资料失败:', error);
-    throw new Error('获取用户资料失败');
+    // 直接重新抛出原始错误，让全局拦截器处理
+    throw error;
   }
 }
 
@@ -22,11 +33,16 @@ export async function getUserProfile(): Promise<UserProfile> {
  */
 export async function updateUserProfile(params: UpdateProfileParams): Promise<{success: boolean}> {
   try {
-    const response = await request.post('/api/request/user/profile/update', params);
+    const param={
+      userName: params.username,
+      avatarUrl: params.avatarUrl,
+      bio: params.bio
+    }
+    const response = await request.put('http://localhost:8080/api/user/info', param);
     return response;
   } catch (error) {
     console.error('更新用户资料失败:', error);
-    throw new Error('更新用户资料失败');
+    throw error;
   }
 }
 
@@ -40,6 +56,7 @@ export async function getUserMessages(): Promise<UserMessage[]> {
     return response;
   } catch (error) {
     console.error('获取用户消息失败:', error);
-    throw new Error('获取用户消息失败');
+    // 直接重新抛出原始错误，让全局拦截器处理
+    throw error;
   }
 }
