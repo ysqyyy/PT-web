@@ -1,50 +1,76 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../../../components/Navbar';
 import { useRouter } from 'next/navigation';
 import { Upload, Button, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
+import { publishSeed, getPublishPresets } from '@/api/seed';
 
-// 定义分类类型
 type Category = '电影' | '剧集' | '音乐' | '动漫' | '游戏' | '综艺' | '体育' | '软件' | '学习' | '纪录片';
 
-// 定义各分类对应的类型选项
-const categoryTypes: Record<Category, string[]> = {
-    '电影': ['剧情', '喜剧', '家庭', '动作', '运动', '冒险', '爱情', '科幻', '奇幻', '动画', '音乐', '纪录', '传记', '历史', '战争', '西部', '灾难', '犯罪', '恐怖', '惊悚', '舞蹈', '其他'],
-    '剧集': ['剧情', '喜剧', '家庭', '动作', '悬疑', '爱情', '科幻', '奇幻', '动画', '纪录', '传记', '历史', '战争', '犯罪', '恐怖', '惊悚', '其他'],
-    '音乐': ['流行', '摇滚', '乡村', '爵士', '古典', '原声', '纯音乐', '舞曲', '说唱', '电子', '民谣', 'R&B', '其他'],
-    '动漫': ['热血', '搞笑', '恋爱', '校园', '科幻', '奇幻', '冒险', '悬疑', '推理', '恐怖', '运动', '音乐', '日常', '治愈', '其他'],
-    '游戏': ['动作', '冒险', '角色扮演', '策略', '模拟', '体育', '竞速', '格斗', '射击', '益智', '其他'],
-    '综艺': ['真人秀', '选秀', '脱口秀', '竞技', '访谈', '美食', '旅游', '其他'],
-    '体育': ['足球', '篮球', '网球', 'F1', '高尔夫', '游泳', '田径', '电竞', '其他'],
-    '软件': ['操作系统', '办公软件', '图形图像', '多媒体', '安全相关', '网络工具', '编程开发', '系统工具', '其他'],
-    '学习': ['计算机', '语言', '数学', '物理', '化学', '生物', '医学', '经济', '法律', '人文', '其他'],
-    '纪录片': ['自然', '历史', '科学', '社会', '人文', '旅行', '美食', '军事', '其他']
-};
-
-// 定义地区选项
-const regions = ['大陆', '香港', '台湾', '日本', '韩国', '美国', '法国', '英国', '印度', '德国', '泰国', '其他'];
-
-// 定义年份选项
-const years = Array.from({length: 30}, (_, i) => (new Date().getFullYear() - i).toString()).concat(['2000-2006', '1990s', '1980s', '1970s', '1970以前']);
+interface FormData {
+    title: string;
+    category: Category;
+    description: string;
+    region: string;
+    year: string;
+    chineseName: string;
+    englishName: string;
+    actors: string;
+    types: string[];
+    releaseGroup: string;
+    seedPrice: string;
+}
 
 export default function SeedPublish() {
     const router = useRouter();
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         title: '',
-        category: '电影' as Category,
+        category: '电影',
         description: '',
         region: '',
         year: '',
         chineseName: '',
         englishName: '',
         actors: '',
-        types: [] as string[],
+        types: [],
         releaseGroup: '',
         seedPrice: '免费',
     });
+
     const [fileList, setFileList] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
+    const [presets, setPresets] = useState({
+        categories: [] as string[],
+        categoryTypes: {} as Record<string, string[]>,
+        regions: [] as string[],
+        years: [] as string[],
+        seedPrices: [] as string[],
+    });
+
+    // 获取发布预设选项
+    useEffect(() => {
+        const fetchPresets = async () => {
+            try {
+                const res = await getPublishPresets();
+                if (res.success) {
+                    setPresets(res.data);
+                    // 设置默认分类的类型选项
+                    if (res.data.categories.length > 0 && !formData.category) {
+                        setFormData(prev => ({
+                            ...prev,
+                            category: res.data.categories[0] as Category
+                        }));
+                    }
+                }
+            } catch (error) {
+                console.error('获取预设选项失败:', error);
+                message.error('获取发布选项失败');
+            }
+        };
+
+        fetchPresets();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,20 +80,26 @@ export default function SeedPublish() {
             return;
         }
 
+        if (!formData.title || !formData.region || !formData.year) {
+            message.error('请填写必填字段');
+            return;
+        }
+
         setUploading(true);
         try {
-            // 这里应该是实际的API调用
-            // const form = new FormData();
-            // form.append('file', fileList[0]);
-            // form.append('data', JSON.stringify(formData));
-            // await fetch('/api/seed/publish', { method: 'POST', body: form });
+            const res = await publishSeed({
+                ...formData,
+                file: fileList[0].originFileObj
+            });
 
-            // 模拟上传延迟
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            message.success('种子发布成功');
-            router.push('/home/seed');
+            if (res.success) {
+                message.success('种子发布成功');
+                router.push('/home/seed');
+            } else {
+                message.error(res.message || '种子发布失败');
+            }
         } catch (error) {
+            console.error('种子发布失败:', error);
             message.error('种子发布失败');
         } finally {
             setUploading(false);
@@ -76,9 +108,7 @@ export default function SeedPublish() {
 
     const handleFileChange = (info: any) => {
         let fileList = [...info.fileList];
-
-        // 限制只能上传一个文件
-        fileList = fileList.slice(-1);
+        fileList = fileList.slice(-1); // 限制只能上传一个文件
 
         // 检查文件类型
         fileList = fileList.filter(file => {
@@ -109,11 +139,11 @@ export default function SeedPublish() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* 文件上传区域 */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">种子文件</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">种子文件 *</label>
                         <Upload
                             fileList={fileList}
                             onChange={handleFileChange}
-                            beforeUpload={() => false} // 阻止自动上传
+                            beforeUpload={() => false}
                             accept=".torrent"
                             maxCount={1}
                         >
@@ -123,7 +153,7 @@ export default function SeedPublish() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">标题</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">标题 *</label>
                         <input
                             type="text"
                             value={formData.title}
@@ -135,20 +165,25 @@ export default function SeedPublish() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">分类</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">分类 *</label>
                         <select
                             value={formData.category}
-                            onChange={(e) => setFormData({...formData, category: e.target.value as Category, types: []})}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                category: e.target.value as Category,
+                                types: []
+                            })}
                             className="w-full p-2 border border-gray-300 rounded"
+                            required
                         >
-                            {Object.keys(categoryTypes).map(category => (
+                            {presets.categories.map(category => (
                                 <option key={category} value={category}>{category}</option>
                             ))}
                         </select>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">地区</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">地区 *</label>
                         <select
                             value={formData.region}
                             onChange={(e) => setFormData({...formData, region: e.target.value})}
@@ -156,14 +191,14 @@ export default function SeedPublish() {
                             required
                         >
                             <option value="">请选择地区</option>
-                            {regions.map(region => (
+                            {presets.regions.map(region => (
                                 <option key={region} value={region}>{region}</option>
                             ))}
                         </select>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">年份</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">年份 *</label>
                         <select
                             value={formData.year}
                             onChange={(e) => setFormData({...formData, year: e.target.value})}
@@ -171,7 +206,7 @@ export default function SeedPublish() {
                             required
                         >
                             <option value="">请选择年份</option>
-                            {years.map(year => (
+                            {presets.years.map(year => (
                                 <option key={year} value={year}>{year}</option>
                             ))}
                         </select>
@@ -210,22 +245,24 @@ export default function SeedPublish() {
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">类型</label>
-                        <div className="flex flex-wrap gap-2">
-                            {categoryTypes[formData.category].map(type => (
-                                <label key={type} className="flex items-center space-x-1">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.types.includes(type)}
-                                        onChange={() => toggleType(type)}
-                                        className="rounded"
-                                    />
-                                    <span>{type}</span>
-                                </label>
-                            ))}
+                    {formData.category && presets.categoryTypes[formData.category] && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">类型</label>
+                            <div className="flex flex-wrap gap-2">
+                                {presets.categoryTypes[formData.category].map(type => (
+                                    <label key={type} className="flex items-center space-x-1">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.types.includes(type)}
+                                            onChange={() => toggleType(type)}
+                                            className="rounded"
+                                        />
+                                        <span>{type}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">发布组</label>
@@ -245,11 +282,9 @@ export default function SeedPublish() {
                             onChange={(e) => setFormData({...formData, seedPrice: e.target.value})}
                             className="w-full p-2 border border-gray-300 rounded"
                         >
-                            <option value="免费">免费</option>
-                            <option value="1积分">1积分</option>
-                            <option value="2积分">2积分</option>
-                            <option value="5积分">5积分</option>
-                            <option value="10积分">10积分</option>
+                            {presets.seedPrices.map(price => (
+                                <option key={price} value={price}>{price}</option>
+                            ))}
                         </select>
                     </div>
 

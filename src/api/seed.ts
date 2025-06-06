@@ -20,14 +20,47 @@ export async function getSeedDetail(id: number) {
 
 // 发布种子
 export async function publishSeed(data: {
+    title: string;
     category: string;
-    name: string;
-    size: string;
-    description?: string;
-    tags?: string[];
-    // 其他发布所需字段
+    description: string;
+    region: string;
+    year: string;
+    chineseName: string;
+    englishName: string;
+    actors: string;
+    types: string[];
+    releaseGroup: string;
+    seedPrice: string;
+    file: File;
 }) {
-    return request.post("/api/request/seed/publish", data);
+    const formData = new FormData();
+
+    // 添加表单数据
+    formData.append('title', data.title);
+    formData.append('category', data.category);
+    formData.append('description', data.description);
+    formData.append('region', data.region);
+    formData.append('year', data.year);
+    formData.append('chineseName', data.chineseName);
+    formData.append('englishName', data.englishName);
+    formData.append('actors', data.actors);
+    formData.append('types', JSON.stringify(data.types));
+    formData.append('releaseGroup', data.releaseGroup);
+    formData.append('seedPrice', data.seedPrice);
+
+    // 添加文件
+    formData.append('file', data.file);
+
+    return request.post("/api/request/seed/publish", formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+}
+
+// 获取种子发布预设选项
+export async function getPublishPresets() {
+    return request.get("/api/request/seed/publish-presets");
 }
 
 // 感谢种子发布者
