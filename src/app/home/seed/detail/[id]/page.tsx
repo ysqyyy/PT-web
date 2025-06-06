@@ -1,9 +1,11 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../../../../components/Navbar';
 import { useParams } from 'next/navigation';
+import { message } from 'antd';
+import { getSeedDetail, rateSeed } from '@/api/seed';
+import { getSeedComments, postComment, likeComment } from '@/api/comment';
 
-// 定义种子详情和评论类型
 interface SeedDetail {
     id: number;
     title: string;
@@ -50,106 +52,124 @@ export default function SeedDetailPage() {
     const [newComment, setNewComment] = useState('');
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
+    const [seedDetail, setSeedDetail] = useState<SeedDetail | null>(null);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [loading, setLoading] = useState(false);
 
-    // 模拟种子详情数据
-    const seedDetail: SeedDetail = {
-        id: 1,
-        title: '西虹市首富',
-        originalTitle: 'Hello Mr. Billionaire',
-        year: '2018',
-        region: '大陆',
-        actors: ['沈腾', '宋芸桦', '张一鸣', '张晨光', '常远', '魏翔'],
-        genres: ['喜剧'],
-        quality: 'WEB-DL',
-        resolution: '4K',
-        subtitles: '自带中英字幕',
-        publisher: 'bingzhixie',
-        publisherLevel: '无双隐士',
-        size: '6.94 GB',
-        repliesViews: '0/101',
-        publishTime: '2024-11-16 10:59',
-        lastSeedTime: '16:35',
-        seedId: '1',
-        files: 1,
-        seeds: 2,
-        downloads: 0,
-        completions: 15,
-        attachments: 0,
-        description: '改编自1985年电影《布鲁斯特的百万横财》，讲述了一个落魄守门员王多鱼意外获得继承权，但必须在一个月内花光十亿的故事。',
-        otherVersions: ['特笑大片', '西虹市首富'],
-        rating: 4.5,
-        ratingCount: 128
-    };
+    // 获取种子详情和评论
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!seedId) return;
 
-    // 模拟评论数据
-    const [comments, setComments] = useState<Comment[]>([
-        {
-            id: 1,
-            username: 'runningrabbit',
-            avatar: '',
-            level: '高级会员',
-            content: '这个电影需要仔细看',
-            time: '2024-11-16 11:30',
-            likes: 5,
-            isLiked: false
-        },
-        {
-            id: 2,
-            username: 'tumbleweed',
-            avatar: '',
-            level: '正式会员',
-            content: '用什么播放器显示字幕',
-            time: '2024-11-16 12:15',
-            likes: 2,
-            isLiked: false
-        }
-    ]);
+            setLoading(true);
+            try {
+                const [detailRes, commentsRes] = await Promise.all([
+                    getSeedDetail(Number(seedId)),
+                    getSeedComments(Number(seedId))
+                ]);
+
+                if (detailRes.success) {
+                    setSeedDetail(detailRes.data);
+                    setRating(detailRes.data.rating || 0);
+                }
+                if (commentsRes.success) setComments(commentsRes.data);
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                message.error('获取种子详情失败');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [seedId]);
 
     // 提交评论
-    const handleSubmitComment = () => {
+    const handleSubmitComment = async () => {
         if (newComment.trim().length < 5) {
-            alert('评论至少需要5个字符');
+            message.error('评论至少需要5个字符');
             return;
         }
 
-        const newCommentObj: Comment = {
-            id: comments.length + 1,
-            username: '当前用户',
-            avatar: '',
-            level: '正式会员',
-            content: newComment,
-            time: new Date().toLocaleString(),
-            likes: 0,
-            isLiked: false
-        };
-
-        setComments([newCommentObj, ...comments]);
-        setNewComment('');
+        try {
+            const res = await postComment(Number(seedId), newComment);
+            if (res.success) {
+                setComments([res.data, ...comments]);
+                setNewComment('');
+                message.success('评论发表成功');
+            }
+        } catch (error) {
+            console.error('发表评论失败:', error);
+            message.error('发表评论失败');
+        }
     };
 
     // 点赞评论
-    const handleLikeComment = (id: number) => {
-        setComments(comments.map(comment => {
-            if (comment.id === id) {
-                return {
-                    ...comment,
-                    likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
-                    isLiked: !comment.isLiked
-                };
+    const handleLikeComment = async (id: number) => {
+        try {
+            const res = await likeComment(id);
+            if (res.success) {
+                setComments(comments.map(comment => {
+                    if (comment.id === id) {
+                        return {
+                            ...comment,
+                            likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
+                            isLiked: !comment.isLiked
+                        };
+                    }
+                    return comment;
+                }));
             }
-            return comment;
-        }));
+        } catch (error) {
+            console.error('点赞失败:', error);
+            message.error('点赞失败');
+        }
     };
 
     // 提交评分
-    const handleSubmitRating = () => {
+    const handleSubmitRating = async () => {
         if (rating === 0) {
-            alert('请选择评分');
+            message.error('请选择评分');
             return;
         }
-        alert(`感谢您的评分: ${rating}星`);
-        // 实际应用中这里应该调用API提交评分
+
+        try {
+            const res = await rateSeed(Number(seedId), rating);
+            if (res.success) {
+                message.success(`感谢您的评分: ${rating}星`);
+                if (seedDetail) {
+                    setSeedDetail({
+                        ...seedDetail,
+                        rating: rating,
+                        ratingCount: (seedDetail.ratingCount || 0) + 1
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('评分失败:', error);
+            message.error('评分失败');
+        }
     };
+
+    if (loading) {
+        return (
+            <Navbar name="种子详情">
+                <div className="bg-white rounded-lg shadow p-6 text-center">
+                    加载中...
+                </div>
+            </Navbar>
+        );
+    }
+
+    if (!seedDetail) {
+        return (
+            <Navbar name="种子详情">
+                <div className="bg-white rounded-lg shadow p-6 text-center">
+                    未找到种子信息
+                </div>
+            </Navbar>
+        );
+    }
 
     return (
         <Navbar name="种子详情">
@@ -245,11 +265,11 @@ export default function SeedDetailPage() {
                     <h2 className="text-xl font-bold mb-4">资源评分</h2>
                     <div className="flex items-center mb-4">
                         <div className="mr-4">
-                            <span className="text-3xl font-bold">{seedDetail.rating}</span>
+                            <span className="text-3xl font-bold">{seedDetail.rating || 0}</span>
                             <span className="text-gray-500">/5分</span>
                         </div>
                         <div className="text-gray-500">
-                            {seedDetail.ratingCount}人评分
+                            {seedDetail.ratingCount || 0}人评分
                         </div>
                     </div>
 
@@ -336,29 +356,33 @@ export default function SeedDetailPage() {
 
                     {/* 评论列表 */}
                     <div className="space-y-4">
-                        {comments.map((comment) => (
-                            <div key={comment.id} className="border-b pb-4">
-                                <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <span className="font-semibold">{comment.username}</span>
-                                        <span className="text-sm text-gray-500 ml-2">{comment.level}</span>
+                        {comments.length === 0 ? (
+                            <div className="text-center text-gray-500 py-4">暂无评论</div>
+                        ) : (
+                            comments.map((comment) => (
+                                <div key={comment.id} className="border-b pb-4">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <span className="font-semibold">{comment.username}</span>
+                                            <span className="text-sm text-gray-500 ml-2">{comment.level}</span>
+                                        </div>
+                                        <span className="text-sm text-gray-500">{comment.time}</span>
                                     </div>
-                                    <span className="text-sm text-gray-500">{comment.time}</span>
+                                    <p className="mb-2">{comment.content}</p>
+                                    <div className="flex justify-end">
+                                        <button
+                                            className="flex items-center text-sm text-gray-500 hover:text-blue-500"
+                                            onClick={() => handleLikeComment(comment.id)}
+                                        >
+                      <span className={`mr-1 ${comment.isLiked ? 'text-blue-500' : ''}`}>
+                        {comment.isLiked ? '♥' : '♡'}
+                      </span>
+                                            {comment.likes > 0 && <span>{comment.likes}</span>}
+                                        </button>
+                                    </div>
                                 </div>
-                                <p className="mb-2">{comment.content}</p>
-                                <div className="flex justify-end">
-                                    <button
-                                        className="flex items-center text-sm text-gray-500 hover:text-blue-500"
-                                        onClick={() => handleLikeComment(comment.id)}
-                                    >
-                    <span className={`mr-1 ${comment.isLiked ? 'text-blue-500' : ''}`}>
-                      {comment.isLiked ? '♥' : '♡'}
-                    </span>
-                                        {comment.likes > 0 && <span>{comment.likes}</span>}
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
