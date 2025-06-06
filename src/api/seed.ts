@@ -17,7 +17,10 @@ export async function getSeedList(params: {
 export async function getSeedDetail(id: number) {
     return request.get(`/api/request/seed/detail/${id}`);
 }
-
+// 评分种子
+export async function rateSeed(seedId: number, rating: number) {
+    return request.post("/api/request/seed/rate", { seedId, rating });
+}
 // 发布种子
 export async function publishSeed(data: {
     title: string;

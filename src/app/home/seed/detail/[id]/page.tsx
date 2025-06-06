@@ -48,7 +48,7 @@ interface Comment {
 
 export default function SeedDetailPage() {
     const params = useParams();
-    const seedId = params.id;
+    const seedId = params?.id?.toString();
     const [newComment, setNewComment] = useState('');
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);

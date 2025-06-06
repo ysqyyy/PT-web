@@ -19,9 +19,32 @@ interface SeedPublishData {
     chineseName: string;
     englishName: string;
     actors: string;
-    types: string;
+    types: string[];
     releaseGroup: string;
     seedPrice: string;
+}
+
+interface SeedPublishResponse {
+    id: number;
+    title: string;
+    category: string;
+    description: string;
+    region: string;
+    year: string;
+    chineseName: string;
+    englishName: string;
+    actors: string;
+    types: string[];
+    releaseGroup: string;
+    seedPrice: string;
+    filePath: string;
+    publishTime: string;
+    publisher: string;
+    publisherLevel: string;
+    size: string;
+    downloads: number;
+    seeds: number;
+    completions: number;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -36,12 +59,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             multiples: false,
             keepExtensions: true,
             uploadDir: path.join(process.cwd(), 'public/uploads'),
-            filename: (name, ext, part, form) => {
-                return `${Date.now()}-${part.originalFilename}`;
+            filename: (name, ext, part) => {
+                return `${Date.now()}-${part.originalFilename ?? 'file'}`;
             }
         });
 
-        const [fields, files] = await new Promise<[fields: formidable.Fields, files: formidable.Files]>((resolve, reject) => {
+        const [fields, files] = await new Promise<[formidable.Fields, formidable.Files]>((resolve, reject) => {
             form.parse(req, (err, fields, files) => {
                 if (err) reject(err);
                 else resolve([fields, files]);
@@ -49,39 +72,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
         // 验证必填字段
-        const requiredFields = ['title', 'category', 'region', 'year'];
+        const requiredFields = ['title', 'category', 'region', 'year'] as const;
         for (const field of requiredFields) {
-            if (!fields[field] || !fields[field][0]) {
+            const fieldValue = fields[field]?.[0];
+            if (!fieldValue) {
                 res.status(400).json({ success: false, message: `${field}不能为空` });
                 return;
             }
         }
 
         // 验证文件
-        if (!files.file || !files.file[0]) {
+        const file = files.file?.[0];
+        if (!file) {
             res.status(400).json({ success: false, message: '请上传种子文件' });
             return;
         }
 
-        const file = files.file[0];
         if (!file.originalFilename?.endsWith('.torrent')) {
             // 删除已上传的文件
-            fs.unlinkSync(file.filepath);
+            if (fs.existsSync(file.filepath)) {
+                fs.unlinkSync(file.filepath);
+            }
             res.status(400).json({ success: false, message: '只能上传.torrent文件' });
             return;
         }
 
         // 准备种子数据
         const seedData: SeedPublishData = {
-            title: fields.title[0],
-            category: fields.category[0],
+            title: fields.title![0], // 已经验证过不为空
+            category: fields.category![0],
             description: fields.description?.[0] || '',
-            region: fields.region[0],
-            year: fields.year[0],
+            region: fields.region![0],
+            year: fields.year![0],
             chineseName: fields.chineseName?.[0] || '',
             englishName: fields.englishName?.[0] || '',
             actors: fields.actors?.[0] || '',
-            types: fields.types?.[0] || '[]',
+            types: fields.types?.[0] ? JSON.parse(fields.types[0]) : [],
             releaseGroup: fields.releaseGroup?.[0] || '',
             seedPrice: fields.seedPrice?.[0] || '免费',
         };
@@ -92,10 +118,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 3. 返回成功响应
 
         // 模拟数据库操作
-        const newSeed = {
+        const newSeed: SeedPublishResponse = {
             id: Math.floor(Math.random() * 100000),
             ...seedData,
-            types: JSON.parse(seedData.types),
             filePath: `/uploads/${path.basename(file.filepath)}`,
             publishTime: new Date().toISOString(),
             publisher: '当前用户',
