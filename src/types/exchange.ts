@@ -11,3 +11,9 @@ export interface ExchangeParams {
     toType: 'bonusPoints' | 'tokens';    // 兑换目标类型
     amount: number;                      // 兑换数量
 }
+
+export interface ExchangeResponse {
+    success: boolean;
+    message?: string;
+    data: UserPoints;
+}

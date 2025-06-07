@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
-import { getUserPoints, exchangePoints } from "../../../api/exchange";
-import type { UserPoints, ExchangeParams } from "../../../types/exchange";
-import Navbar from "../../../components/Navbar";
+import { getUserPoints, exchangePoints } from "@/api/exchange";
+import type { UserPoints, ExchangeParams } from "@/api/exchange";
+import Navbar from "@/components/Navbar";
 import { Button, InputNumber, Select, message, Card, Statistic, Divider } from 'antd';
 
 export default function ExchangePage() {
@@ -22,6 +22,7 @@ export default function ExchangePage() {
     });
 
     const [loading, setLoading] = useState(false);
+    const [exchangeLoading, setExchangeLoading] = useState(false);
 
     // 获取用户积分数据
     useEffect(() => {
@@ -29,11 +30,19 @@ export default function ExchangePage() {
     }, []);
 
     const fetchUserPoints = async () => {
+        setLoading(true);
         try {
-            const data = await getUserPoints();
-            setUserPoints(data);
+            const res = await getUserPoints();
+            if (res.success) {
+                setUserPoints(res.data);
+            } else {
+                message.error(res.message || '获取积分信息失败');
+            }
         } catch (error) {
             message.error('获取积分信息失败');
+            console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -54,16 +63,21 @@ export default function ExchangePage() {
             return;
         }
 
-        setLoading(true);
+        setExchangeLoading(true);
         try {
-            await exchangePoints(exchangeForm);
-            message.success('兑换成功');
-            await fetchUserPoints(); // 刷新数据
-            setExchangeForm(prev => ({ ...prev, amount: 0 })); // 重置数量
+            const res = await exchangePoints(exchangeForm);
+            if (res.success) {
+                message.success(res.message || '兑换成功');
+                setUserPoints(res.data);
+                setExchangeForm(prev => ({ ...prev, amount: 0 }));
+            } else {
+                message.error(res.message || '兑换失败');
+            }
         } catch (error) {
+            console.error(error);
             message.error('兑换失败');
         } finally {
-            setLoading(false);
+            setExchangeLoading(false);
         }
     };
 
@@ -93,35 +107,35 @@ export default function ExchangePage() {
 
                 {/* 用户积分概览 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-                    <Card>
+                    <Card loading={loading}>
                         <Statistic
                             title="魔力值"
                             value={userPoints.bonusPoints}
                             precision={2}
                         />
                     </Card>
-                    <Card>
+                    <Card loading={loading}>
                         <Statistic
                             title="点券"
                             value={userPoints.tokens}
                             precision={0}
                         />
                     </Card>
-                    <Card>
+                    <Card loading={loading}>
                         <Statistic
                             title="上传量(GB)"
                             value={userPoints.uploadCredit}
                             precision={2}
                         />
                     </Card>
-                    <Card>
+                    <Card loading={loading}>
                         <Statistic
                             title="经验值"
                             value={userPoints.exp}
                             precision={0}
                         />
                     </Card>
-                    <Card>
+                    <Card loading={loading}>
                         <Statistic
                             title="等级"
                             value={userPoints.level}
@@ -140,7 +154,11 @@ export default function ExchangePage() {
                             <Select
                                 className="w-full"
                                 value={exchangeForm.fromType}
-                                onChange={(value) => setExchangeForm({ ...exchangeForm, fromType: value })}
+                                onChange={(value) => setExchangeForm({
+                                    ...exchangeForm,
+                                    fromType: value as 'bonusPoints' | 'tokens',
+                                    toType: value === 'bonusPoints' ? 'tokens' : 'bonusPoints'
+                                })}
                                 options={[
                                     { value: 'bonusPoints', label: '魔力值' },
                                     { value: 'tokens', label: '点券' },
@@ -164,7 +182,7 @@ export default function ExchangePage() {
                             <Select
                                 className="w-full"
                                 value={exchangeForm.toType}
-                                onChange={(value) => setExchangeForm({ ...exchangeForm, toType: value })}
+                                onChange={(value) => setExchangeForm({ ...exchangeForm, toType: value as 'bonusPoints' | 'tokens' })}
                                 options={[
                                     { value: 'tokens', label: '点券' },
                                     { value: 'bonusPoints', label: '魔力值' },
@@ -193,7 +211,7 @@ export default function ExchangePage() {
                             type="primary"
                             size="large"
                             onClick={handleExchange}
-                            loading={loading}
+                            loading={exchangeLoading}
                             disabled={exchangeForm.amount <= 0}
                         >
                             确认兑换

@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import Navbar from '../../../components/Navbar';
 import { useRouter } from 'next/navigation'; // 引入路由
-
+import { getSeedList } from '@/api/seed';
+import { useEffect } from 'react';
 // 定义分类类型
 type Category =  '电影' | '剧集' | '音乐' | '动漫' | '游戏' | '综艺' | '体育' | '软件' | '学习' | '纪录片' ;
 
@@ -67,60 +68,38 @@ export default function SeedCenter() {
     };
 
     // 模拟种子数据
-    const seedItems: SeedItem[] = [
-        {
-            id: 1,
-            category: '电影',
-            name: '[大陆][2018][西红柿首富/Hello Mr. Billionaire]沈腾/宋芸桦/张一鸣/张晨光/常远/魏翔[喜剧]WEB-DL[4K][自带中英字幕]',
-            size: '6.94 GB',
-            files: 1,
-            clicks: 101,
-            publishDate: '2024-11-16 10:59',
-            seeds: 2,
-            downloads: 0,
-            completions: 13,
-            publisher: 'bingzhixie'
-        },
-        {
-            id: 2,
-            category: '电影',
-            name: '[大陆][2024][逆行人生][Upstream 2024 2160p WEB-DL DDP5.1 H265-HDSWEB]徐峥/李乃文/王影璐[剧情/喜剧]WEB-DL[4K][自带中文字幕]',
-            size: '3.57 GB',
-            files: 1,
-            clicks: 449,
-            publishDate: '2024-10-03 21:25',
-            seeds: 9,
-            downloads: 0,
-            completions: 178,
-            publisher: '祖国山河一片红'
-        },
-        {
-            id: 3,
-            category: '电影',
-            name: '[大陆][2024][抓娃娃][Successor2024 2160p WEB-DL H265 HDR DDP2.05.1-HHWEB]沈腾/马丽/史彭元/李勤勤/肖帛辰[喜剧]WEB-DL[4K][自带中文字幕]',
-            size: '5.38 GB',
-            files: 1,
-            clicks: 206,
-            publishDate: '2024-10-03 14:27',
-            seeds: 8,
-            downloads: 0,
-            completions: 81,
-            publisher: 'Laoking'
-        },
-        {
-            id: 4,
-            category: '电影',
-            name: '[美国][2024][死侍与金刚狼/死侍3/死侍与金刚狼(台)/死侍与狼人(港)]Deadpool.and.Wolverine.2024.[iTunes.WEB-DL 4K HEVC.HDR.DDP-ARF)]瑞安·雷诺兹/休·杰克曼/艾玛·科林/达芙妮·基恩[喜剧/动作/科幻][WEB-DL][4K][制作中英字幕]',
-            size: '23.01 GB',
-            files: 1,
-            clicks: 360,
-            publishDate: '2024-10-01 20:05',
-            seeds: 8,
-            downloads: 0,
-            completions: 99,
-            publisher: 'Laoking'
+    const [seedItems, setSeedItems] = useState<SeedItem[]>([]);
+    const [loading, setLoading] = useState(false);
+    // 添加获取种子列表的函数
+    const fetchSeedList = async () => {
+        setLoading(true);
+        try {
+            const res = await getSeedList({
+                category: currentCategory,
+                regions: selectedRegions,
+                years: selectedYears,
+                genres: selectedGenres,
+                searchTerm
+            });
+            if (res.success) {
+                setSeedItems(res.data);
+            }
+        } catch (error) {
+            console.error('获取种子列表失败:', error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+// 添加 useEffect 监听筛选条件变化
+    useEffect(() => {
+        fetchSeedList();
+    }, [currentCategory, selectedRegions, selectedYears, selectedGenres, searchTerm]);
+
+// 修改搜索按钮的点击事件
+    const handleSearch = () => {
+        fetchSeedList();
+    };
 
     // 切换选择状态
     const toggleSelection = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
@@ -135,7 +114,6 @@ export default function SeedCenter() {
     const handleSeedClick = (seedId: number) => {
         router.push(`/home/seed/detail/${seedId}`); //
     };
-    // 渲染筛选条件
     // 渲染筛选条件
     const renderFilterConditions = () => {
         switch (currentCategory) {
