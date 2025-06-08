@@ -21,7 +21,6 @@ export async function getUserProfile(): Promise<UserProfile> {
     return userProfile;
   } catch (error) {
     console.error('获取用户资料失败:', error);
-    // 直接重新抛出原始错误，让全局拦截器处理
     throw error;
   }
 }
@@ -47,7 +46,7 @@ export async function updateUserProfile(params: UpdateProfileParams): Promise<{s
 }
 
 /**
- * 获取用户消息
+ * 获取用户消息 todo
  * @returns Promise<UserMessage[]> 用户消息列表
  */
 export async function getUserMessages(): Promise<UserMessage[]> {

@@ -8,6 +8,7 @@ import {
   CheckCircle,
   Medal,
   FileText,
+  MessageCircle, // 新增
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -24,6 +25,7 @@ const navItems = [
   { label: "资源审核", icon: <CheckCircle />, path: "/home/user/review" },
   { label: "我的悬赏", icon: <Medal />, path: "/home/user/bounties" },
   { label: "仲裁管理", icon: <CheckCircle />, path: "/home/user/arbitration" },
+  { label: "私信", icon: <MessageCircle />, path: "/home/user/message" }, // 新增
 ];
 
 export default function DashboardLayout({ children, title }: DashboardLayoutProps) {
