@@ -25,7 +25,7 @@ const submittedBounties: SubmittedBounty[] = [
     description: "英文朗读版，音质清晰",
     total_amount: 60,
     publisher: "book_lover",
-    status: "进行中"
+    status: "pending"
   }
 ];
 

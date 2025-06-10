@@ -9,7 +9,7 @@ const appendedBounties: AppendedBounty[] = [
     description: "1080p或4K分辨率，中英双语字幕",
     total_amount: 200,
     publisher: "magic_fan",
-    status: "进行中"
+    status: "pending"
   },
   {
     id: 2,

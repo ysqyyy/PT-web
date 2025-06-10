@@ -41,7 +41,7 @@ export default function BountyPage() {
                   <td className="p-4">{item.status}</td>
                   <td className="p-4">{item.description}</td>
                   <td className="p-4 space-y-1 flex flex-col">
-                    {item.status === "进行中" && (
+                    {item.status === "pending" && (
                       <div className="flex gap-2">
                         <SubmitSeedButton
                           bountyId={item.id}

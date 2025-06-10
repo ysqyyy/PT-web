@@ -3,7 +3,7 @@ export type BountyItem = {
   id: number;
   name: string;
   description: string;
-  status: "进行中" | "已完成" | "已取消" | "待确认" | "待仲裁";
+  status: "pending" | "已完成" | "已取消" | "待确认" | "待仲裁";
 };
 
 // 悬赏列表项

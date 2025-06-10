@@ -11,7 +11,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         description: "包含路由、状态管理、UI组件库的完整项目架构，适合中大型项目开发",
         reward_amount: 200,
         total_amount: 350,
-        status: "进行中"
+        status: "pending"
       },
       {
         id: 2,
@@ -51,7 +51,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         description: "基于Flutter的跨平台移动应用，包含完整的UI组件和状态管理",
         reward_amount: 250,
         total_amount: 400,
-        status: "进行中"
+        status: "pending"
       }
     ];
 

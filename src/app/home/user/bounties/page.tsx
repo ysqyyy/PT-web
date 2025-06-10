@@ -8,7 +8,6 @@ import {
   cancelBounty,
   confirmBounty,
   arbitrateBounty,
-  publishBounty,
   getMyAppendedBounties,
   getMySubmittedBounties,
 } from "@/api/bounties";
@@ -18,6 +17,7 @@ import { useDebounceFn } from "@/hooks/useDebounceFn";
 import AppendBountyButton from "@/components/bounty/AppendBountyButton";
 import SubmitSeedButton from "@/components/bounty/SubmitSeedButton";
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
+import PublishBountyButton from "@/components/bounty/PublishBountyButton";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 
 export default function MyBountiesPage() {
@@ -31,11 +31,6 @@ export default function MyBountiesPage() {
   const [activeTab, setActiveTab] = useState<
     "published" | "appended" | "submitted"
   >("published");
-  // 发布悬赏表单弹窗相关状态
-  const [showPublishModal, setShowPublishModal] = useState(false);
-  const [publishTitle, setPublishTitle] = useState("");
-  const [publishAmount, setPublishAmount] = useState("");
-  const [publishDesc, setPublishDesc] = useState("");
   // 仲裁弹窗相关状态
   const [showArbitrateModal, setShowArbitrateModal] = useState(false);
   const [arbitrateId, setArbitrateId] = useState<number | null>(null);
@@ -82,28 +77,8 @@ export default function MyBountiesPage() {
     toast.success("已提交仲裁申请");
     closeArbitrateModal();
     loadData();
-  }; // 打开发布悬赏弹窗
-  const openPublishModal = () => {
-    setPublishTitle("");
-    setPublishAmount("");
-    setPublishDesc("");
-    setShowPublishModal(true);
-  };
-  // 关闭发布悬赏弹窗
-  const closePublishModal = () => {
-    setShowPublishModal(false);
-    setPublishTitle("");
-    setPublishAmount("");
-    setPublishDesc("");
-  };
-  // 发布悬赏（弹窗提交）
-  const handlePublish = async () => {
-    if (!publishTitle || !publishAmount) return;
-    await publishBounty(publishTitle, Number(publishAmount), publishDesc);
-    toast.success("已发布悬赏");
-    closePublishModal();
-    loadData();
-  }; // 取消求种请求 - 防抖处理
+  }; 
+// 取消求种请求 - 防抖处理
   const debouncedHandleCancel = useDebounceFn(
     (id: unknown) => handleCancel(id as number),
     800
@@ -113,12 +88,6 @@ export default function MyBountiesPage() {
     (id: unknown) => handleConfirm(id as number),
     800
   );
-  // 打开发布悬赏弹窗 - 防抖处理
-  const debouncedOpenPublishModal = useDebounceFn(openPublishModal, 800);
-  // 关闭发布悬赏弹窗 - 防抖处理
-  const debouncedClosePublishModal = useDebounceFn(closePublishModal, 800);
-  // 发布悬赏（弹窗提交）- 防抖处理
-  const debouncedHandlePublish = useDebounceFn(handlePublish, 800);
   // 打开仲裁弹窗 - 防抖处理
   const debouncedOpenArbitrateModal = useDebounceFn(
     (id: unknown) => openArbitrateModal(id as number),
@@ -167,12 +136,7 @@ export default function MyBountiesPage() {
           {activeTab === "published" && (
             <div className="flex justify-between mb-4">
               <b className="text-lg">我的悬赏</b>
-              <button
-                className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} text-white rounded ${BUTTON_STYLES.COLORS.primary.hover}`}
-                onClick={debouncedOpenPublishModal}
-              >
-                发布悬赏
-              </button>
+              <PublishBountyButton onSuccess={loadData} />
             </div>
           )}
           {/* 表格 */}
@@ -214,7 +178,7 @@ export default function MyBountiesPage() {
                         <td className="px-4 py-2">{item.total_amount} 元</td>
                         <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 space-x-2">
-                          {/* 进行中显示追加和取消 */}                          {item.status === "进行中" && (
+                          {/* pending显示追加和取消 */}                          {item.status === "pending" && (
                             <>
                               <AppendBountyButton
                                 bountyId={item.id}
@@ -298,7 +262,7 @@ export default function MyBountiesPage() {
                         <td className="px-4 py-2">{item.total_amount} 元</td>
                         <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 space-x-2">
-                          {item.status === "进行中" && (
+                          {item.status === "pending" && (
                             <>
                               <div className="flex gap-1">
                                 <AppendBountyButton
@@ -366,7 +330,7 @@ export default function MyBountiesPage() {
                         <td className="px-4 py-2">{item.total_amount} 元</td>
                         <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 space-x-2">
-                          {item.status === "进行中" && (
+                          {item.status === "pending" && (
                             <SubmitSeedButton
                               bountyId={item.id}
                               onSuccess={loadData}
@@ -389,61 +353,6 @@ export default function MyBountiesPage() {
               </div>
             )}
           </div>
-          {/* 发布悬赏弹窗 */}
-          {showPublishModal && (
-            <div
-              className="fixed inset-0 flex items-center justify-center z-50"
-              style={{ background: "rgba(0,0,0,0.15)" }}
-            >
-              <div className="bg-white p-6 rounded-2xl shadow-lg w-96">
-                <h2 className="text-lg font-bold mb-4">发布悬赏</h2>
-                <div className="mb-3">
-                  <label className="block mb-1 font-medium">资源标题</label>
-                  <input
-                    type="text"
-                    className="border p-2 w-full"
-                    placeholder="请输入资源标题"
-                    value={publishTitle}
-                    onChange={(e) => setPublishTitle(e.target.value)}
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="block mb-1 font-medium">金额</label>
-                  <input
-                    type="number"
-                    className="border p-2 w-full"
-                    placeholder="请输入悬赏金额"
-                    value={publishAmount}
-                    onChange={(e) => setPublishAmount(e.target.value)}
-                    min={1}
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block mb-1 font-medium">资源描述</label>
-                  <textarea
-                    className="border p-2 w-full"
-                    placeholder="请输入资源描述"
-                    value={publishDesc}
-                    onChange={(e) => setPublishDesc(e.target.value)}
-                    rows={3}
-                  />                  </div>
-                <div className="flex justify-end space-x-2">
-                  <button
-                    onClick={debouncedClosePublishModal}
-                    className={`${BUTTON_STYLES.STANDARD.padding} bg-gray-300 rounded hover:bg-gray-400`}
-                  >
-                    取消
-                  </button>
-                  <button
-                    onClick={debouncedHandlePublish}
-                    className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} text-white rounded ${BUTTON_STYLES.COLORS.primary.hover}`}
-                    disabled={!publishTitle || !publishAmount}
-                  >
-                    确认发布
-                  </button>
-                </div>              </div>
-            </div>
-          )}
           {/* 仲裁弹窗 */}
           {showArbitrateModal && (
             <div

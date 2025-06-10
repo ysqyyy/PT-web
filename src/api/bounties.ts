@@ -1,9 +1,19 @@
 import request from '../utils/request';
-import type { BountyListItem } from '../types/bounty';
+import type { MyBounty } from '../types/bounty';
 
-// 获取我的悬赏列表
+// 获取我的悬赏列表ok
 export async function getMyBounties() {
-  return request.get("/api/request/bounty/getMyBounties");
+  const data = await request.get("http://localhost:8080/bounty/mybounties");
+  const bounties: MyBounty[] = data.map((item: any) => ({
+    id: item.bounty.bountyId,
+    name: item.bounty.bountyTitle,
+    description: item.bounty.bountyDescription,
+    status: item.bounty.bountyStatus,
+    reward_amount: item.bounty.rewardAmount,
+    total_amount: item.bounty.totalAmount,
+  }));
+
+  return bounties;
 }
 // 获取我追加的悬赏列表
 export async function getMyAppendedBounties() {
@@ -45,7 +55,7 @@ export async function getBountyList(): Promise<BountyListItem[]> {
   return request.get('/api/request/bounty');
 }
 
-// 提交种子
+// 提交种子  return number seedId
 export async function submitSeed(id: number, seedFile: File | null) {
   if (!seedFile) {
     return Promise.reject(new Error('请选择种子文件'));

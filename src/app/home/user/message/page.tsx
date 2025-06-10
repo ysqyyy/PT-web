@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import DashboardLayout from '@/components/DashboardLayout';
+import Navbar from '@/components/Navbar';
 import { getConversations, getConversationMessages, sendMessage } from '@/api/message';
 import { useMessageService } from '@/services/messageService';
 import { useMessageStore } from '@/store/messageStore';
@@ -218,82 +219,84 @@ export default function MessagePage() {
   const selectedConversation = conversations.find(c => c.id === currentConversation);
 
   return (
-    <DashboardLayout title="私信">
-      <div className="bg-white rounded-lg shadow overflow-hidden h-[calc(100vh-180px)] flex">
-        {/* 会话列表 */}
-        <div className="w-1/4 border-r overflow-y-auto">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold">对话列表</h2>
-          </div>
-          <div>
-            {loading ? (
-              <div className="p-4 text-center text-gray-500">加载中...</div>
-            ) : conversations.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">暂无对话</div>
-            ) : (
-              conversations.map(renderConversationItem)
-            )}
-          </div>
-        </div>
-        
-        {/* 消息区域 */}
-        <div className="flex-1 flex flex-col">
-          {/* 对话头部 */}
-          <div className="p-4 border-b flex items-center">
-            {selectedConversation ? (
-              <>
-                <h2 className="text-lg font-semibold">{selectedConversation.participantName}</h2>
-              </>
-            ) : (
-              <h2 className="text-lg font-semibold">选择一个对话</h2>
-            )}
-          </div>
-          
-          {/* 消息列表 */}
-          <div className="flex-1 overflow-y-auto p-4">
-            {currentConversation ? (
-              currentMessages.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-gray-500">
-                  暂无消息，发送一条消息开始对话吧
-                </div>
-              ) : (
-                <>
-                  {currentMessages.map(renderMessage)}
-                  <div ref={messagesEndRef} />
-                </>
-              )
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-500">
-                请选择一个对话
-              </div>
-            )}
-          </div>
-          
-          {/* 消息输入区域 */}
-          {currentConversation && (
-            <div className="p-4 border-t">
-              <div className="flex">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="输入消息..."
-                  className="flex-1 p-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  disabled={sending}
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={sending || !newMessage.trim()}
-                  className="bg-teal-500 text-white px-4 py-2 rounded-r-lg hover:bg-teal-600 disabled:bg-gray-300"
-                >
-                  {sending ? '发送中...' : '发送'}
-                </button>
-              </div>
+    <Navbar name="个人中心">
+      <DashboardLayout title="私信">
+        <div className="bg-white rounded-lg shadow overflow-hidden h-[calc(100vh-180px)] flex">
+          {/* 会话列表 */}
+          <div className="w-1/4 border-r overflow-y-auto">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold">对话列表</h2>
             </div>
-          )}
+            <div>
+              {loading ? (
+                <div className="p-4 text-center text-gray-500">加载中...</div>
+              ) : conversations.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">暂无对话</div>
+              ) : (
+                conversations.map(renderConversationItem)
+              )}
+            </div>
+          </div>
+          
+          {/* 消息区域 */}
+          <div className="flex-1 flex flex-col">
+            {/* 对话头部 */}
+            <div className="p-4 border-b flex items-center">
+              {selectedConversation ? (
+                <>
+                  <h2 className="text-lg font-semibold">{selectedConversation.participantName}</h2>
+                </>
+              ) : (
+                <h2 className="text-lg font-semibold">选择一个对话</h2>
+              )}
+            </div>
+            
+            {/* 消息列表 */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {currentConversation ? (
+                currentMessages.length === 0 ? (
+                  <div className="h-full flex items-center justify-center text-gray-500">
+                    暂无消息，发送一条消息开始对话吧
+                  </div>
+                ) : (
+                  <>
+                    {currentMessages.map(renderMessage)}
+                    <div ref={messagesEndRef} />
+                  </>
+                )
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  请选择一个对话
+                </div>
+              )}
+            </div>
+            
+            {/* 消息输入区域 */}
+            {currentConversation && (
+              <div className="p-4 border-t">
+                <div className="flex">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="输入消息..."
+                    className="flex-1 p-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    disabled={sending}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={sending || !newMessage.trim()}
+                    className="bg-teal-500 text-white px-4 py-2 rounded-r-lg hover:bg-teal-600 disabled:bg-gray-300"
+                  >
+                    {sending ? '发送中...' : '发送'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </Navbar>
   );
 }
