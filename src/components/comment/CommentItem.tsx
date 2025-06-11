@@ -94,14 +94,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
           {/* 评论操作 */}
           <div className="flex items-center text-sm text-gray-500">
             <button 
-              className="mr-4 hover:text-teal-600 transition-colors"
+              className="mr-4 hover:text-teal-600 cursor-pointer transition-colors"
               onClick={() => setIsReplying(!isReplying)}
             >
               回复
             </button>
             
             <button 
-              className={`flex items-center hover:text-teal-600 transition-colors ${comment.isLiked ? 'text-teal-600' : ''}`}
+              className={`flex items-center cursor-pointer hover:text-teal-600 transition-colors ${comment.isLiked ? 'text-teal-600' : ''}`}
               onClick={handleLike}
               disabled={isLiking}
             >
@@ -127,7 +127,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
       {comment.replyCount > 0 && (
         <div className="ml-12 mt-3">
           <button 
-            className="text-sm text-teal-600 hover:text-teal-800 transition-colors"
+            className="text-sm text-teal-600 hover:text-teal-800 transition-colors cursor-pointer"
             onClick={() => onLoadReplies(comment.id)}
           >
             {isExpanded 

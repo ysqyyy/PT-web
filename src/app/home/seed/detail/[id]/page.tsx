@@ -211,7 +211,7 @@ export default function SeedDetailPage() {
               ))}
             </div>
             <button
-              className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.secondary.bg} text-white rounded ${BUTTON_STYLES.COLORS.secondary.hover}`}
+              className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.secondary.bg} text-white cursor-pointer rounded ${BUTTON_STYLES.COLORS.secondary.hover}`}
               onClick={handleSubmitRating}
             >
               提交评分

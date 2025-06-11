@@ -45,7 +45,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
       <div className="flex justify-end">
         <button
           type="submit"
-          className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors disabled:bg-teal-300"
+          className="px-4 py-2 bg-teal-600 text-white cursor-pointer rounded-md hover:bg-teal-700 transition-colors disabled:bg-gray-400"
           disabled={isSubmitting || !content.trim()}
         >
           {isSubmitting ? '提交中...' : buttonText}

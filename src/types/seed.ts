@@ -31,7 +31,7 @@ export interface ori {
     categoryId?: number;       // 分类ID，对应后端的 categoryId
     // torrentPath?: string | null; // 种子文件路径，对应后端的 torrentPath
 }
-//new type
+//new type ok
 export interface SeedDetail{
     id: number;                // 对应后端的 torrentId
     name: string;             // 对应后端的 torrentName    
@@ -56,6 +56,19 @@ export interface SeedDetail{
     categoryId?: number;       // 分类ID，对应后端的 categoryId 无数据
     tags?: string[];           // 标签列表
 }
+//ok
+export interface publishSeedData {
+    name: string;            // 种子标题
+    description: string;     // 种子描述
+    file: File;              // 种子文件
+    imgUrl?: string;         // 种子图片URL
+    tags?: string[];         // 标签列表
+    price?: number;         // 种子价格
+    category?: string;        // 种子分类
+}
+
+
+
 // 后端返回的种子数据格式
 export interface BackendTorrent {
     torrentId: number;           // 种子ID
