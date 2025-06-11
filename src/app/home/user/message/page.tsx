@@ -9,7 +9,7 @@ import {
   getConversationMessages,
   sendMessage,
 } from "@/api/message";
-import { useMessageService } from "@/services/messageService";
+import { useMessageService } from "@/services/useMessageService";
 import { useMessageStore } from "@/store/messageStore";
 import { Conversation, Message } from "@/types/message";
 import { getUserProfile } from "@/api/user";

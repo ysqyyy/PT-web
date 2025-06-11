@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Comment, CommentReply } from '@/types/comment';
 import CommentForm from './CommentForm';
 import TimeAgo from './TimeAgo';
+import UserAvatar from '@/components/user/UserAvatar';
 
 interface CommentItemProps {
   comment: Comment;
@@ -55,24 +56,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
   return (
     <div className="border-b pb-6 last:border-b-0 last:pb-0">
-      {/* 一级评论 */}
-      <div className="flex">
+      {/* 一级评论 */}      <div className="flex">
         {/* 头像 */}
         <div className="flex-shrink-0 mr-3">
-          <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white">
-            {comment.author.avatar ? (
-              <img 
-                src={comment.author.avatar} 
-                alt={comment.author.username} 
-                className="w-full h-full rounded-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).textContent = comment.author.username.charAt(0).toUpperCase();
-                }}
-              />
-            ) : (
-              <span>{comment.author.username.charAt(0).toUpperCase()}</span>
-            )}
-          </div>
+          <UserAvatar 
+            userId={comment.author.id}
+            avatarUrl={comment.author.avatar}
+            username={comment.author.username}
+          />
         </div>
 
         {/* 评论内容 */}
@@ -173,24 +164,15 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onLike }) => {
     }
   };
 
-  return (
-    <div className="flex">
+  return (    <div className="flex">
       {/* 头像 */}
       <div className="flex-shrink-0 mr-3">
-        <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white">
-          {reply.author.avatar ? (
-            <img 
-              src={reply.author.avatar} 
-              alt={reply.author.username} 
-              className="w-full h-full rounded-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).textContent = reply.author.username.charAt(0).toUpperCase();
-              }}
-            />
-          ) : (
-            <span>{reply.author.username.charAt(0).toUpperCase()}</span>
-          )}
-        </div>
+        <UserAvatar 
+          userId={reply.author.id}
+          avatarUrl={reply.author.avatar}
+          username={reply.author.username}
+          size="sm"
+        />
       </div>
 
       {/* 回复内容 */}
