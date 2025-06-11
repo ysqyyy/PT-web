@@ -5,7 +5,7 @@ import type { ReviewItem } from "@/types/review";
 export const getPendingReviews = async (): Promise<ReviewItem[]> => {
   try {
     // 真实的后端API调用
-    const response = await request.get('/api/request/review/pending');
+    const response = await request.get(' http://localhost:8080/api/admin/torrents/pending');
     return response;
   } catch (error) {
     console.error("获取待审核资源失败:", error);

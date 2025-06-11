@@ -163,12 +163,12 @@ export default function MessagePage() {
               className="rounded-full"
             />
           ) : (
-            <span>{conversation.participantName.charAt(0).toUpperCase()}</span>
+              <span>{conversation.participantName ? conversation.participantName.charAt(0).toUpperCase() : ''}</span>
           )}
         </div>
         <div className="flex-1">
           <div className="flex justify-between">
-            <h3 className="font-medium">{conversation.participantName}</h3>
+          <h3 className="font-medium">{conversation.participantName}</h3>
             {conversation.unreadCount > 0 && (
               <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                 {conversation.unreadCount}
@@ -193,10 +193,10 @@ export default function MessagePage() {
       >
         {!isSender && (
           <div className="w-8 h-8 rounded-full bg-gray-300 mr-2 flex items-center justify-center">
-            {conversations.find(c => c.id === currentConversation)?.participantName.charAt(0).toUpperCase()}
+            {conversations.find(c => c.id === currentConversation)?.participantName?.charAt(0).toUpperCase() || ''}
           </div>
         )}
-        <div 
+        <div
           className={`max-w-[70%] p-3 rounded-lg ${
             isSender ? 'bg-teal-500 text-white' : 'bg-gray-200'
           }`}

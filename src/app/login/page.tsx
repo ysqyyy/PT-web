@@ -9,7 +9,7 @@ import { useUserStore } from "@/store/user";
 import { useEventDebounce } from "@/hooks/useEventDebounce";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("hua");
+  const [username, setUsername] = useState("aa1");
   const [password, setPassword] = useState("123456789");
   const [loading, setLoading] = useState(false);
   const router = useRouter();

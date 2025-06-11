@@ -1,40 +1,68 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { getUserPoints, exchangePoints } from "@/api/exchange";
-import type { UserPoints, ExchangeParams } from "@/api/exchange";
+import {
+    getUserValues,
+    exchangeMagicValue,
+    exchangePointsToScore,
+    exchangeMagicValueForBadge,
+    UserValues,
+    ApiResponse,
+    ExchangeMagicValueResponseData,
+    ExchangePointsToScoreResponseData,
+    ExchangeMagicValueForBadgeResponseData,
+    dailySignIn,
+    DailySignInResponseData,
+    getUserBadges,
+    getAllBadges,
+    Badge,
+    rechargeTicket,
+    TicketRechargeResponseData
+} from "@/api/exchange";
 import Navbar from "@/components/Navbar";
-import { Button, InputNumber, Select, message, Card, Statistic, Divider } from 'antd';
+import { Button, InputNumber, Select, message, Card, Statistic, Divider, Tag } from 'antd';
 
 export default function ExchangePage() {
-    const [userPoints, setUserPoints] = useState<UserPoints>({
-        bonusPoints: 0,
-        tokens: 0,
-        exp: 0,
-        uploadCredit: 0,
-        level: 1
+    const [userValues, setUserValues] = useState<UserValues>({
+        user_id: 0,
+        points: 0,
+        tickets: 0,
+        magic_value: 0
     });
 
-    const [exchangeForm, setExchangeForm] = useState<ExchangeParams>({
-        fromType: 'bonusPoints',
-        toType: 'tokens',
-        amount: 0
-    });
+    const [exchangeAmount, setExchangeAmount] = useState<number>(0);
+    const [fromType, setFromType] = useState<'tickets' | 'magic_value'>('tickets');
+    const [toType, setToType] = useState<'magic_value' | 'points'>('magic_value');
+
+    const [badgeIdToExchange, setBadgeIdToExchange] = useState<number | null>(null);
+    const [badgeExchangeLoading, setBadgeExchangeLoading] = useState(false);
 
     const [loading, setLoading] = useState(false);
     const [exchangeLoading, setExchangeLoading] = useState(false);
+    const [signInLoading, setSignInLoading] = useState(false);
+    const [signInResult, setSignInResult] = useState<{ points: number; magicValue: number } | null>(null);
+    const [isSignedToday, setIsSignedToday] = useState(false);
 
-    // 获取用户积分数据
+    const [allBadges, setAllBadges] = useState<Badge[]>([]);
+    const [userBadges, setUserBadges] = useState<Badge[]>([]);
+    const [badgesLoading, setBadgesLoading] = useState(false);
+
+    // 新增：点券充值
+    const [rechargeAmount, setRechargeAmount] = useState<number>(0);
+    const [rechargeLoading, setRechargeLoading] = useState(false);
+
     useEffect(() => {
-        fetchUserPoints();
+        fetchUserValues();
+        fetchAllBadges();
+        fetchUserOwnedBadges();
     }, []);
 
-    const fetchUserPoints = async () => {
+    const fetchUserValues = async () => {
         setLoading(true);
         try {
-            const res = await getUserPoints();
-            if (res.success) {
-                setUserPoints(res.data);
+            const res: ApiResponse<UserValues> = await getUserValues();
+            if (res.code === 200) {
+                setUserValues(res.data);
             } else {
                 message.error(res.message || '获取积分信息失败');
             }
@@ -46,32 +74,114 @@ export default function ExchangePage() {
         }
     };
 
-    // 处理兑换操作
+    const fetchAllBadges = async () => {
+        setBadgesLoading(true);
+        try {
+            const res: ApiResponse<Badge[]> = await getAllBadges();
+            if (res.code === 200) {
+                setAllBadges(res.data);
+            } else {
+                message.error(res.message || '获取所有勋章失败');
+            }
+        } catch (error) {
+            message.error('获取所有勋章失败');
+            console.error(error);
+        } finally {
+            setBadgesLoading(false);
+        }
+    };
+
+    const fetchUserOwnedBadges = async () => {
+        setBadgesLoading(true);
+        try {
+            const res: ApiResponse<Badge[]> = await getUserBadges();
+            if (res.code === 200) {
+                setUserBadges(res.data);
+            } else {
+                message.error(res.message || '获取用户勋章失败');
+            }
+        } catch (error) {
+            message.error('获取用户勋章失败');
+            console.error(error);
+        } finally {
+            setBadgesLoading(false);
+        }
+    };
+
+    const handleDailySignIn = async () => {
+        setSignInLoading(true);
+        try {
+            const res: ApiResponse<DailySignInResponseData> = await dailySignIn();
+            if (res.code === 200) {
+                message.success(res.message || '签到成功');
+                setSignInResult(res.data.reward);
+                setIsSignedToday(true);
+                fetchUserValues();
+            } else if (res.message && res.message.includes('已签到')) {
+                message.warning(res.message || '今日已签到，请勿重复签到');
+                setIsSignedToday(true);
+                setSignInResult(null);
+            } else {
+                message.error(res.message || '签到失败');
+                setSignInResult(null);
+            }
+        } catch (error) {
+            console.error(error);
+            message.error('签到失败');
+            setSignInResult(null);
+        } finally {
+            setSignInLoading(false);
+        }
+    };
+
     const handleExchange = async () => {
-        if (exchangeForm.amount <= 0) {
+        if (exchangeAmount <= 0) {
             message.warning('请输入有效的兑换数量');
             return;
         }
-
-        // 检查兑换源是否足够
-        if (exchangeForm.fromType === 'bonusPoints' && exchangeForm.amount > userPoints.bonusPoints) {
+        if (fromType === 'tickets' && exchangeAmount > userValues.tickets) {
+            message.warning('点券不足');
+            return;
+        } else if (fromType === 'magic_value' && exchangeAmount > userValues.magic_value) {
             message.warning('魔力值不足');
             return;
         }
-        if (exchangeForm.fromType === 'tokens' && exchangeForm.amount > userPoints.tokens) {
-            message.warning('点券不足');
-            return;
-        }
-
         setExchangeLoading(true);
         try {
-            const res = await exchangePoints(exchangeForm);
-            if (res.success) {
-                message.success(res.message || '兑换成功');
-                setUserPoints(res.data);
-                setExchangeForm(prev => ({ ...prev, amount: 0 }));
-            } else {
-                message.error(res.message || '兑换失败');
+            if (fromType === 'tickets') {
+                if (toType === 'magic_value') {
+                    const res: ApiResponse<ExchangeMagicValueResponseData> = await exchangeMagicValue(exchangeAmount);
+                    if (res.code === 200) {
+                        message.success(res.message || '兑换成功');
+                        setUserValues(prev => ({
+                            ...prev,
+                            points: res.data.remainingPoint,
+                            magic_value: res.data.remainingMagicValue,
+                            tickets: res.data.remainingTicket
+                        }));
+                        setExchangeAmount(0);
+                    } else {
+                        message.error(res.message || '兑换失败');
+                    }
+                } else if (toType === 'points') {
+                    const res: ApiResponse<ExchangePointsToScoreResponseData> = await exchangePointsToScore(exchangeAmount);
+                    if (res.code === 200) {
+                        message.success(res.message || '兑换成功');
+                        setUserValues(prev => ({
+                            ...prev,
+                            points: res.data.remainingPoint,
+                            magic_value: res.data.remainingMagicValue,
+                            tickets: res.data.remainingTicket
+                        }));
+                        setExchangeAmount(0);
+                    } else {
+                        message.error(res.message || '兑换失败');
+                    }
+                } else {
+                    message.warning('请选择有效的兑换目标');
+                }
+            } else if (fromType === 'magic_value') {
+                message.warning('暂不支持魔力值直接兑换点券或积分，请使用勋章兑换功能');
             }
         } catch (error) {
             console.error(error);
@@ -81,21 +191,76 @@ export default function ExchangePage() {
         }
     };
 
-    // 兑换比例配置
-    const exchangeRates = {
-        bonusPointsToTokens: 10, // 10魔力值=1点券
-        tokensToBonusPoints: 0.1, // 1点券=0.1魔力值
+    const handleExchangeBadge = async () => {
+        if (badgeIdToExchange === null || badgeIdToExchange <= 0) {
+            message.warning('请选择要兑换的勋章');
+            return;
+        }
+        if (userBadges.some(badge => badge.titleId === badgeIdToExchange)) {
+            message.warning('您已拥有此勋章，请勿重复兑换');
+            return;
+        }
+        setBadgeExchangeLoading(true);
+        try {
+            const res: ApiResponse<ExchangeMagicValueForBadgeResponseData> = await exchangeMagicValueForBadge(badgeIdToExchange);
+            if (res.code === 200) {
+                message.success(res.message || '勋章兑换成功');
+                fetchUserValues();
+                fetchUserOwnedBadges();
+                setBadgeIdToExchange(null);
+            } else {
+                message.error(res.message || '勋章兑换失败');
+            }
+        } catch (error) {
+            console.error(error);
+            message.error('勋章兑换失败');
+        } finally {
+            setBadgeExchangeLoading(false);
+        }
     };
 
-    // 计算兑换结果
-    const calculateExchangeResult = () => {
-        if (exchangeForm.amount <= 0) return 0;
-
-        if (exchangeForm.fromType === 'bonusPoints' && exchangeForm.toType === 'tokens') {
-            return exchangeForm.amount / exchangeRates.bonusPointsToTokens;
+    // 点券充值处理函数
+    const handleRecharge = async () => {
+        if (rechargeAmount <= 0) {
+            message.warning('请输入有效的充值金额');
+            return;
         }
-        if (exchangeForm.fromType === 'tokens' && exchangeForm.toType === 'bonusPoints') {
-            return exchangeForm.amount * exchangeRates.tokensToBonusPoints;
+        setRechargeLoading(true);
+        try {
+            const res: ApiResponse<TicketRechargeResponseData> = await rechargeTicket(rechargeAmount);
+            if (res.code === 200) {
+                message.success(res.message || '充值成功');
+                setUserValues(prev => ({
+                    ...prev,
+                    tickets: res.data.remainingTicket,
+                    magic_value: res.data.remainingMagicValue,
+                    points: res.data.remainingPoint,
+                }));
+                setRechargeAmount(0);
+            } else {
+                message.error(res.message || '充值失败');
+            }
+        } catch (error) {
+            message.error('充值失败');
+        } finally {
+            setRechargeLoading(false);
+        }
+    };
+
+    const exchangeRates = {
+        ticketsToMagicValue: 10,
+        ticketsToPoints: 10,
+    };
+
+    const calculateExchangeResult = () => {
+        if (exchangeAmount <= 0) return 0;
+        if (fromType === 'tickets') {
+            if (toType === 'magic_value') {
+                return exchangeAmount * exchangeRates.ticketsToMagicValue;
+            }
+            if (toType === 'points') {
+                return exchangeAmount * exchangeRates.ticketsToPoints;
+            }
         }
         return 0;
     };
@@ -106,139 +271,174 @@ export default function ExchangePage() {
                 <h1 className="text-2xl font-bold mb-6">兑换中心</h1>
 
                 {/* 用户积分概览 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                     <Card loading={loading}>
-                        <Statistic
-                            title="魔力值"
-                            value={userPoints.bonusPoints}
-                            precision={2}
-                        />
+                        <Statistic title="点券" value={userValues.tickets} precision={0} />
                     </Card>
                     <Card loading={loading}>
-                        <Statistic
-                            title="点券"
-                            value={userPoints.tokens}
-                            precision={0}
-                        />
+                        <Statistic title="魔力值" value={userValues.magic_value} precision={2} />
                     </Card>
                     <Card loading={loading}>
-                        <Statistic
-                            title="上传量(GB)"
-                            value={userPoints.uploadCredit}
-                            precision={2}
-                        />
-                    </Card>
-                    <Card loading={loading}>
-                        <Statistic
-                            title="经验值"
-                            value={userPoints.exp}
-                            precision={0}
-                        />
-                    </Card>
-                    <Card loading={loading}>
-                        <Statistic
-                            title="等级"
-                            value={userPoints.level}
-                            precision={0}
-                        />
+                        <Statistic title="积分" value={userValues.points} precision={0} />
                     </Card>
                 </div>
 
-                <Divider>积分兑换</Divider>
+                <Divider>点券充值</Divider>
+                <div className="bg-white p-6 rounded-lg shadow mb-8 flex flex-col md:flex-row items-center gap-4">
+                    <InputNumber
+                        className="w-full"
+                        min={1}
+                        value={rechargeAmount}
+                        onChange={v => setRechargeAmount(v || 0)}
+                        placeholder="请输入充值点券数量"
+                    />
+                    <Button
+                        type="primary"
+                        loading={rechargeLoading}
+                        onClick={handleRecharge}
+                        className="w-full md:w-auto"
+                    >
+                        充值
+                    </Button>
+                </div>
 
-                {/* 兑换表单 */}
-                <div className="bg-white p-6 rounded-lg shadow">
+                <Divider>每日签到</Divider>
+                <div className="bg-white p-6 rounded-lg shadow mb-8 text-center">
+                    <Button
+                        type="primary"
+                        size="large"
+                        onClick={handleDailySignIn}
+                        loading={signInLoading}
+                        disabled={isSignedToday}
+                    >
+                        {isSignedToday ? '今日已签到' : '立即签到'}
+                    </Button>
+                    {signInResult && (
+                        <div className="mt-4 text-lg">
+                            <p>恭喜您，签到成功！</p>
+                            <p>获得积分: <span className="font-bold text-green-600">{signInResult.points}</span></p>
+                            <p>获得魔力值: <span className="font-bold text-blue-600">{signInResult.magicValue}</span></p>
+                        </div>
+                    )}
+                </div>
+
+                <Divider>积分兑换</Divider>
+                <div className="bg-white p-6 rounded-lg shadow mb-8">
                     <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
                         <div className="flex-1 w-full">
                             <label className="block text-sm font-medium mb-1">兑换来源</label>
                             <Select
                                 className="w-full"
-                                value={exchangeForm.fromType}
-                                onChange={(value) => setExchangeForm({
-                                    ...exchangeForm,
-                                    fromType: value as 'bonusPoints' | 'tokens',
-                                    toType: value === 'bonusPoints' ? 'tokens' : 'bonusPoints'
-                                })}
+                                value={fromType}
+                                onChange={(value) => {
+                                    setFromType(value as 'tickets' | 'magic_value');
+                                    if (value === 'tickets') {
+                                        setToType('magic_value');
+                                    } else {
+                                        setToType('points');
+                                    }
+                                    setExchangeAmount(0);
+                                }}
                                 options={[
-                                    { value: 'bonusPoints', label: '魔力值' },
-                                    { value: 'tokens', label: '点券' },
+                                    { value: 'tickets', label: '点券' },
+                                    { value: 'magic_value', label: '魔力值' },
                                 ]}
                             />
                         </div>
-
                         <div className="flex-1 w-full">
                             <label className="block text-sm font-medium mb-1">兑换数量</label>
                             <InputNumber
                                 className="w-full"
                                 min={0}
-                                max={exchangeForm.fromType === 'bonusPoints' ? userPoints.bonusPoints : userPoints.tokens}
-                                value={exchangeForm.amount}
-                                onChange={(value) => setExchangeForm({ ...exchangeForm, amount: value || 0 })}
+                                max={fromType === 'tickets' ? userValues.tickets : userValues.magic_value}
+                                value={exchangeAmount}
+                                onChange={(value) => setExchangeAmount(value || 0)}
+                                disabled={fromType === 'magic_value' && toType !== 'points'}
                             />
                         </div>
-
                         <div className="flex-1 w-full">
                             <label className="block text-sm font-medium mb-1">兑换目标</label>
                             <Select
                                 className="w-full"
-                                value={exchangeForm.toType}
-                                onChange={(value) => setExchangeForm({ ...exchangeForm, toType: value as 'bonusPoints' | 'tokens' })}
+                                value={toType}
+                                onChange={(value) => setToType(value as 'magic_value' | 'points')}
                                 options={[
-                                    { value: 'tokens', label: '点券' },
-                                    { value: 'bonusPoints', label: '魔力值' },
+                                    { value: 'magic_value', label: '魔力值' },
+                                    { value: 'points', label: '积分' },
                                 ]}
+                                disabled={fromType === 'magic_value'}
                             />
                         </div>
                     </div>
-
-                    {/* 兑换结果预览 */}
-                    {exchangeForm.amount > 0 && (
+                    {exchangeAmount > 0 && (
                         <div className="mb-6 p-4 bg-gray-50 rounded">
                             <p className="text-center">
-                                兑换比例: 1 {exchangeForm.fromType === 'bonusPoints' ? '魔力值' : '点券'} =
-                                {exchangeForm.fromType === 'bonusPoints' && exchangeForm.toType === 'tokens'
-                                    ? ` ${1/exchangeRates.bonusPointsToTokens} 点券`
-                                    : ` ${exchangeRates.tokensToBonusPoints} 魔力值`}
+                                兑换比例: 1 {fromType === 'tickets' ? '点券' : '魔力值'} =
+                                {fromType === 'tickets' && toType === 'magic_value'
+                                    ? ` 10 魔力值`
+                                    : fromType === 'tickets' && toType === 'points'
+                                        ? ` 10 积分`
+                                        : ''}
                             </p>
-                            <p className="text-center font-bold">
-                                将获得: {calculateExchangeResult().toFixed(2)} {exchangeForm.toType === 'bonusPoints' ? '魔力值' : '点券'}
+                            <p className="text-center font-bold text-lg">
+                                你将获得: {calculateExchangeResult().toFixed(2)}{' '}
+                                {toType === 'magic_value' ? '魔力值' : '积分'}
                             </p>
                         </div>
                     )}
-
-                    <div className="flex justify-center">
-                        <Button
-                            type="primary"
-                            size="large"
-                            onClick={handleExchange}
-                            loading={exchangeLoading}
-                            disabled={exchangeForm.amount <= 0}
-                        >
-                            确认兑换
-                        </Button>
-                    </div>
+                    <Button
+                        type="primary"
+                        size="large"
+                        className="w-full"
+                        onClick={handleExchange}
+                        loading={exchangeLoading}
+                        disabled={exchangeAmount <= 0 || (fromType === 'magic_value' && toType !== 'points')}
+                    >
+                        确认兑换
+                    </Button>
                 </div>
 
-                <Divider>兑换说明</Divider>
-
-                {/* 兑换规则说明 */}
+                <Divider>魔力值兑换勋章</Divider>
                 <div className="bg-white p-6 rounded-lg shadow">
-                    <h2 className="text-lg font-bold mb-4">积分兑换规则</h2>
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li>魔力值与点券可以互相兑换</li>
-                        <li>兑换比例: 10 魔力值 = 1 点券</li>
-                        <li>每日魔力值兑换上限: 5000 魔力值</li>
-                        <li>点券兑换魔力值无上限</li>
-                        <li>兑换操作不可逆，请谨慎操作</li>
-                    </ul>
-
-                    <h2 className="text-lg font-bold mt-6 mb-4">积分获取途径</h2>
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li><strong>魔力值:</strong> 通过做种获取，种子越大、做种时间越长获得越多</li>
-                        <li><strong>点券:</strong> 通过充值或每月活跃奖励获取</li>
-                        <li><strong>上传量:</strong> 通过分享资源和他人下载你的资源获取</li>
-                        <li><strong>经验值:</strong> 通过日常活跃行为获取，用于提升等级</li>
-                    </ul>
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium mb-1">选择勋章 (魔力值: {userValues.magic_value})</label>
+                        <Select
+                            className="w-full"
+                            value={badgeIdToExchange}
+                            onChange={(value) => setBadgeIdToExchange(value)}
+                            placeholder="请选择要兑换的勋章"
+                            loading={badgesLoading}
+                            options={allBadges.map(badge => ({
+                                value: badge.titleId,
+                                label: badge.titleName,
+                                disabled: userBadges.some(userBadge => userBadge.titleId === badge.titleId)
+                            }))}
+                        />
+                    </div>
+                    <Button
+                        type="primary"
+                        size="large"
+                        className="w-full"
+                        onClick={handleExchangeBadge}
+                        loading={badgeExchangeLoading}
+                        disabled={badgeIdToExchange === null || badgeIdToExchange <= 0 || userBadges.some(badge => badge.titleId === badgeIdToExchange)}
+                    >
+                        兑换勋章
+                    </Button>
+                    <div className="mt-6">
+                        <h3 className="text-lg font-semibold mb-2">您已拥有的勋章:</h3>
+                        {badgesLoading ? (
+                            <p>加载中...</p>
+                        ) : userBadges.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                                {userBadges.map(badge => (
+                                    <Tag key={badge.titleId} color="blue">{badge.titleName}</Tag>
+                                ))}
+                            </div>
+                        ) : (
+                            <p>您目前还没有任何勋章。</p>
+                        )}
+                    </div>
                 </div>
             </Navbar>
         </div>
