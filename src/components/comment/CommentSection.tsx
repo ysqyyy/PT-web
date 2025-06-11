@@ -8,7 +8,7 @@ import {
   likeComment, 
   getCommentReplies 
 } from '@/api/com';
-import { Comment, CommentReply } from '@/types/comment';
+import { Comment } from '@/types/comment';
 import CommentItem from './CommentItem';
 import CommentForm from './CommentForm';
 import toast from 'react-hot-toast';
@@ -26,7 +26,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
   // 加载评论
   useEffect(() => {
     if (!seedId) return;
-    
     const fetchComments = async () => {
       try {
         setLoading(true);
@@ -40,14 +39,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
         setLoading(false);
       }
     };
-
     fetchComments();
   }, [seedId]);
 
   // 发表评论
   const handlePostComment = async (content: string) => {
     if (!content.trim()) return;
-
     try {
       const newComment = await postComment(seedId, content);
       setComments(prevComments => [newComment, ...prevComments]);
@@ -61,10 +58,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
   // 回复评论
   const handleReplyComment = async (commentId: number, content: string) => {
     if (!content.trim()) return;
-
     try {
       const newReply = await replyToComment(commentId, content);
-      
       // 更新评论列表，添加新回复
       setComments(prevComments => 
         prevComments.map(comment => 
