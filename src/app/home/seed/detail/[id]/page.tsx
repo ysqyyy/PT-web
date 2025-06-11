@@ -137,12 +137,6 @@ export default function SeedDetailPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <DownloadBountyButton id={seedDetail.id} type="resource" />
-              <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                收藏
-              </button>
-              <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                奖励保种积分
-              </button>
             </div>
           </div>
         </div>

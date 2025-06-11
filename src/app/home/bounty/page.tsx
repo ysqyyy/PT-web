@@ -34,7 +34,7 @@ export default function BountyPage() {
             </thead>
             <tbody>
               {bounties.map((item) => (
-                <tr key={item.id} className="border-t hover:bg-gray-50">
+                <tr key={item.bountyId} className="border-t hover:bg-gray-50">
                   <td className="p-4">{item.name}</td>
                   <td className="p-4">{item.total_amount}</td>
                   <td className="p-4">{item.publisher}</td>
@@ -44,11 +44,11 @@ export default function BountyPage() {
                     {item.status === "pending" && (
                       <div className="flex gap-2">
                         <SubmitSeedButton
-                          bountyId={item.id}
+                          bountyId={item.bountyId}
                           onSuccess={() => getBountyList().then(setBounties)}
                         />
                         <AppendBountyButton
-                          bountyId={item.id}
+                          bountyId={item.bountyId}
                           onSuccess={() => getBountyList().then(setBounties)}
                         />
                       </div>

@@ -5,7 +5,9 @@ import type { ReviewItem } from "@/types/review";
 export const getPendingReviews = async (): Promise<ReviewItem[]> => {
   try {
     // 真实的后端API调用
-    const response = await request.get(' http://localhost:8080/api/admin/torrents/pending');
+    console.log("开始获取待审核资源...");
+    const response = await request.get('http://localhost:8080/api/admin/torrents/pending');
+    console.log("获取待审核资源成功:", response.data);
     const reviews: ReviewItem[] = response.data.list.map((item: any) => ({
       id: item.torrentId,
       name: item.torrentName,

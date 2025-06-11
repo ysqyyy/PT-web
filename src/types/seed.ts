@@ -22,6 +22,7 @@ export interface SeedDetail{
     scoreCount?: number;      // 评分数量，对应后端的 markingCount
 
     categoryId?: number;       // 分类ID，对应后端的 categoryId 无数据
+    categoryName?: string;     // 分类名称，对应后端的 categoryName 无数据
     tags?: string[];           // 标签列表
 
     comments?: Comment[];        // 评论列表 !!!

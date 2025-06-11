@@ -7,6 +7,7 @@ import { SeedListItem } from "@/types/seed";
 
 // 定义分类类型
 type Category =
+  | "全部"
   | "电影"
   | "剧集"
   | "音乐"
@@ -26,7 +27,7 @@ export default function SeedCenter() {
     router.push("/home/seed/publish");
   };
   // 当前选中的分类
-  const [currentCategory, setCurrentCategory] = useState<Category>("电影");
+  const [currentCategory, setCurrentCategory] = useState<Category>("全部");
 
   // 筛选状态 - 只使用一个标签数组
   const [selectedTags, setSelectedTags] = useState<string[]>([]);

@@ -16,13 +16,7 @@ interface SeedItem {
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'POST') {
-        const {
-            category = '电影',
-            tags = [],
-            keywords = '',
-            page = 1,
-            pageSize = 10
-        } = req.body;
+       
 
         console.log('种子列表请求参数:', req.body);
 

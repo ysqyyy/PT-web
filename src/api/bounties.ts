@@ -1,49 +1,71 @@
 import request from "../utils/request";
-import type { BountyListItem, MyBounty, AppendedBounty } from "../types/bounty";
+import type { BountyListItem, MyBounty, AppendedBounty,SubmittedBounty } from "../types/bounty";
 
 // 获取我的悬赏列表 ok
 export async function getMyBounties() {
   try {
     const data = await request.get("http://localhost:8080/bounty/mybounties");
     const bounties: MyBounty[] = data.map((item: any) => ({
-      id: item.bounty.bountyId,
-      name: item.bounty.bountyTitle,
-      description: item.bounty.bountyDescription,
-      status: item.bounty.bountyStatus,
-      reward_amount: item.bounty.rewardAmount,
-      total_amount: item.bounty.totalAmount,
+      bountyId: item.bounty?.bountyId,
+      torrentId: item.submission?.torrentId, // 下载用
+      name: item.bounty?.bountyTitle,
+      description: item.bounty?.bountyDescription,
+      status: item.bounty?.bountyStatus,
+      reward_amount: item.bounty?.rewardAmount,
+      total_amount: item.bounty?.totalAmount,
     }));
+    console.log('获取我的悬赏列表:', bounties);
     return bounties;
   } catch (error) {
     console.error("获取我的悬赏列表失败:", error);
     throw error;
   }
 }
-// 获取我追加的悬赏列表 ok
+// 获取我追加的悬赏列表 ok todo
 export async function getMyAppendedBounties() {
   try {
     const data = await request.get(
       "http://localhost:8080/bounty/mycontributions"
     );
-    // console.log('获取我追加的悬赏列表:', data);
+    console.log('获取我追加的悬赏列表:', data);
     const bounties: AppendedBounty[] = data.map((item: any) => ({
       //key改为contributionId，展示多条追加
-      id: item.bounty.bountyId, //
-      name: item.bounty.bountyTitle,//
-      description: item.bounty.bountyDescription,//
-      status: item.bounty.bountyStatus,//
-      total_amount: item.amount, //
-      publisher: item.bounty.creatorId,//name
+      bountyId: item.bounty?.bountyId, 
+      torrentId: item.submission?.torrentId,
+      submissionId: item.submission?.submissionId, // 仲裁用
+      name: item.bounty?.bountyTitle,
+      description: item.bounty?.bountyDescription,
+      status: item.bounty?.bountyStatus,
+      total_amount: item.bounty?.totalAmount, 
+      publisher: item?.creatorName,
     }));
+    console.log('处理后的悬赏列表:', bounties);
     return bounties;
   } catch (error) {
     console.error("获取我追加的悬赏列表失败:", error);
     throw error;
   }
 }
-// 获取我提交的悬赏列表
-export async function getMySubmittedBounties() {
-  return request.get("/api/request/bounty/getMySubmittedBounties");
+// 获取我提交的悬赏列表 ok
+export async function getMySubmittedBounties() : Promise<SubmittedBounty[]> {
+  try{
+    const data = await request.get("http://localhost:8080/bounty/mysubmissions");
+    const bounties: SubmittedBounty[] = data.map((item: any) => ({
+      bountyId: item.bounty.bountyId,
+      torrentId: item.submission.torrentId, // 下载用
+      submissionId: item.submission.submissionId, // 仲裁用
+      name: item.bounty.bountyTitle,
+      description: item.bounty.bountyDescription,
+      status: item.bounty.bountyStatus,
+      publisher: item.creatorName,
+      total_amount: item.bounty.totalAmount,
+    }));
+    return bounties;
+  }
+  catch (error) {
+    console.error("获取我提交的悬赏列表失败:", error);  
+    throw error;
+  }
 }
 
 //追加悬赏 ok
@@ -73,13 +95,24 @@ export async function cancelBounty(id: number) {
     throw error;
   }
 }
-//确认悬赏
-export async function confirmBounty(id: number) {
-  return request.post(`/api/request/bounty/${id}/confirm`);
+//确认悬赏 ok
+export async function confirmBounty(submissionId: number) {
+  try {
+    const response = await request.post(
+      "http://localhost:8080/bounty/approve",
+      { submissionId: submissionId }
+    );
+    console.log("确认悬赏成功:", response);
+    return response;
+  }
+  catch (error) {
+    console.error("确认悬赏失败:", error);
+    throw error;
+  }
 }
-//申请仲裁
-export async function arbitrateBounty(id: number, reason: string) {
-  return request.post(`/api/request/bounty/${id}/arbitrate`, { reason });
+//申请仲裁 ok
+export async function arbitrateBounty(submissionId: number, reason: string) {
+  return request.post(`http://localhost:8080/bounty/reject`, { reason: reason, submissionId: submissionId });
 }
 
 //发布悬赏
@@ -99,14 +132,16 @@ export async function publishBounty(
 export async function getBountyList(): Promise<BountyListItem[]> {
   try {
     const response = await request.get("http://localhost:8080/bounty/all");
-    // console.log('获取悬赏列表:', response);
+    console.log('获取悬赏列表:', response);
     const bounties: BountyListItem[] = response.map((item: any) => ({
-      id: item.bounty.bountyId,
+      bountyId: item.bounty?.bountyId,
+      submissionId: item.submission?.submissionId, // 下载用
+      torrentId: item.submission?.torrentId, // 下载用
       name: item.bounty.bountyTitle,
       description: item.bounty.bountyDescription,
       status: item.bounty.bountyStatus,
       total_amount: item.bounty.totalAmount,
-      publisher: item.bounty.creatorId, // 后面改成名字
+      publisher: item.creatorName, 
     }));
     return bounties;
   } catch (error) {

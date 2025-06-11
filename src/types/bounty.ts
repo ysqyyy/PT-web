@@ -1,9 +1,11 @@
 // 基础悬赏类型 - 所有悬赏类型的公共字段
 export type BountyItem = {
-  id: number;
+  bountyId: number; //提交悬赏
+  torrentId?: number; // 下载用
+  submissionId?:number; // 仲裁用
   name: string;
   description: string;
-  status: "pending" | "已完成" | "已取消" | "待确认" | "待仲裁";
+  status: "pending" | "approved" | "rejected" | "unconfirmed" | "under_review";
 };
 
 // 悬赏列表项
