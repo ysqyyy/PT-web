@@ -4,29 +4,27 @@ interface SeedItem {
     id: number;
     category: string;
     name: string;
+    description?: string;
     size: string;
-    files: number;
-    clicks: number;
-    publishDate: string;
-    seeds: number;
-    downloads: number;
-    completions: number;
-    publisher: string;
-    details?: string;
+    price: number;
+    status: string;
+    imgUrl?: string;
     tags?: string[];
+    downloadCount?: number;
+    score?: number;
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'POST') {
         const {
             category = '电影',
-            regions = [],
-            years = [],
-            genres = [],
-            searchTerm = '',
+            tags = [],
+            keywords = '',
             page = 1,
             pageSize = 10
         } = req.body;
+
+        console.log('种子列表请求参数:', req.body);
 
         // 这里应该是从数据库查询的逻辑
         // 以下是模拟数据
@@ -34,35 +32,35 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
             {
                 id: 1,
                 category: '电影',
-                name: '[大陆][2018][西红柿首富/Hello Mr. Billionaire]沈腾/宋芸桦/张一鸣/张晨光/常远/魏翔[喜剧]WEB-DL[4K][自带中英字幕]',
+                name: '西红柿首富 Hello Mr. Billionaire (2018)',
+                description: '沈腾主演的喜剧电影，讲述了一个落魄守门员一夜之间成为富翁的故事。',
                 size: '6.94 GB',
-                files: 1,
-                clicks: 101,
-                publishDate: '2024-11-16 10:59',
-                seeds: 2,
-                downloads: 0,
-                completions: 13,
-                publisher: 'bingzhixie'
+                price: 0,
+                status: '可用',
+                imgUrl: 'https://img1.doubanio.com/view/photo/l/public/p2529206747.webp',
+                tags: ['喜剧', '大陆', '2018', '4K', 'WEB-DL'],
+                downloadCount: 1358,
+                score: 7.5
             },
-            // 其他模拟数据...
+            {
+                id: 2,
+                category: '电影',
+                name: '流浪地球 The Wandering Earth (2019)',
+                description: '根据刘慈欣同名小说改编，讲述了太阳即将毁灭，人类将地球推离太阳系的故事。',
+                size: '8.56 GB',
+                price: 10,
+                status: '可用',
+                imgUrl: 'https://img2.doubanio.com/view/photo/l/public/p2545472803.webp',
+                tags: ['科幻', '灾难', '大陆', '2019', '4K', 'HDR'],
+                downloadCount: 2478,
+                score: 8.0
+            },
         ];
 
-        // 简单模拟筛选逻辑
-        let filteredData = mockData.filter(item => {
-            let match = true;
-            if (category && item.category !== category) match = false;
-            if (searchTerm && !item.name.includes(searchTerm)) match = false;
-            return match;
-        });
-
-        // 分页
-        const startIndex = (page - 1) * pageSize;
-        const paginatedData = filteredData.slice(startIndex, startIndex + pageSize);
-
+    
         res.status(200).json({
             success: true,
-            data: paginatedData,
-            total: filteredData.length
+            data: mockData
         });
     } else {
         res.status(405).json({ error: 'Method Not Allowed' });

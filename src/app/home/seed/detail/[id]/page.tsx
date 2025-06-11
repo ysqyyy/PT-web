@@ -26,9 +26,9 @@ export default function SeedDetailPage() {
       try {
         const detailRes = await getSeedDetail(Number(seedId));
 
-        if (detailRes.success) {
-          setSeedDetail(detailRes.data);
-          setRating(detailRes.data.rating || 0);
+        if (detailRes) {
+          setSeedDetail(detailRes);
+          setRating(detailRes.score || 0);
         }
       } catch (error) {
         console.error("获取数据失败:", error);
@@ -78,7 +78,7 @@ export default function SeedDetailPage() {
 
   if (!seedDetail) {
     return (
-      <Navbar name="种子详情">
+      <Navbar name="种子中心">
         <div className="bg-white rounded-lg shadow p-6 text-center">
           未找到种子信息
         </div>
@@ -87,7 +87,7 @@ export default function SeedDetailPage() {
   }
 
   return (
-    <Navbar name="种子详情">
+    <Navbar name="种子中心">
       <div className="bg-white rounded-lg shadow p-6">
         
         {/* 种子标题区域 */}
