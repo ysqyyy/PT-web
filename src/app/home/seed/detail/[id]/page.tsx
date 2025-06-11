@@ -4,75 +4,30 @@ import Navbar from '../../../../../components/Navbar';
 import { useParams } from 'next/navigation';
 import { message } from 'antd';
 import { getSeedDetail, rateSeed } from '@/api/seed';
-import { getSeedComments, postComment, likeComment } from '@/api/comment';
-
-interface SeedDetail {
-    id: number;
-    title: string;
-    originalTitle: string;
-    year: string;
-    region: string;
-    actors: string[];
-    genres: string[];
-    quality: string;
-    resolution: string;
-    subtitles: string;
-    publisher: string;
-    publisherLevel: string;
-    size: string;
-    repliesViews: string;
-    publishTime: string;
-    lastSeedTime: string;
-    seedId: string;
-    files: number;
-    seeds: number;
-    downloads: number;
-    completions: number;
-    attachments: number;
-    description?: string;
-    otherVersions?: string[];
-    rating?: number;
-    ratingCount?: number;
-}
-
-interface Comment {
-    id: number;
-    username: string;
-    avatar: string;
-    level: string;
-    content: string;
-    time: string;
-    likes: number;
-    isLiked: boolean;
-}
+import { CommentSection } from '@/components/comment';
+import { SeedDetail } from '@/types/seed';
 
 export default function SeedDetailPage() {
     const params = useParams();
     const seedId = params?.id?.toString();
-    const [newComment, setNewComment] = useState('');
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [seedDetail, setSeedDetail] = useState<SeedDetail | null>(null);
-    const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(false);
 
-    // 获取种子详情和评论
+    // 获取种子详情
     useEffect(() => {
         const fetchData = async () => {
             if (!seedId) return;
 
             setLoading(true);
             try {
-                const [detailRes, commentsRes] = await Promise.all([
-                    getSeedDetail(Number(seedId)),
-                    getSeedComments(Number(seedId))
-                ]);
+                const detailRes = await getSeedDetail(Number(seedId));
 
                 if (detailRes.success) {
                     setSeedDetail(detailRes.data);
                     setRating(detailRes.data.rating || 0);
                 }
-                if (commentsRes.success) setComments(commentsRes.data);
             } catch (error) {
                 console.error('获取数据失败:', error);
                 message.error('获取种子详情失败');
@@ -83,48 +38,6 @@ export default function SeedDetailPage() {
 
         fetchData();
     }, [seedId]);
-
-    // 提交评论
-    const handleSubmitComment = async () => {
-        if (newComment.trim().length < 5) {
-            message.error('评论至少需要5个字符');
-            return;
-        }
-
-        try {
-            const res = await postComment(Number(seedId), newComment);
-            if (res.success) {
-                setComments([res.data, ...comments]);
-                setNewComment('');
-                message.success('评论发表成功');
-            }
-        } catch (error) {
-            console.error('发表评论失败:', error);
-            message.error('发表评论失败');
-        }
-    };
-
-    // 点赞评论
-    const handleLikeComment = async (id: number) => {
-        try {
-            const res = await likeComment(id);
-            if (res.success) {
-                setComments(comments.map(comment => {
-                    if (comment.id === id) {
-                        return {
-                            ...comment,
-                            likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
-                            isLiked: !comment.isLiked
-                        };
-                    }
-                    return comment;
-                }));
-            }
-        } catch (error) {
-            console.error('点赞失败:', error);
-            message.error('点赞失败');
-        }
-    };
 
     // 提交评分
     const handleSubmitRating = async () => {
@@ -325,65 +238,11 @@ export default function SeedDetailPage() {
                         <p className="text-gray-700">{seedDetail.description}</p>
                     </div>
                 )}
+               
 
-                {/* 评论区域 */}
+                {/* 评论区域 - 使用新的 CommentSection 组件 */}
                 <div className="border-t pt-6">
-                    <h2 className="text-xl font-bold mb-4">评论 ({comments.length})</h2>
-
-                    {/* 发表评论 */}
-                    <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-            <textarea
-                className="w-full p-3 border rounded mb-2"
-                rows={3}
-                placeholder="至少回复5个字符，按ctrl+回车直接回复"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                onKeyDown={(e) => e.ctrlKey && e.key === 'Enter' && handleSubmitComment()}
-            />
-                        <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">
-                {newComment.length}/5
-              </span>
-                            <button
-                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                onClick={handleSubmitComment}
-                                disabled={newComment.trim().length < 5}
-                            >
-                                发表评论
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* 评论列表 */}
-                    <div className="space-y-4">
-                        {comments.length === 0 ? (
-                            <div className="text-center text-gray-500 py-4">暂无评论</div>
-                        ) : (
-                            comments.map((comment) => (
-                                <div key={comment.id} className="border-b pb-4">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <span className="font-semibold">{comment.username}</span>
-                                            <span className="text-sm text-gray-500 ml-2">{comment.level}</span>
-                                        </div>
-                                        <span className="text-sm text-gray-500">{comment.time}</span>
-                                    </div>
-                                    <p className="mb-2">{comment.content}</p>
-                                    <div className="flex justify-end">
-                                        <button
-                                            className="flex items-center text-sm text-gray-500 hover:text-blue-500"
-                                            onClick={() => handleLikeComment(comment.id)}
-                                        >
-                      <span className={`mr-1 ${comment.isLiked ? 'text-blue-500' : ''}`}>
-                        {comment.isLiked ? '♥' : '♡'}
-                      </span>
-                                            {comment.likes > 0 && <span>{comment.likes}</span>}
-                                        </button>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
+                    {seedId && <CommentSection seedId={Number(seedId)} />}
                 </div>
             </div>
         </Navbar>

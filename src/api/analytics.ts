@@ -8,7 +8,7 @@ import type { AnalyticsData } from '@/types/analytics';
 export async function getAnalyticsDashboard(): Promise<AnalyticsData> {
   try {
     const response = await request.get('/api/request/analytics/dashboard');
-    return response;
+    return response.data;
   } catch (error) {
     console.error('获取数据分析失败:', error);
     throw new Error('获取数据分析失败');

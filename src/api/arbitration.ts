@@ -7,7 +7,7 @@ export async function getArbitrationBounties() {
 
 // 驳回仲裁
 export async function rejectArbitration(id: number) {
-  return request.post(`/api/request/bounty/${id}/reject-arbitration`);
+  return request.post(`http://localhost:8080/bounty/reject`, { bountyId: id });
 }
 
 // 同意仲裁

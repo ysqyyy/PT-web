@@ -6,6 +6,10 @@ export interface Message {
   content: string;
   senderId: string;
   receiverId: string;
+  senderName: string; // 发送者名称
+  receiverName: string; // 接收者名称
+  senderAvatar?: string; // 发送者头像
+  receiverAvatar?: string; // 接收者头像
   timestamp: number;
   read: boolean;
 }

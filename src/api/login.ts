@@ -1,7 +1,7 @@
 import request from '../utils/request';
 import auth from '../utils/auth';
 
-//登录
+//登录 ok
 export async function login(userName: string, password: string) {
   try {
     const response = await request.post("http://localhost:8080/api/user/login", { userName, password });

@@ -15,7 +15,10 @@ export async function getSeedList(params: {
 
 // 获取种子详情
 export async function getSeedDetail(id: number) {
-    return request.get(`/api/request/seed/detail/${id}`);
+    console.log("Fetching seed detail for ID:", id);
+    const res= await request.get(`/api/request/seed/detail/${id}`);
+    console.log("Seed detail response:", res);
+    return res;
 }
 // 评分种子
 export async function rateSeed(seedId: number, rating: number) {
