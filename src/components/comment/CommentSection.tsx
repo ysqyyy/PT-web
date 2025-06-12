@@ -58,7 +58,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
   const handleReplyComment = async (commentId: number, content: string) => {
     if (!content.trim()) return;
     try {
-      const newReply = await replyToComment(commentId, content);
+      const newReply = await replyToComment(seedId,commentId, content);
       // 更新评论列表，添加新回复
       setComments(prevComments => 
         prevComments.map(comment => 
@@ -178,7 +178,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
         ) : (
           comments.map(comment => (
             <CommentItem
-              key={comment.id}
+              key={`comment-${comment.id}`}
               comment={comment}
               onReply={handleReplyComment}
               onLike={handleLikeComment}

@@ -60,19 +60,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
         {/* 头像 */}
         <div className="flex-shrink-0 mr-3">
           <UserAvatar 
-            userId={comment.author.id}
-            avatarUrl={comment.author.avatar}
-            username={comment.author.username}
+            userId={comment.author?.id}
+            avatarUrl={comment.author?.avatar}
+            username={comment.author?.username}
           />
         </div>
 
         {/* 评论内容 */}
         <div className="flex-1">
           <div className="flex items-center mb-1">
-            <h3 className="font-medium text-gray-800 mr-2">{comment.author.username}</h3>
-            {comment.author.level && (
+            <h3 className="font-medium text-gray-800 mr-2">{comment.author?.username}</h3>
+            {comment.author?.level && (
               <span className="text-xs px-1.5 py-0.5 bg-teal-100 text-teal-700 rounded">
-                {comment.author.level}
+                {comment.author?.level}
               </span>
             )}
             <span className="ml-2 text-xs text-gray-500">
@@ -100,14 +100,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
               {comment.likes > 0 && <span>{comment.likes}</span>}
             </button>
           </div>
-          
-          {/* 回复表单 */}
+            {/* 回复表单 */}
           {isReplying && (
             <div className="mt-3">
               <CommentForm 
                 onSubmit={handleReplySubmit} 
                 buttonText="回复" 
-                placeholder={`回复 ${comment.author.username}...`}
+                placeholder={`回复 ${comment.author?.username || '用户'}...`}
               />
             </div>
           )}
@@ -133,7 +132,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         <div className="ml-12 mt-3 space-y-4">
           {comment.replies.map(reply => (
             <ReplyItem 
-              key={reply.id} 
+              key={`reply-${reply.id}`} 
               reply={reply} 
               onLike={() => handleReplyLike(reply.id)}
             />
@@ -164,13 +163,12 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onLike }) => {
     }
   };
 
-  return (    <div className="flex">
-      {/* 头像 */}
+  return (    <div className="flex">      {/* 头像 */}
       <div className="flex-shrink-0 mr-3">
         <UserAvatar 
-          userId={reply.author.id}
-          avatarUrl={reply.author.avatar}
-          username={reply.author.username}
+          userId={reply.author?.id}
+          avatarUrl={reply.author?.avatar}
+          username={reply.author?.username}
           size="sm"
         />
       </div>
@@ -178,10 +176,10 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onLike }) => {
       {/* 回复内容 */}
       <div className="flex-1">
         <div className="flex items-center mb-1">
-          <h3 className="font-medium text-gray-800 mr-2">{reply.author.username}</h3>
-          {reply.author.level && (
+          <h3 className="font-medium text-gray-800 mr-2">{reply.author?.username}</h3>
+          {reply.author?.level && (
             <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded">
-              {reply.author.level}
+              {reply.author?.level}
             </span>
           )}
           <span className="ml-2 text-xs text-gray-500">
