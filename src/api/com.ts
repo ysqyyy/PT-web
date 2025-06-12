@@ -15,11 +15,10 @@ export async function getSeedComments(seedId: number): Promise<Comment[]> {
             username: item.user_info.username,
             avatar: item.user_info.avatar_url,
             level: item.user_info.level || "", // 可能没有level字段
-        },
-        createdAt: item.comment_createtime,
+        },        createdAt: item.comment_createtime,
         likes: item.likes_count,
         isLiked: item.user_liked,
-        replies: item.replies.map((reply: any) => ({
+        replies: item.replies ? item.replies.map((reply: any) => ({
             id: reply.comment_id,
             parentId: reply.parent_id,
             content: reply.content,
@@ -30,10 +29,9 @@ export async function getSeedComments(seedId: number): Promise<Comment[]> {
                 username: reply.user_info.username,
                 avatar: reply.user_info.avatar_url,
                 level: reply.user_info.level || "", // 可能没有level字段
-            },
-            createdAt: reply.comment_createtime,
-        })),
-        replyCount: item.replies.length,
+            },            createdAt: reply.comment_createtime,
+        })) : [],
+        replyCount: item.replies ? item.replies.length : 0,
     }));
     console.log("获取种子评论:", comments);
     return comments || [];
