@@ -35,10 +35,11 @@ export const approveResource = async (id: number): Promise<{ success: boolean }>
   }
 };
 
-// 拒绝资源   request字段？
+// 拒绝资源 ok
 export const rejectResource = async (id: number, reason: string): Promise<{ success: boolean }> => {
   try {
-    const response = await request.post(`http://localhost:8080/api/admin/review`,{torrentId:id,action:"",reason:reason});
+    const response = await request.post(`http://localhost:8080/api/admin/review`,{torrentId:id,action:"reject",reason:reason});
+    console.log("拒绝资源成功:", response);
     return response;
   } catch (error) {
     console.error("拒绝资源失败:", error);

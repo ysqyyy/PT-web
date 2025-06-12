@@ -58,14 +58,6 @@ export default function DashboardLayout({ children, title }: DashboardLayoutProp
         {/* Header */}
         <header className="bg-neutral-600 text-white rounded p-2 border-b flex items-center justify-between">
           <h1 className="ml-5 text-xl font-bold">{title}</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-white-600">欢迎回来，{}</span>
-            <img
-              src="/avatar.png"
-              alt="User Avatar"
-              className="w-10 h-10 rounded-full object-cover"
-            />
-          </div>
         </header>
 
         {/* Content */}

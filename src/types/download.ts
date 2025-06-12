@@ -4,5 +4,4 @@ export interface DownloadRecord {
   fileName: string;
   date: string;
   size: string;
-  type: 'bounty' | 'resource'; // 资源类型
 }

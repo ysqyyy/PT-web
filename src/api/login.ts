@@ -1,12 +1,29 @@
 import request from '../utils/request';
 import auth from '../utils/auth';
+import { UserInfo } from '@/types/user';
+
+interface LoginResponse {
+  code: number;
+  message: string;
+  data: {
+    access_token: string;
+    refresh_token: string;
+    user_info: UserInfo;
+  };
+}
 
 //登录 ok
 export async function login(userName: string, password: string) {
   try {
-    const response = await request.post("http://localhost:8080/api/user/login", { userName, password });
+    const response = await request.post<LoginResponse>("http://localhost:8080/api/user/login", { userName, password });
     if (response && response.data.access_token) {
+      // 保存token
       auth.setToken(response.data.access_token, 7);
+      
+      // 保存用户信息到localStorage
+      if (response.data.user_info) {
+        localStorage.setItem('userInfo', JSON.stringify(response.data.user_info));
+      }
     }
     // console.log("token:", auth.getToken());
     return response;
@@ -16,18 +33,20 @@ export async function login(userName: string, password: string) {
   }
 }
 
-//登出
+//登出 ok
 export async function logout() {
   try {
     // 调用登出接口
-    await request.post("http://localhost:8080/api/user/logout");
-    // 清除本地token
+    // await request.post("http://localhost:8080/api/user/logout");
+    // 清除本地token和用户信息
     auth.removeToken();
+    localStorage.removeItem('userInfo');
     return { success: true };
   } catch (error) {
     console.error("登出请求失败:", error);
-    // 即使接口失败，也清除本地token
+    // 即使接口失败，也清除本地token和用户信息
     auth.removeToken();
+    localStorage.removeItem('userInfo');
     return { success: true };
   }
 }

@@ -8,6 +8,15 @@ export interface UserProfile {
   registrationDate: string; // 注册日期
   level: number;         // 用户等级
 }
+// 定义用户信息相关的类型
+export interface UserInfo {
+  user_id: number;
+  user_name: string;
+  avatar_url: string;
+  role: string;
+  user_status: string | null;
+  user_level: number;
+}
 
 // 定义用户消息相关的类型
 export interface UserMessage {

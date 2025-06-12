@@ -2,13 +2,20 @@ import request from '../utils/request';
 import { DownloadRecord } from '@/types/download';
 
 /**
- * 获取用户的下载记录
- * @returns Promise<DownloadRecord[]> 下载记录列表
+ * 获取用户的下载记录  ok
  */
 export async function getDownloadRecords(): Promise<DownloadRecord[]> {
   try {
-    const response = await request.get('/api/request/download/records');
-    return response;
+    const response = await request.get('http://localhost:8080/torrent/download-records');
+    console.log('获取下载记录:', response.data);
+    const records: DownloadRecord[] = response.data.map((item: any) => ({
+      id: item.torrentId,
+      filename: item.torrentName,
+      date: item.downloadTime,
+      size: item.downloadByte,
+    }));
+    console.log('下载记录列表:', records);
+    return records;
   } catch (error) {
     console.error('获取下载记录失败:', error);
     throw new Error('获取下载记录失败');

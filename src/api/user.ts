@@ -2,7 +2,7 @@ import request from '@/utils/request';
 import type { UserProfile, UpdateProfileParams, UserMessage } from '@/types/user';
 
 /**
- * 获取用户资料
+ * 获取用户资料  ok
  */
 export async function getUserProfile(): Promise<UserProfile> {
   try {
@@ -26,7 +26,7 @@ export async function getUserProfile(): Promise<UserProfile> {
 }
 
 /**
- * 更新用户资料
+ * 更新用户资料  ok
  * @param params 更新参数 
  * @returns Promise<{success: boolean}> 更新结果
  */

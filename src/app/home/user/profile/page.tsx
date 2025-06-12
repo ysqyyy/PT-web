@@ -69,8 +69,9 @@ export default function ProfilePage() {
     }
   };
   // 处理头像上传预览
-  const handleAvatarChange = (file: File | null, previewUrl: string) => {
+  const handleAvatarChange = (file: File , previewUrl: string) => {
     setEditAvatarFile(file);
+    console.log("选择的头像文件:", file);
     // 仍然保存预览URL，用于UI显示，但不再用于实际更新
     setEditAvatarPreview(previewUrl);
   };
@@ -84,8 +85,8 @@ export default function ProfilePage() {
       // 如果有选择新头像，先上传头像
       let avatarUrl = userProfile.avatarUrl;
       if (editAvatarFile) {
-        // 实际项目中，这里应该上传图片到服务器并获取URL
         try {
+          console.log("开始上传头像文件:", editAvatarFile);
           const url = await uploadAvatar(editAvatarFile);
           avatarUrl = url;
           toast.success("头像上传成功");

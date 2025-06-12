@@ -6,7 +6,6 @@ import {
   postComment, 
   replyToComment, 
   likeComment, 
-  getCommentReplies 
 } from '@/api/com';
 import { Comment } from '@/types/comment';
 import CommentItem from './CommentItem';
@@ -137,18 +136,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
         setExpandedComments([...expandedComments, commentId]);
         return;
       }
-      
-      // 否则获取所有回复
-      const replies = await getCommentReplies(commentId);
-      
-      // 更新评论的回复列表
-      setComments(prevComments => 
-        prevComments.map(comment => 
-          comment.id === commentId
-            ? { ...comment, replies }
-            : comment
-        )
-      );
       
       // 标记为已展开
       setExpandedComments([...expandedComments, commentId]);

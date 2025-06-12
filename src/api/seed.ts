@@ -49,7 +49,7 @@ export async function getSeedDetail(id: number) {
 // 评分种子 ok
 export async function rateSeed(seedId: number, rating: number) {
     console.log("Rating seed with ID:", seedId, "Rating:", rating);
-    return request.post(" http://172.30.96.1:8080/api/values/ratings", { torrent_id:seedId, rating:rating ,comment:"",weight_factor:1}); 
+    return request.post(" http://localhost:8080/api/values/ratings", { torrent_id:seedId, rating:rating ,comment:"",weight_factor:1}); 
 }
 
 // 发布种子 todo

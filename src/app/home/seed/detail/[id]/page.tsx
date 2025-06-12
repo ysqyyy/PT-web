@@ -212,7 +212,7 @@ export default function SeedDetailPage() {
             </button>
           </div>
         </div>
-        {/* 评论区域 - 使用新的 CommentSection 组件 */}
+        {/* 评论区域 - 使用 CommentSection 组件 */}
         <div className="pt-6">
           {seedId && <CommentSection seedId={Number(seedId)} />}
         </div>
