@@ -15,12 +15,14 @@ const LEVEL_LABELS: Record<number, { label: string; color: string }> = {
 interface UserProfileCardProps {
   userProfile: UserProfile;
   onEditClick?: () => void;
+  onPasswordClick?: () => void;
   isLoading?: boolean;
 }
 
 export default function UserProfileCard({
   userProfile,
   onEditClick,
+  onPasswordClick,
   isLoading = false,
 }: UserProfileCardProps) {
   const formatDate = (dateString: string) => {
@@ -172,30 +174,56 @@ export default function UserProfileCard({
             </span>
           </p>
         </div>
-      </div>
-      {/* 编辑按钮 */}
+      </div>      {/* 编辑按钮 */}
       {onEditClick && (
-        <button
-          type="button"
-          className="w-full cursor-pointer border border-teal-700 text-teal-700 py-2 rounded-md hover:bg-teal-50 transition-colors flex items-center justify-center"
-          onClick={onEditClick}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="space-y-3">
+          <button
+            type="button"
+            className="w-full cursor-pointer border border-teal-700 text-teal-700 py-2 rounded-md hover:bg-teal-50 transition-colors flex items-center justify-center"
+            onClick={onEditClick}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
-          </svg>
-          修改个人信息
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            修改个人信息
+          </button>
+          
+          {/* 修改密码按钮 */}
+          {onPasswordClick && (
+            <button
+              type="button"
+              className="w-full cursor-pointer border border-teal-700 text-teal-700 py-2 rounded-md hover:bg-teal-50 transition-colors flex items-center justify-center"
+              onClick={onPasswordClick}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+              修改密码
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

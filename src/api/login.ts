@@ -51,9 +51,39 @@ export async function logout() {
   }
 }
 
-//注册
-export async function register({ email, password, invite, captcha }: { email: string, password: string, invite?: string, captcha?: string }) {
-  return request.post("/api/request/register", { email, password, invite, captcha });
+//注册  ok
+export async function register({ userName, password, email, inviteCode }: { 
+  userName: string, 
+  password: string, 
+  email: string, 
+  inviteCode?: string 
+}) {
+  try {
+    const response = await request.post<{
+      code: number;
+      message: string;
+      data?: {
+        user_id: number;
+      };
+    }>("http://localhost:8080/api/user/register", { 
+      userName, 
+      password, 
+      email, 
+      inviteCode 
+    });
+    
+    return {
+      success: response.code === 200,
+      message: response.message,
+      data: response.data
+    };
+  } catch (error) {
+    console.error("注册失败:", error);
+    return {
+      success: false,
+      message: error || "注册失败，请稍后重试"
+    };
+  }
 }
 
 //重置密码
@@ -61,7 +91,7 @@ export async function resetPassword({ email, captcha, password }: { email: strin
   return request.post("/api/request/reset-password", { email, captcha, password });
 }
 
-//获取验证码（注册+重置）
-export async function handleGetCode1(email: string) {
-  return request.post("/api/request/send-captcha", { email });
-}
+// //获取验证码（注册+重置）
+// export async function handleGetCode1(email: string) {
+//   return request.post("/api/request/send-captcha", { email });
+// }

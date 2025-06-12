@@ -81,7 +81,7 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className="w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700 transition-colors"
+          className="w-full bg-teal-600 cursor-pointer text-white py-2 rounded-md hover:bg-teal-700 transition-colors"
           disabled={loading}
         >
           登录

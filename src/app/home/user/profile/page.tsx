@@ -5,14 +5,14 @@ import DashboardLayout from "@/components/DashboardLayout";
 import Navbar from "@/components/Navbar";
 import UserProfileCard from "@/components/user/UserProfileCard";
 import ImageUpload from "@/components/user/ImageUpload";
-import { getUserProfile, updateUserProfile, getUserMessages } from "@/api/user";
+import { getUserProfile, updateUserProfile, getUserMessages, updateUserPassword } from "@/api/user";
 import { uploadAvatar } from "@/api/upload";
 import type {
   UserProfile,
   UpdateProfileParams,
   UserMessage,
 } from "@/types/user";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 
 export default function ProfilePage() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -23,8 +23,14 @@ export default function ProfilePage() {
   const [editUsername, setUsername] = useState("");
   const [editBio, setBio] = useState("");
   const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null);
-  const [editAvatarPreview, setEditAvatarPreview] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [editAvatarPreview, setEditAvatarPreview] = useState("");  const [isUpdating, setIsUpdating] = useState(false);
+
+  // 修改密码相关状态
+  const [isPasswordOpen, setIsPasswordOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   // 消息列表相关状态
   const [messages, setMessages] = useState<UserMessage[]>([]);
@@ -69,13 +75,12 @@ export default function ProfilePage() {
     }
   };
   // 处理头像上传预览
-  const handleAvatarChange = (file: File , previewUrl: string) => {
+  const handleAvatarChange = (file: File | null, previewUrl: string) => {
     setEditAvatarFile(file);
     console.log("选择的头像文件:", file);
     // 仍然保存预览URL，用于UI显示，但不再用于实际更新
     setEditAvatarPreview(previewUrl);
-  };
-  // 保存修改信息
+  };  // 保存修改信息
   const handleSaveProfile = async () => {
     if (!userProfile) return;
 
@@ -113,8 +118,46 @@ export default function ProfilePage() {
       setIsUpdating(false);
     }
   };
-  return (
+
+  // 处理修改密码
+  const handleUpdatePassword = async () => {
+    // 表单验证
+    console.log("当前密码:", oldPassword);
+    if (!oldPassword) {
+      toast.error("请输入当前密码");
+      return;
+    }
+    if (!newPassword) {
+      toast.error("请输入新密码");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("两次输入的新密码不一致");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("新密码长度不能少于6位");
+      return;
+    }
+
+    try {
+      setIsUpdatingPassword(true);
+      await updateUserPassword(oldPassword, newPassword);
+      toast.success("密码修改成功");
+      setIsPasswordOpen(false);
+      // 清空密码字段
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error("修改密码失败:", error);
+      toast.error("修改密码失败，请检查当前密码是否正确");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };  return (
     <Navbar name="个人中心">
+      <Toaster position="top-center" />
       <DashboardLayout title="我的资料">
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -126,11 +169,11 @@ export default function ProfilePage() {
           </div>
         ) : userProfile ? (
           <div className="flex flex-col md:flex-row gap-8">
-            <div className="w-full md:w-1/3">
-              {/* 使用新的用户资料卡片组件 */}
+            <div className="w-full md:w-1/3">              {/* 使用新的用户资料卡片组件 */}
               <UserProfileCard
                 userProfile={userProfile}
                 onEditClick={() => setIsOpen(true)}
+                onPasswordClick={() => setIsPasswordOpen(true)}
                 isLoading={loading}
               />
             </div>
@@ -241,6 +284,76 @@ export default function ProfilePage() {
                   disabled={isUpdating}
                 >
                   {isUpdating ? "保存中..." : "保存"}
+                </button>
+              </div>
+            </div>          </div>
+        </div>
+      )}
+
+      {/* 修改密码弹窗 */}
+      {isPasswordOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0, 0, 0, 0.4)" }}
+        >
+          <div className="bg-white rounded shadow-lg w-full max-w-md">
+            <h2 className="text-lg bg-teal-800 text-white rounded-t font-bold pt-4 pb-4 pl-4">
+              修改密码
+            </h2>
+            <div className="bg-white p-6 rounded-b shadow-lg w-full max-w-md">
+              <div className="space-y-6">
+                <div className="flex items-center justify-center">
+                  <label className="whitespace-nowrap flex:2 text-sm font-bold mr-5">
+                    当前密码
+                  </label>
+                  <input
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    className="flex:3 w-full p-2 border rounded-md"
+                    placeholder="请输入当前密码"
+                  />
+                </div>
+                <div className="flex items-center justify-center">
+                  <label className="whitespace-nowrap flex:2 text-sm font-bold mr-5">
+                    新密码
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="flex:3 w-full p-2 border rounded-md"
+                    placeholder="请输入新密码"
+                  />
+                </div>
+                <div className="flex items-center justify-center">
+                  <label className="whitespace-nowrap block text-sm font-bold mr-5">
+                    确认密码
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="请再次输入新密码"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setIsPasswordOpen(false)}
+                  className="text-gray-600  cursor-pointer hover:underline"
+                  disabled={isUpdatingPassword}
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleUpdatePassword}
+                  className="bg-teal-700 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-teal-800 disabled:bg-teal-300"
+                  disabled={isUpdatingPassword}
+                >
+                  {isUpdatingPassword ? "保存中..." : "保存"}
                 </button>
               </div>
             </div>

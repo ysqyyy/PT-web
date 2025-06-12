@@ -4,17 +4,17 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
-import { register, handleGetCode1 } from "@/api/login";
+import { register } from "@/api/login";
 import { useRouter } from "next/navigation";
 import { useEventDebounce } from "@/hooks/useEventDebounce";
 
 export default function RegisterPage() {
-  const [method, setMethod] = useState<"invite" | "email">("email");
+  // const [method, setMethod] = useState<"invite" | "email">("invite");
+  const method= "invite"; // 默认使用邀请码注册
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -27,27 +27,50 @@ export default function RegisterPage() {
     const formData = new FormData(form);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const invite = formData.get("invite") as string | undefined;
-    const captcha = formData.get("captcha") as string | undefined;
+    const userName = formData.get("userName") as string;
+    const inviteCode =
+      method === "invite" ? (formData.get("invite") as string) : undefined;
+
+    // 验证必填字段
+    if (!email) {
+      toast.error("请输入邮箱");
+      return;
+    }
+    if (!password) {
+      toast.error("请输入密码");
+      return;
+    }
+    if (!userName) {
+      toast.error("请输入用户名");
+      return;
+    }
+    if (method === "invite" && !inviteCode) {
+      toast.error("请输入邀请码");
+      return;
+    }
 
     try {
       setLoading(true);
-      const data = await register({ email, password, invite, captcha });
-      if (data.success) {
-        toast.success("注册成功");
+      const response = await register({
+        email,
+        password,
+        userName,
+        inviteCode,
+      });
+
+      if (response.success) {
+        toast.success(response.message || "注册成功");
         router.push("/login");
       } else {
-        toast.error(data.message || "注册失败");
+        toast.error(response.message || "注册失败");
       }
-    } catch {
-      toast.error("请求出错");
+    } catch (error: any) {
+      toast.error(error.message || "注册失败，请稍后重试");
     } finally {
       setLoading(false);
     }
-  };
-  // 提交注册（防抖）
-  const debouncedHandleSubmit = useEventDebounce((e:unknown)=>{handleSubmit(e as React.FormEvent)}, 800);
-
+  }; // 提交注册（防抖）
+  const debouncedHandleSubmit = useEventDebounce(handleSubmit, 800);
   const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
@@ -57,30 +80,6 @@ export default function RegisterPage() {
     }
     return () => clearTimeout(timer);
   }, [countdown]);
-
-  const handleGetCode = async () => {
-    if (countdown > 0) return;
-    // 获取邮箱输入框的值
-    const emailInput = document.querySelector(
-      'input[name="email"]'
-    ) as HTMLInputElement;
-    const email = emailInput?.value;
-    if (!email) {
-      toast.error("请输入邮箱");
-      return;
-    }
-    try {
-      const res = await handleGetCode1(email);
-      if (res.success) {
-        toast.success("验证码已发送");
-        setCountdown(60);
-      } else {
-        toast.error(res.message || "发送失败");
-      }
-    } catch {
-      toast.error("请求出错");
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
@@ -96,7 +95,7 @@ export default function RegisterPage() {
         />
 
         <div className="flex items-center justify-center gap-2 mb-4">
-          <label className="flex mr-10 gap-2">
+          {/* <label className="flex mr-10 gap-2">
             <input
               type="radio"
               name="registerMethod"
@@ -117,97 +116,41 @@ export default function RegisterPage() {
               className="accent-teal-600"
             />
             邀请码注册
-          </label>
+          </label> */}
         </div>
 
         <form onSubmit={debouncedHandleSubmit} className="space-y-4">
+          {" "}
           {method === "invite" && (
-            <>
-              <input
-                type="text"
-                name="email"
-                placeholder="请输入邮箱"
-                className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <input
-                type="text"
-                name="invite"
-                placeholder="请输入邀请码"
-                className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <div className="flex">
-                <input
-                  type="captcha"
-                  name="captcha"
-                  placeholder="请输入验证码"
-                  className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-                <button
-                  type="button"
-                  onClick={handleGetCode}
-                  disabled={countdown > 0}
-                  className={`w-full sm:w-auto px-4 py-2 rounded text-xs font-semibold text-white transition whitespace-nowrap ${
-                    countdown > 0
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-teal-600 hover:bg-teal-700"
-                  }`}
-                >
-                  {countdown > 0 ? `重新发送 (${countdown}s)` : "获取验证码"}
-                </button>
-              </div>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="请输入密码"
-                  className="w-full border border-gray-300 rounded px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? "😎" : "👁"}
-                </button>
-              </div>
-            </>
-          )}
-
-          {method === "email" && (
             <>
               <input
                 type="email"
                 name="email"
                 placeholder="请输入邮箱"
                 className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
               />
-              <div className="flex">
-                <input
-                  type="captcha"
-                  name="captcha"
-                  placeholder="请输入验证码"
-                  className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-                <button
-                  type="button"
-                  onClick={handleGetCode}
-                  disabled={countdown > 0}
-                  className={`w-full sm:w-auto px-4 py-2 rounded text-xs font-semibold text-white transition whitespace-nowrap ${
-                    countdown > 0
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-teal-600 hover:bg-teal-700"
-                  }`}
-                >
-                  {countdown > 0 ? `重新发送 (${countdown}s)` : "获取验证码"}
-                </button>
-              </div>
-
+              <input
+                type="text"
+                name="userName"
+                placeholder="请输入用户名"
+                className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+              <input
+                type="text"
+                name="invite"
+                placeholder="请输入邀请码"
+                className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="请输入密码"
                   className="w-full border border-gray-300 rounded px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
                 />
                 <button
                   type="button"
@@ -218,13 +161,47 @@ export default function RegisterPage() {
                 </button>
               </div>
             </>
-          )}
+          )}{" "}
+          {/* {method === "email" && (
+            <>
+              <input
+                type="email"
+                name="email"
+                placeholder="请输入邮箱"
+                className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+              <input
+                type="text"
+                name="userName"
+                placeholder="请输入用户名"
+                className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="请输入密码"
+                  className="w-full border border-gray-300 rounded px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? "😎" : "👁"}
+                </button>
+              </div>
+            </>
+          )} */}
           <label className="flex items-center space-x-2 text-sm text-gray-600">
             <input
               type="checkbox"
               checked={agree}
               onChange={() => setAgree(!agree)}
-              className="accent-teal-600 w-4 h-4"
+              className="accent-teal-600 cursor-pointer w-4 h-4"
             />
             <span>
               我已同意
@@ -243,11 +220,10 @@ export default function RegisterPage() {
               </a>
             </span>
           </label>
-
           <button
             type="submit"
             disabled={!agree || loading}
-            className={`w-full py-2 rounded text-white font-semibold transition ${
+            className={`w-full py-2 rounded text-white cursor-pointer font-semibold transition ${
               agree && !loading
                 ? "bg-teal-600 hover:bg-teal-700"
                 : "bg-gray-400 cursor-not-allowed"

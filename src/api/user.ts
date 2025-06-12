@@ -52,10 +52,26 @@ export async function updateUserProfile(params: UpdateProfileParams): Promise<{s
 export async function getUserMessages(): Promise<UserMessage[]> {
   try {
     const response = await request.get('/api/request/user/profile/messages');
-    return response;
-  } catch (error) {
+    return response;  } catch (error) {
     console.error('获取用户消息失败:', error);
     // 直接重新抛出原始错误，让全局拦截器处理
+    throw error;
+  }
+}
+
+/**
+ * 修改用户密码 ok
+ */
+export async function updateUserPassword(oldPassword: string, newPassword: string): Promise<{success: boolean}> {
+  try {
+    const response = await request.put('http://localhost:8080/api/user/password', {
+      oldPassword,
+      newPassword
+    });
+    console.log('修改密码接口返回:', response);
+    return {success:true};
+  } catch (error) {
+    console.error('修改密码失败:', error);
     throw error;
   }
 }
