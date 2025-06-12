@@ -26,7 +26,7 @@ export interface Comment {
   createdAt: string;
   likes: number;
   isLiked: boolean;
-  replies: CommentReply[];
+  replies?: CommentReply[];
   replyCount: number;
 }
 // 评论响应类型

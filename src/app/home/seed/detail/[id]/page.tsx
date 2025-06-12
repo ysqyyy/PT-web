@@ -137,14 +137,31 @@ export default function SeedDetailPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <DownloadBountyButton id={seedDetail.id} type="resource" />
-            </div>
-          </div>
+            </div>          </div>
         </div>
         {/* 种子基本信息 */}
         <div className="mb-6 bg-gray-50 rounded-lg p-4 shadow-sm">
           <h2 className="text-lg font-semibold mb-4 text-gray-700 pb-2">
             种子信息
           </h2>
+          
+          {/* 标签展示区域 */}
+          {seedDetail.tags && seedDetail.tags.length > 0 && (
+            <div className="mb-4 pb-4 border-b border-gray-200">
+              <div className="text-sm text-gray-500 mb-2">标签</div>
+              <div className="flex flex-wrap gap-2">
+                {seedDetail.tags.map((tag, index) => (
+                  <span 
+                    key={index} 
+                    className="px-3 py-1 bg-teal-50 text-teal-600 rounded-full text-sm border border-teal-200"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-white p-3 rounded-md shadow-sm flex flex-col justify-between transition-all hover:shadow-md">
               <div className="text-sm text-gray-500 mb-1">大小</div>
