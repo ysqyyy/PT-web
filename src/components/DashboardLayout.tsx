@@ -21,7 +21,7 @@ const navItems = [
   { label: "我的资料", icon: <FileText />, path: "/home/user/profile" },
   { label: "我的下载", icon: <LayoutDashboard />, path: "/home/user/downloads" },
   { label: "数据分析", icon: <BarChart />, path: "/home/user/analytics" },
-  { label: "用户管理", icon: <Users />, path: "/home/user/users" },
+  { label: "举报管理", icon: <Users />, path: "/home/user/users" },
   { label: "资源审核", icon: <CheckCircle />, path: "/home/user/review" },
   { label: "我的悬赏", icon: <Medal />, path: "/home/user/bounties" },
   { label: "仲裁管理", icon: <CheckCircle />, path: "/home/user/arbitration" },
