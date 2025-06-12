@@ -7,13 +7,13 @@ export async function getArbitrationBounties(): Promise<ArbitrationBounty[]> {
     const response = await request.get("http://localhost:8080/bounty/arbitration/all");
     console.log("获取仲裁悬赏列表成功:", response.data);
     const res =  response.data.map((item: any) => ({
-        id: item.submission.submissionId,
+        submissionId: item.submission.submissionId,//驳回同意用
+        torrentId: item.submission?.torrentId,// 下载用
         name: item.bounty.bountyTitle,
         description: item.bounty.bountyDescription,
         status: item.bounty.bountyStatus,
         publisher: item.creatorName,
         reason: item.submission?.refuseReason,
-        torrentId: item.submission?.torrentId,
       }))
   
     return res;
@@ -23,13 +23,13 @@ export async function getArbitrationBounties(): Promise<ArbitrationBounty[]> {
   }
 }
 
-// 驳回仲裁 ok
-export async function rejectArbitration(id: number) {
-  return request.post(`http://localhost:8080/bounty/arbitration/reject`, { submissionId: id });
+// 驳回仲裁 ok idok
+export async function rejectArbitration(submissionId: number) {
+  return request.post(`http://localhost:8080/bounty/arbitration/reject`, { submissionId: submissionId });
 }
 
-// 同意仲裁 ok
-export async function approveArbitration(id: number) {
-  return request.post(`http://localhost:8080/bounty/arbitration/approve`, { submissionId: id });
+// 同意仲裁 ok idok
+export async function approveArbitration(submissionId: number) {
+  return request.post(`http://localhost:8080/bounty/arbitration/approve`, { submissionId: submissionId });
 }
 

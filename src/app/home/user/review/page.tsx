@@ -136,7 +136,6 @@ export default function ResourceReviewPage() {
                       <td className="px-4 py-2">
                         <DownloadBountyButton
                           id={item.id}
-                          type="resource"
                         />
                       </td>
                     </tr>

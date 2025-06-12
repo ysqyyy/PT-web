@@ -136,7 +136,7 @@ export default function SeedDetailPage() {
               发种人：{seedDetail.publisherName} ({seedDetail.publisherLevel})
             </div>
             <div className="flex flex-wrap gap-2">
-              <DownloadBountyButton id={seedDetail.id} type="resource" />
+              <DownloadBountyButton id={seedDetail.torrentId} />
             </div>          </div>
         </div>
         {/* 种子基本信息 */}

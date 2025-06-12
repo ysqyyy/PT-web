@@ -271,7 +271,34 @@ request.upload = async <T = any>(url: string, files: File | File[] | Record<stri
 
 // 添加用于下载文件的辅助方法
 request.download = async (url: string, filename?: string, options?: RequestOptions) => {
-  const response = await fetch(url, {
+  // 首先检查是否需要先获取下载URL
+  let downloadUrl = url;
+  
+  // 如果URL不是直接的文件链接，先发送请求获取下载URL
+  if (!url.match(/\.(torrent|zip|pdf|doc|docx|xls|xlsx|jpg|png|gif|mp3|mp4)$/i)) {
+    try {
+      const response = await request(url, {
+        ...options,
+        method: options?.method || 'GET'
+      });
+      
+      // 检查响应中是否包含downloadUrl
+      if (response && response.data && response.data.downloadUrl) {
+        downloadUrl = response.data.downloadUrl;
+      } else if (response && response.downloadUrl) {
+        downloadUrl = response.downloadUrl;
+      } else {
+        console.error('下载失败: 响应中没有找到下载URL', response);
+        throw new Error('下载失败: 响应中没有找到下载URL');
+      }
+    } catch (error) {
+      console.error('获取下载URL失败:', error);
+      throw error;
+    }
+  }
+  
+  // 发送请求下载文件
+  const response = await fetch(downloadUrl, {
     ...options,
     method: options?.method || 'GET',
     credentials: 'include'
@@ -297,7 +324,7 @@ request.download = async (url: string, filename?: string, options?: RequestOptio
   
   // 如果未能获取文件名，使用URL的最后部分
   if (!filename) {
-    filename = url.split('/').pop() || 'download';
+    filename = downloadUrl.split('/').pop() || 'download';
   }
   
   const link = document.createElement('a');

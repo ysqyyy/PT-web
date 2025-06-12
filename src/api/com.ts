@@ -37,7 +37,7 @@ export async function getSeedComments(seedId: number): Promise<Comment[]> {
     return comments || [];
 }
 
-// 发表一级评论
+// 发表一级评论  ok
 export async function postComment(
     seedId: number,
     content: string
@@ -108,5 +108,22 @@ export async function replyToComment(
 export async function likeComment(
     commentId: number
 ): Promise<{ success: boolean; likes: number }> {
-    return request.post("/api/request/comment/like", { commentId });
+    const response=await request.post(`http://localhost:8080/api/values/comments/${commentId}/like`, { action: "like" });
+    console.log("点赞评论接口返回:", response);
+    return {
+        success: response.status,
+        likes: response.data.likes_count,
+    };
 }
+// 取消点赞评论
+export async function unlikeComment(
+    commentId: number
+): Promise<{ success: boolean; likes: number }> {
+const response=await request.post(`http://localhost:8080/api/values/comments/${commentId}/like`, { action: "unlike" });
+    console.log("取消点赞评论接口返回:", response);
+    return {
+        success: response.status,
+        likes: response.data.likes_count,
+    };
+}
+

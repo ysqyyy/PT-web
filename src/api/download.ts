@@ -23,20 +23,14 @@ export async function getDownloadRecords(): Promise<DownloadRecord[]> {
 }
 
 /**
- * 根据资源ID下载文件
- * @param id 资源ID 或 悬赏ID
- * @param resourceType 资源类型，默认为'resource'
+ * 根据资源ID下载文件  ok
+ * @param id 资源ID
  * @returns Promise
  */
-export async function downloadResource(id: number, resourceType: 'resource' | 'bounty' = 'resource') {
+export async function downloadResource(torrentId: number) {
   try {
-    // 构建下载URL，根据资源类型区分
-    const downloadUrl = resourceType === 'bounty' 
-      ? `/api/request/bounty/${id}/download` 
-      : `/api/request/resource/${id}/download`;
-    
-    // 使用request中间件的download方法
-    await request.download(downloadUrl);
+    console.log('开始下载资源，ID:', torrentId);
+    await request.download(`http://localhost:8080/torrent/download/${torrentId}`);
     
     return { success: true };
   } catch (error) {

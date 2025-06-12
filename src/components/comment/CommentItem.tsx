@@ -97,7 +97,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               disabled={isLiking}
             >
               <span className="mr-1">{comment.isLiked ? '♥' : '♡'}</span>
-              {comment.likes > 0 && <span>{comment.likes}</span>}
+              {comment.likes >= 0 && <span>{comment.likes}</span>}
             </button>
           </div>
             {/* 回复表单 */}
@@ -125,10 +125,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
               : `查看 ${comment.replyCount} 条回复`}
           </button>
         </div>
-      )}
-
-      {/* 回复列表 */}
-      {isExpanded && comment.replies.length > 0 && (
+      )}      {/* 回复列表 */}
+      {isExpanded && comment.replies && comment.replies.length > 0 && (
         <div className="ml-12 mt-3 space-y-4">
           {comment.replies.map(reply => (
             <ReplyItem 
@@ -192,12 +190,12 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onLike }) => {
         {/* 回复操作 */}
         <div className="flex items-center text-sm text-gray-500">
           <button 
-            className={`flex items-center hover:text-teal-600 transition-colors ${reply.isLiked ? 'text-teal-600' : ''}`}
+            className={`flex items-center cursor-pointer hover:text-teal-600 transition-colors ${reply.isLiked ? 'text-teal-600' : ''}`}
             onClick={handleLike}
             disabled={isLiking}
           >
             <span className="mr-1">{reply.isLiked ? '♥' : '♡'}</span>
-            {reply.likes > 0 && <span>{reply.likes}</span>}
+            {reply.likes >= 0 && <span>{reply.likes}</span>}
           </button>
         </div>
       </div>

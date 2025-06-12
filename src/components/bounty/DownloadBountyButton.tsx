@@ -6,7 +6,6 @@ import { BUTTON_STYLES } from "@/constants/buttonStyles";
 
 interface DownloadBountyButtonProps {
   id: number;
-  type?: 'bounty' | 'resource';
   bgColor?: string;
   hoverColor?: string;
   onSuccess?: () => void; // 下载成功后的回调函数，可选参数
@@ -14,7 +13,6 @@ interface DownloadBountyButtonProps {
 
 export default function DownloadBountyButton({
   id,
-  type = 'bounty',
   bgColor = BUTTON_STYLES.COLORS.secondary.bg,
   hoverColor = BUTTON_STYLES.COLORS.secondary.hover,
   onSuccess,
@@ -27,12 +25,7 @@ export default function DownloadBountyButton({
     
     try {
       setIsLoading(true);
-      if (type === 'bounty') {
-        await downloadResource(id, 'bounty');
-      } else {
-        await downloadResource(id, 'resource');
-      }
-      
+      await downloadResource(id);
       toast.success("资源下载已开始");
       if (onSuccess) {
         onSuccess();

@@ -21,26 +21,26 @@ export default function ArbitrationPage() {
   }, []);
 
   // 驳回仲裁
-  const handleReject = async (id: number) => {
+  const handleReject = async (submissionId: number) => {
     if (!window.confirm("确定要驳回该仲裁请求吗？")) return;
     setLoading(true);
     try {
-      await rejectArbitration(id);
+      await rejectArbitration(submissionId);
       toast.success("已驳回仲裁请求");
-      setBounties(bounties.filter((b) => b.bountyId !== id));
+      setBounties(bounties.filter((b) => b.submissionId !== submissionId));
     } catch {
       toast.error("操作失败");
     } finally {
       setLoading(false);
     }
   }; // 同意仲裁
-  const handleApprove = async (id: number) => {
+  const handleApprove = async (submissionId: number) => {
     if (!window.confirm("确定要同意该仲裁请求吗？")) return;
     setLoading(true);
     try {
-      await approveArbitration(id);
+      await approveArbitration(submissionId);
       toast.success("已同意仲裁请求");
-      setBounties(bounties.filter((b) => b.bountyId !== id));
+      setBounties(bounties.filter((b) => b.submissionId !== submissionId));
     } catch {
       toast.error("操作失败");
     } finally {
@@ -71,7 +71,7 @@ export default function ArbitrationPage() {
                 </thead>
                 <tbody>
                   {bounties.map((item) => (
-                    <tr key={item.bountyId}>
+                    <tr key={item.submissionId}>
                       <td className="px-4 py-2">{item.name}</td>
                       <td className="px-4 py-2">{item.publisher}</td>
                       <td className="px-4 py-2">
@@ -88,14 +88,14 @@ export default function ArbitrationPage() {
                         <div className="flex gap-2">
                           <button
                             className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} text-white rounded ${BUTTON_STYLES.COLORS.primary.hover}`}
-                            onClick={() => handleApprove(item.bountyId)}
+                            onClick={() => handleApprove(item.submissionId || 0)}
                             disabled={loading}
                           >
                             同意仲裁
                           </button>
                           <button
                             className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.gray.bg} text-white rounded ${BUTTON_STYLES.COLORS.gray.hover}`}
-                            onClick={() => handleReject(item.bountyId)}
+                            onClick={() => handleReject(item.submissionId|| 0)}
                             disabled={loading}
                           >
                             驳回仲裁
@@ -104,7 +104,7 @@ export default function ArbitrationPage() {
                       </td>
                       <td className="px-4 py-2">
                         <DownloadBountyButton
-                          id={item.bountyId}
+                          id={item.torrentId || 0}
                         />
                       </td>
                     </tr>

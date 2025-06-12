@@ -46,16 +46,16 @@ export default function MyBountiesPage() {
     getMySubmittedBounties().then(setSubmittedBounties);
   };
   // 取消求种请求
-  const handleCancel = async (id: number) => {
+  const handleCancel = async (bountyId: number) => {
     if (!window.confirm("确定要取消该求种请求吗？")) return;
-    await cancelBounty(id);
+    await cancelBounty(bountyId);
     toast.success("rejected求种请求");
     loadData();
   };
   // 确认资源成功
-  const handleConfirm = async (id: number) => {
+  const handleConfirm = async (submissionId: number) => {
     if (!window.confirm("确定要确认资源吗？")) return;
-    await confirmBounty(id);
+    await confirmBounty(submissionId);
     toast.success("已确认资源成功");
     loadData();
   }; // 打开仲裁弹窗
@@ -80,17 +80,17 @@ export default function MyBountiesPage() {
   };
   // 取消求种请求 - 防抖处理
   const debouncedHandleCancel = useDebounceFn(
-    (id: unknown) => handleCancel(id as number),
+    (bountyId: unknown) => handleCancel(bountyId as number),
     800
   );
   // 确认资源成功 - 防抖处理
   const debouncedHandleConfirm = useDebounceFn(
-    (id: unknown) => handleConfirm(id as number),
+    (submissionId: unknown) => handleConfirm(submissionId as number),
     800
   );
   // 打开仲裁弹窗 - 防抖处理
   const debouncedOpenArbitrateModal = useDebounceFn(
-    (id: unknown) => openArbitrateModal(id as number),
+    (submissionId: unknown) => openArbitrateModal(submissionId as number),
     800
   ); // 关闭仲裁弹窗 - 防抖处理
   const debouncedCloseArbitrateModal = useDebounceFn(closeArbitrateModal, 800); // 仲裁（弹窗提交）- 防抖处理
@@ -183,7 +183,7 @@ export default function MyBountiesPage() {
                           {item.status === "pending" && (
                             <>
                               <AppendBountyButton
-                                bountyId={item.bountyId}
+                                bountyId={item.bountyId||0}
                                 bgColor={BUTTON_STYLES.COLORS.primary.bg}
                                 hoverColor={BUTTON_STYLES.COLORS.primary.hover}
                                 onSuccess={loadData}
@@ -224,7 +224,7 @@ export default function MyBountiesPage() {
                           {(item.status === "unconfirmed" ||
                             item.status === "approved" ||
                             item.status === "under_review") && (
-                            <DownloadBountyButton id={item.bountyId} />
+                            <DownloadBountyButton id={item.torrentId||0} />
                           )}
                         </td>
                       </tr>
@@ -275,7 +275,7 @@ export default function MyBountiesPage() {
                             <>
                               <div className="flex gap-1">
                                 <AppendBountyButton
-                                  bountyId={item.bountyId}
+                                  bountyId={item.bountyId || 0}
                                   bgColor={BUTTON_STYLES.COLORS.primary.bg}
                                   hoverColor={
                                     BUTTON_STYLES.COLORS.primary.hover
@@ -283,7 +283,7 @@ export default function MyBountiesPage() {
                                   onSuccess={loadData}
                                 />
                                 <SubmitSeedButton
-                                  bountyId={item.bountyId}
+                                  bountyId={item.bountyId || 0}
                                   bgColor={BUTTON_STYLES.COLORS.gray.bg}
                                   hoverColor={BUTTON_STYLES.COLORS.gray.hover}
                                   onSuccess={loadData}
@@ -296,7 +296,7 @@ export default function MyBountiesPage() {
                           {(item.status === "unconfirmed" ||
                             item.status === "approved" ||
                           item.status=== "under_review") && (
-                            <DownloadBountyButton id={item.bountyId} />
+                            <DownloadBountyButton id={item.torrentId||0} />
                           )}
                         </td>
                       </tr>
@@ -344,7 +344,7 @@ export default function MyBountiesPage() {
                           {(item.status === "unconfirmed" ||
                             item.status === "approved" ||
                             item.status === "under_review") && (
-                            <DownloadBountyButton id={item.bountyId} />
+                            <DownloadBountyButton id={item.torrentId||0} />
                           )}
                         </td>
                       </tr>

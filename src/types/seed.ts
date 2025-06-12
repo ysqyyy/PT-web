@@ -1,7 +1,7 @@
 import {Comment} from "./comment";
 //new type ok
 export interface SeedDetail{
-    id: number;                // 对应后端的 torrentId
+    torrentId: number;                // 对应后端的 torrentId
     name: string;             // 对应后端的 torrentName    
     description: string;      // 描述
     imgUrl?: string;          // 图片URL

@@ -67,7 +67,6 @@ export default function DownloadsPage() {
                       <td className="px-4 py-2">
                         <DownloadBountyButton 
                           id={record.id}
-                          type="resource"
                         />
                       </td>
                     </tr>

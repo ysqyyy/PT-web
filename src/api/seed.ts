@@ -20,7 +20,7 @@ export async function getSeedDetail(id: number) {
     console.log("Seed detail response:", response);
     const res = response.data;
     const seedDetail:SeedDetail ={
-        id: res.torrentId,//
+        torrentId: res.torrentId,//
         name: res.torrentName,//
         description: res.torrentDescription,//
         imgUrl: res?.imgUrl,

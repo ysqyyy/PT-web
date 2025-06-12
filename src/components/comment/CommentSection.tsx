@@ -6,6 +6,7 @@ import {
   postComment, 
   replyToComment, 
   likeComment, 
+  unlikeComment,
 } from '@/api/com';
 import { Comment } from '@/types/comment';
 import CommentItem from './CommentItem';
@@ -53,20 +54,19 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
       toast.error('评论发表失败，请稍后重试');
     }
   };
-
   // 回复评论
   const handleReplyComment = async (commentId: number, content: string) => {
     if (!content.trim()) return;
     try {
-      const newReply = await replyToComment(seedId,commentId, content);
+      const newReply = await replyToComment(seedId, commentId, content);
       // 更新评论列表，添加新回复
       setComments(prevComments => 
         prevComments.map(comment => 
           comment.id === commentId 
             ? {
                 ...comment,
-                replies: [...comment.replies, newReply],
-                replyCount: comment.replyCount + 1
+                replies: comment.replies ? [...comment.replies, newReply] : [newReply],
+                replyCount: (comment.replyCount || 0) + 1
               }
             : comment
         )
@@ -77,17 +77,32 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
       console.error('回复评论失败:', err);
       toast.error('回复发表失败，请稍后重试');
     }
-  };
-
-  // 点赞评论
+  };// 点赞评论
   const handleLikeComment = async (commentId: number, isReply: boolean = false, parentId?: number) => {
     try {
-      const result = await likeComment(commentId);
+      // 查找要点赞/取消点赞的评论或回复
+      let isCurrentlyLiked = false;
+      
+      if (!isReply) {
+        // 找到一级评论
+        const comment = comments.find(c => c.id === commentId);
+        isCurrentlyLiked = comment?.isLiked || false;
+      } else if (parentId) {
+        // 找到二级评论/回复
+        const parentComment = comments.find(c => c.id === parentId);
+        const reply = parentComment?.replies?.find(r => r.id === commentId);
+        isCurrentlyLiked = reply?.isLiked || false;
+      }
+      
+      // 根据当前状态选择点赞或取消点赞
+      const result = isCurrentlyLiked 
+        ? await unlikeComment(commentId)
+        : await likeComment(commentId);
       
       if (result.success) {
         // 更新评论列表中的点赞状态
         if (!isReply) {
-          // 点赞一级评论
+          // 点赞/取消点赞一级评论
           setComments(prevComments => 
             prevComments.map(comment => 
               comment.id === commentId
@@ -96,29 +111,31 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
             )
           );
         } else if (parentId) {
-          // 点赞二级评论/回复
+          // 点赞/取消点赞二级评论/回复
           setComments(prevComments => 
             prevComments.map(comment => 
               comment.id === parentId
                 ? {
                     ...comment,
-                    replies: comment.replies.map(reply => 
+                    replies: comment.replies ? comment.replies.map(reply => 
                       reply.id === commentId
                         ? { ...reply, likes: result.likes, isLiked: !reply.isLiked }
                         : reply
-                    )
+                    ) : []
                   }
                 : comment
             )
           );
         }
+        
+        // 显示操作成功提示
+        toast.success(isCurrentlyLiked ? '已取消点赞' : '点赞成功');
       }
     } catch (err) {
-      console.error('点赞失败:', err);
-      toast.error('点赞失败，请稍后重试');
+      console.error('点赞操作失败:', err);
+      toast.error('操作失败，请稍后重试');
     }
   };
-
   // 加载更多回复
   const handleLoadReplies = async (commentId: number) => {
     // 如果已经展开，则折叠
@@ -132,7 +149,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
       const comment = comments.find(c => c.id === commentId);
       
       // 如果评论已经加载了所有回复，直接标记为展开
-      if (comment && comment.replies.length === comment.replyCount) {
+      if (comment && comment.replies && comment.replies.length === comment.replyCount) {
         setExpandedComments([...expandedComments, commentId]);
         return;
       }
