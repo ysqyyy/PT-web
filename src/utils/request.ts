@@ -261,7 +261,7 @@ request.upload = async <T = any>(url: string, files: File | File[] | Record<stri
       }
     });
   }
-  
+  // console.log('上传文件:', { url,  });
   return request<T>(url, {
     method: 'POST',
     body: formData,
