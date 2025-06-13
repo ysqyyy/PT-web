@@ -269,176 +269,223 @@ export default function ExchangePage() {
     return (
         <div>
             <Navbar name="兑换中心">
-                <h1 className="text-2xl font-bold mb-6">兑换中心</h1>
+                <h1 className="text-2xl font-bold mb-6 text-gray-800">兑换中心</h1>
 
                 {/* 用户积分概览 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                    <Card loading={loading}>
-                        <Statistic title="点券" value={userValues.tickets} precision={0} />
-                    </Card>
-                    <Card loading={loading}>
-                        <Statistic title="魔力值" value={userValues.magic_value} precision={2} />
-                    </Card>
-                    <Card loading={loading}>
-                        <Statistic title="积分" value={userValues.points} precision={0} />
-                    </Card>
-                </div>
-
-                <Divider>点券充值</Divider>
-                <div className="bg-white p-6 rounded-lg shadow mb-8 flex flex-col md:flex-row items-center gap-4">
-                    <InputNumber
-                        className="w-full"
-                        min={1}
-                        value={rechargeAmount}
-                        onChange={v => setRechargeAmount(v || 0)}
-                        placeholder="请输入充值点券数量"
-                    />
-                    <Button
-                        type="primary"
-                        loading={rechargeLoading}
-                        onClick={handleRecharge}
-                        className="w-full md:w-auto"
-                    >
-                        充值
-                    </Button>
-                </div>
-
-                <Divider>每日签到</Divider>
-                <div className="bg-white p-6 rounded-lg shadow mb-8 text-center">
-                    <Button
-                        type="primary"
-                        size="large"
-                        onClick={handleDailySignIn}
-                        loading={signInLoading}
-                        disabled={isSignedToday}
-                    >
-                        {isSignedToday ? '今日已签到' : '立即签到'}
-                    </Button>
-                    {signInResult && (
-                        <div className="mt-4 text-lg">
-                            <p>恭喜您，签到成功！</p>
-                            <p>获得积分: <span className="font-bold text-green-600">{signInResult.points}</span></p>
-                            <p>获得魔力值: <span className="font-bold text-blue-600">{signInResult.magicValue}</span></p>
-                        </div>
-                    )}
-                </div>
-
-                <Divider>积分兑换</Divider>
-                <div className="bg-white p-6 rounded-lg shadow mb-8">
-                    <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
-                        <div className="flex-1 w-full">
-                            <label className="block text-sm font-medium mb-1">兑换来源</label>
-                            <Select
-                                className="w-full"
-                                value={fromType}
-                                onChange={(value) => {
-                                    setFromType(value as 'tickets' | 'magic_value');
-                                    if (value === 'tickets') {
-                                        setToType('magic_value');
-                                    } else {
-                                        setToType('points');
-                                    }
-                                    setExchangeAmount(0);
-                                }}
-                                options={[
-                                    { value: 'tickets', label: '点券' },
-                                    { value: 'magic_value', label: '魔力值' },
-                                ]}
-                            />
-                        </div>
-                        <div className="flex-1 w-full">
-                            <label className="block text-sm font-medium mb-1">兑换数量</label>
-                            <InputNumber
-                                className="w-full"
-                                min={0}
-                                max={fromType === 'tickets' ? userValues.tickets : userValues.magic_value}
-                                value={exchangeAmount}
-                                onChange={(value) => setExchangeAmount(value || 0)}
-                                disabled={fromType === 'magic_value' && toType !== 'points'}
-                            />
-                        </div>
-                        <div className="flex-1 w-full">
-                            <label className="block text-sm font-medium mb-1">兑换目标</label>
-                            <Select
-                                className="w-full"
-                                value={toType}
-                                onChange={(value) => setToType(value as 'magic_value' | 'points')}
-                                options={[
-                                    { value: 'magic_value', label: '魔力值' },
-                                    { value: 'points', label: '积分' },
-                                ]}
-                                disabled={fromType === 'magic_value'}
-                            />
-                        </div>
-                    </div>
-                    {exchangeAmount > 0 && (
-                        <div className="mb-6 p-4 bg-gray-50 rounded">
-                            <p className="text-center">
-                                兑换比例: 1 {fromType === 'tickets' ? '点券' : '魔力值'} =
-                                {fromType === 'tickets' && toType === 'magic_value'
-                                    ? ` 10 魔力值`
-                                    : fromType === 'tickets' && toType === 'points'
-                                        ? ` 10 积分`
-                                        : ''}
-                            </p>
-                            <p className="text-center font-bold text-lg">
-                                你将获得: {calculateExchangeResult().toFixed(2)}{' '}
-                                {toType === 'magic_value' ? '魔力值' : '积分'}
-                            </p>
-                        </div>
-                    )}
-                    <Button
-                        type="primary"
-                        size="large"
-                        className="w-full"
-                        onClick={handleExchange}
-                        loading={exchangeLoading}
-                        disabled={exchangeAmount <= 0 || (fromType === 'magic_value' && toType !== 'points')}
-                    >
-                        确认兑换
-                    </Button>
-                </div>
-
-                <Divider>魔力值兑换勋章</Divider>
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium mb-1">选择勋章 (魔力值: {userValues.magic_value})</label>
-                        <Select
-                            className="w-full"
-                            value={badgeIdToExchange}
-                            onChange={(value) => setBadgeIdToExchange(value)}
-                            placeholder="请选择要兑换的勋章"
-                            loading={badgesLoading}
-                            options={allBadges.map(badge => ({
-                                value: badge.titleId,
-                                label: badge.titleName,
-                                disabled: userBadges.some(userBadge => userBadge.titleId === badge.titleId)
-                            }))}
+                    <Card loading={loading} className="hover:shadow-md transition-shadow">
+                        <Statistic
+                            title={<span className="text-gray-700">点券</span>}
+                            value={userValues.tickets}
+                            precision={0}
+                            valueStyle={{color: '#3f8600'}}
+                            prefix={<span className="text-yellow-500 mr-1">🎫</span>}
                         />
+                    </Card>
+                    <Card loading={loading} className="hover:shadow-md transition-shadow">
+                        <Statistic
+                            title={<span className="text-gray-700">魔力值</span>}
+                            value={userValues.magic_value}
+                            precision={2}
+                            valueStyle={{color: '#1890ff'}}
+                            prefix={<span className="text-blue-500 mr-1">✨</span>}
+                        />
+                    </Card>
+                    <Card loading={loading} className="hover:shadow-md transition-shadow">
+                        <Statistic
+                            title={<span className="text-gray-700">积分</span>}
+                            value={userValues.points}
+                            precision={0}
+                            valueStyle={{color: '#722ed1'}}
+                            prefix={<span className="text-purple-500 mr-1">🏆</span>}
+                        />
+                    </Card>
+                </div>
+
+                {/* 第一行：左侧点券充值和每日签到，右侧积分兑换 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    {/* 左侧：点券充值和每日签到 */}
+                    <div className="space-y-4 md:col-span-1">
+                        {/* 点券充值 */}
+                        <div className="bg-white p-6 rounded-lg shadow-sm">
+                            <h3 className="text-lg font-medium text-gray-700 mb-4">点券充值</h3>
+                            <div className="flex flex-col gap-4">
+                                <InputNumber
+                                    className="w-full"
+                                    min={1}
+                                    value={rechargeAmount}
+                                    onChange={v => setRechargeAmount(v || 0)}
+                                    placeholder="请输入充值点券数量"
+                                    addonBefore={<span className="text-yellow-500">🎫</span>}
+                                />
+                                <Button
+                                    type="primary"
+                                    loading={rechargeLoading}
+                                    onClick={handleRecharge}
+                                    className="w-full"
+                                    icon={<span className="mr-1">💎</span>}
+                                >
+                                    充值
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* 每日签到 */}
+                        <div className="bg-white p-6 rounded-lg shadow-sm">
+                            <h3 className="text-lg font-medium text-gray-700 mb-4">每日签到</h3>
+                            <div className="flex flex-col gap-4">
+                                <Button
+                                    type="primary"
+                                    size="large"
+                                    onClick={handleDailySignIn}
+                                    loading={signInLoading}
+                                    disabled={isSignedToday}
+                                    className={`w-full ${isSignedToday ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'}`}
+                                    icon={<span className="mr-1">📅</span>}
+                                >
+                                    {isSignedToday ? '今日已签到' : '立即签到'}
+                                </Button>
+                                {signInResult && (
+                                    <div className="p-3 bg-green-50 rounded">
+                                        <p className="text-gray-800">恭喜您，签到成功！</p>
+                                        <p className="text-gray-700">
+                                            获得积分: <span
+                                            className="font-medium text-purple-600">{signInResult.points}</span>
+                                        </p>
+                                        <p className="text-gray-700">
+                                            获得魔力值: <span
+                                            className="font-medium text-blue-600">{signInResult.magicValue}</span>
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                    <Button
-                        type="primary"
-                        size="large"
-                        className="w-full"
-                        onClick={handleExchangeBadge}
-                        loading={badgeExchangeLoading}
-                        disabled={badgeIdToExchange === null || badgeIdToExchange <= 0 || userBadges.some(badge => badge.titleId === badgeIdToExchange)}
-                    >
-                        兑换勋章
-                    </Button>
-                    <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-2">您已拥有的勋章:</h3>
+
+                    {/* 右侧：积分兑换 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm md:col-span-2">
+                        <h3 className="text-lg font-medium text-gray-700 mb-4">积分兑换</h3>
+                        <div className="flex flex-col gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-sm font-medium text-gray-700">兑换来源</label>
+                                    <Select
+                                        className="w-full"
+                                        value={fromType}
+                                        onChange={(value) => {
+                                            setFromType(value as 'tickets');
+                                            setToType('magic_value');
+                                            setExchangeAmount(0);
+                                        }}
+                                        options={[
+                                            {value: 'tickets', label: '🎫 点券'}
+                                        ]}
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-sm font-medium text-gray-700">兑换数量</label>
+                                    <InputNumber
+                                        className="w-full"
+                                        min={0}
+                                        max={userValues.tickets}
+                                        value={exchangeAmount}
+                                        onChange={(value) => setExchangeAmount(value || 0)}
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-sm font-medium text-gray-700">兑换目标</label>
+                                    <Select
+                                        className="w-full"
+                                        value={toType}
+                                        onChange={(value) => setToType(value as 'magic_value' | 'points')}
+                                        options={[
+                                            {value: 'magic_value', label: '✨ 魔力值'},
+                                            {value: 'points', label: '🏆 积分'},
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+                            {exchangeAmount > 0 && (
+                                <div className="p-3 bg-blue-50 rounded">
+                                    <p className="text-center text-sm text-gray-700">
+                                        兑换比例: 1 点券 = {toType === 'magic_value' ? '10 魔力值' : '10 积分'}
+                                    </p>
+                                    <p className="text-center font-medium text-blue-600">
+                                        你将获得: {calculateExchangeResult().toFixed(2)}{' '}
+                                        {toType === 'magic_value' ? '魔力值' : '积分'}
+                                    </p>
+                                </div>
+                            )}
+                            <Button
+                                type="primary"
+                                className="w-full"
+                                onClick={handleExchange}
+                                loading={exchangeLoading}
+                                disabled={exchangeAmount <= 0}
+                                icon={<span className="mr-1">🔄</span>}
+                            >
+                                确认兑换
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 第二行：勋章相关 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* 已拥有的勋章 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm md:col-span-1">
+                        <h3 className="text-lg font-medium text-gray-700 mb-4">已拥有的勋章</h3>
                         {badgesLoading ? (
-                            <p>加载中...</p>
+                            <p className="text-gray-500">加载中...</p>
                         ) : userBadges.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                                 {userBadges.map(badge => (
-                                    <Tag key={badge.titleId} color="blue">{badge.titleName}</Tag>
+                                    <Tag
+                                        key={badge.titleId}
+                                        color="purple"
+                                        className="px-3 py-1"
+                                    >
+                                        🏅 {badge.titleName}
+                                    </Tag>
                                 ))}
                             </div>
                         ) : (
-                            <p>您目前还没有任何勋章。</p>
+                            <p className="text-gray-500">您目前还没有任何勋章。</p>
                         )}
+                    </div>
+
+                    {/* 选择勋章 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm md:col-span-2">
+                        <h3 className="text-lg font-medium text-gray-700 mb-4">兑换勋章</h3>
+                        <div className="flex flex-col gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    选择勋章 <span className="text-blue-600">(魔力值: {userValues.magic_value})</span>
+                                </label>
+                                <Select
+                                    className="w-full"
+                                    value={badgeIdToExchange}
+                                    onChange={(value) => setBadgeIdToExchange(value)}
+                                    placeholder="请选择要兑换的勋章"
+                                    loading={badgesLoading}
+                                    options={allBadges.map(badge => ({
+                                        value: badge.titleId,
+                                        label: badge.titleName,
+                                        disabled: userBadges.some(userBadge => userBadge.titleId === badge.titleId)
+                                    }))}
+                                />
+                            </div>
+                            <Button
+                                type="primary"
+                                className="w-full bg-purple-600 hover:bg-purple-700"
+                                onClick={handleExchangeBadge}
+                                loading={badgeExchangeLoading}
+                                disabled={badgeIdToExchange === null || badgeIdToExchange <= 0 || userBadges.some(badge => badge.titleId === badgeIdToExchange)}
+                                icon={<span className="mr-1">🏅</span>}
+                            >
+                                兑换勋章
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </Navbar>
