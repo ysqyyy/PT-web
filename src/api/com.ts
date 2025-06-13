@@ -127,3 +127,18 @@ const response=await request.post(`http://localhost:8080/api/values/comments/${c
     };
 }
 
+// 举报评论
+export async function reportComment(commentId: number, reason: string): Promise<any> {
+    console.log("举报评论接口参数:", { commentId, reason });
+    const response = await request.post(
+        `http://localhost:8080/api/values/comments/${commentId}/report`,
+        {
+            reason: reason,
+        }
+    );
+    console.log("举报评论接口返回:", response);
+    return response.data;
+}
+
+
+

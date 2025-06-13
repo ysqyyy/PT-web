@@ -8,6 +8,8 @@ import CommentSection from "@/components/comment/CommentSection";
 import { SeedDetail } from "@/types/seed";
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
+import { toast, Toaster } from "react-hot-toast";
+
 
 export default function SeedDetailPage() {
   const params = useParams();
@@ -69,6 +71,7 @@ export default function SeedDetailPage() {
   if (loading) {
     return (
       <Navbar name="种子详情">
+        <Toaster position="top-center" />
         <div className="bg-white rounded-lg shadow p-6 text-center">
           加载中...
         </div>

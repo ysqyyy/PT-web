@@ -7,6 +7,7 @@ import {
   replyToComment, 
   likeComment, 
   unlikeComment,
+  reportComment, // 导入举报评论API
 } from '@/api/com';
 import { Comment } from '@/types/comment';
 import CommentItem from './CommentItem';
@@ -77,7 +78,28 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
       console.error('回复评论失败:', err);
       toast.error('回复发表失败，请稍后重试');
     }
-  };// 点赞评论
+  };
+  // 处理举报评论的函数
+  const handleReportComment = async (commentId: number, reason: string) => {
+    try {
+      const result = await reportComment(commentId, reason);
+      if (result.status === 'success') {
+        // 如果后端返回举报成功，这里可以做一些UI更新，例如：
+        // 1. 评论状态更新为“已举报” (如果后端有这个字段)
+        // 2. 移除评论 (如果举报后需要立即隐藏)
+        // 3. 简单的成功提示已经在 CommentItem 中处理
+        console.log('举报成功，后端返回:', result);
+      } else {
+        toast.error(`举报失败: ${result.message || '未知错误'}`);
+      }
+    } catch (err) {
+      console.error('举报评论失败:', err);
+      toast.error('举报评论失败，请稍后重试。');
+    }
+  };
+
+
+  // 点赞评论
   const handleLikeComment = async (commentId: number, isReply: boolean = false, parentId?: number) => {
     try {
       // 查找要点赞/取消点赞的评论或回复
@@ -162,6 +184,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
     }
   };
 
+
+
+
   // 评论计数 有接口？？？
   const totalCommentCount = comments.reduce(
     (sum, comment) => sum + 1 + comment.replyCount,
@@ -201,6 +226,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ seedId }) => {
               onLike={handleLikeComment}
               onLoadReplies={handleLoadReplies}
               isExpanded={expandedComments.includes(comment.id)}
+              onReport={handleReportComment} // 传递举报回调
             />
           ))
         )}
