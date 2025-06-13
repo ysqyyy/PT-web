@@ -8,16 +8,38 @@ import { Message, Conversation } from "@/types/message";
 export async function getConversations(): Promise<Conversation[]> {
   try {
     const response = await request.get(
-      "http://localhost:8080/api/messages/conversations"
+        "http://localhost:8080/api/messages/conversations"
     );
+    // 打印返回内容，调试用
+    console.log("getConversations返回：", response);
 
-    const res: Conversation[] = response.data.map((item: any) => ({
-      id: item.id, // 会话ID
-      participantId: item.user2Id, // 对话参与者ID（非当前用户）
-      participantName: item.user2Name, // 对话参与者名称
-      participantAvatar: item.user2Avatar, // 对话参与者头像
-      lastMessage: item.lastMessageTime, // 最后一条消息//todo: 需要格式化时间
-      unreadCount: item.unreadCountUser1, // 未读消息数
+    // 兼容各种返回结构
+    const arr = response?.data?.data || response?.data || [];
+    if (!Array.isArray(arr)) {
+      return [];
+    }
+    const res: Conversation[] = arr.map((item: any) => ({
+      id: item.id?.toString?.() || "",
+      participantId: item.user2Id?.toString?.() || "",
+      participantName: item.user2Name || "",
+      participantAvatar: item.user2Avatar || "",
+      lastMessage: item.lastMessage
+          ? {
+            id: "",
+            content: item.lastMessage,
+            senderId: item.user1Id?.toString?.() || "",
+            receiverId: item.user2Id?.toString?.() || "",
+            senderName: item.user1Name || "",
+            receiverName: item.user2Name || "",
+            senderAvatar: item.user1Avatar || "",
+            receiverAvatar: item.user2Avatar || "",
+            timestamp: item.lastMessageTime
+                ? new Date(item.lastMessageTime.join("-")).getTime()
+                : undefined,
+            read: true,
+          }
+          : undefined,
+      unreadCount: item.unreadCountUser1 || 0,
     }));
     return res;
   } catch (error) {
@@ -25,41 +47,44 @@ export async function getConversations(): Promise<Conversation[]> {
     throw error;
   }
 }
-
-/**
- * 获取指定对话的消息历史
- * @param conversationId 对话ID
- * @returns Promise<Message[]> 消息列表
- */
+// ... existing code ...
 export async function getConversationMessages(
-  conversationId: string
+    conversationId: string
 ): Promise<Message[]> {
   try {
     const response = await request.get(
-      `http://localhost:8080/api/messages/conversations/${conversationId}`
+        `http://localhost:8080/api/messages/conversations/${conversationId}`
     );
-    const messages: Message[] = response.data.map((item: any) => ({
-      id: item.id,
-      content: item.content,
-      senderId: item.fromUserId,
-      receiverId: item.toUserId,
-      senderName: item.fromUserName,
-      receiverName: item.toUserName,
-      senderAvatar: item.fromUserAvatar,
-      receiverAvatar: item.toUserAvatar,
-      timestamp: new Date(item.sentAt).getTime(),
+    console.log("getConversationMessages返回：", response);
+
+    const arr = response?.data?.data || response?.data || [];
+    if (!Array.isArray(arr)) {
+      return [];
+    }
+    const messages: Message[] = arr.map((item: any) => ({
+      id: item.id?.toString?.() || "",
+      content: item.content || "",
+      senderId: item.fromUserId?.toString?.() || "",
+      receiverId: item.toUserId?.toString?.() || "",
+      senderName: item.fromUserName || "",
+      receiverName: item.toUserName || "",
+      senderAvatar: item.fromUserAvatar || "",
+      receiverAvatar: item.toUserAvatar || "",
+      timestamp: item.sentAt
+          ? new Date(Array.isArray(item.sentAt) ? item.sentAt.join("-") : item.sentAt).getTime()
+          : undefined,
       read: item.isRead,
+      conversationId: item.conversationId?.toString?.() || "", // 确保这里也映射
     }));
-    console.log("获取对话消息:", messages);
     return messages;
   } catch (error) {
     console.error("获取对话消息失败:", error);
     throw error;
   }
 }
-
+// ... existing code ...
 /**
- * 发送新消息
+ * 发送新消息（HTTP方式，保留）
  * @param message 消息内容
  * @returns Promise<Message> 已发送的消息
  */
@@ -69,8 +94,8 @@ export async function sendMessage(message: {
 }): Promise<Message> {
   try {
     const response = await request.post(
-      "http://localhost:8080/api/messages/send",
-      { data: message }
+        "http://localhost:8080/api/messages/send",
+        { data: message }
     );
     return response.data;
   } catch (error) {
@@ -85,7 +110,7 @@ export async function sendMessage(message: {
  * @returns Promise<{success: boolean}> 操作结果
  */
 export async function markMessageAsRead(
-  messageId: string
+    messageId: string
 ): Promise<{ success: boolean }> {
   try {
     await request.put(`http://localhost:8080/api/messages/${messageId}/read`);
@@ -102,14 +127,14 @@ export async function markMessageAsRead(
  * @returns Promise<Conversation> 创建的对话
  */
 export async function createConversation(
-  userId: string
+    userId: string
 ): Promise<Conversation> {
   try {
     const response = await request.post(
-      "http://localhost:8080/api/messages/conversations",
-      {
-        data: { participantId: userId },
-      }
+        "http://localhost:8080/api/messages/conversations",
+        {
+          data: { participantId: userId },
+        }
     );
     return response.data;
   } catch (error) {
