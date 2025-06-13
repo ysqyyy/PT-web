@@ -30,7 +30,7 @@ export const useMessageService = create<MessageServiceState>((set) => ({
   
   // 断开 WebSocket 连接
   disconnect: () => {
-    messageService.disconnect();
+    //messageService.disconnect();
     set({ connected: false });
   },
   

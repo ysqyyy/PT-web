@@ -16,8 +16,11 @@ interface SeedPublishData {
     description: string;
     region: string;
     year: string;
+    chineseName: string;
+    englishName: string;
     actors: string;
     types: string[];
+    releaseGroup: string;
     seedPrice: string;
 }
 
@@ -28,8 +31,11 @@ interface SeedPublishResponse {
     description: string;
     region: string;
     year: string;
+    chineseName: string;
+    englishName: string;
     actors: string;
     types: string[];
+    releaseGroup: string;
     seedPrice: string;
     filePath: string;
     publishTime: string;
@@ -98,8 +104,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             description: fields.description?.[0] || '',
             region: fields.region![0],
             year: fields.year![0],
+            chineseName: fields.chineseName?.[0] || '',
+            englishName: fields.englishName?.[0] || '',
             actors: fields.actors?.[0] || '',
             types: fields.types?.[0] ? JSON.parse(fields.types[0]) : [],
+            releaseGroup: fields.releaseGroup?.[0] || '',
             seedPrice: fields.seedPrice?.[0] || '免费',
         };
 

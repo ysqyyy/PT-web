@@ -1,25 +1,21 @@
-import { Client, IMessage } from '@stomp/stompjs';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
-// WebSocket 服务器地址（和 Spring Boot 后端配置的一致）
-const WS_URL = "ws://localhost:8080/ws"; // 修改为你的后端 WebSocket 地址
+const WS_URL = "http://localhost:8080/ws"; // 注意这里是 http，不是 ws
 
-// STOMP 客户端
 let stompClient: Client | null = null;
-
-// 连接状态
 let connected = false;
 
-// 连接 WebSocket
 export function connect(userId: string, onMessage: (msg: any) => void) {
   if (connected) return;
 
   stompClient = new Client({
-    brokerURL: WS_URL,
+    // 关键：用 webSocketFactory + SockJS
+    webSocketFactory: () => new SockJS(WS_URL),
     reconnectDelay: 5000,
     onConnect: () => {
       connected = true;
-      // 订阅个人消息队列
-      stompClient?.subscribe('/user/queue/messages', (message: IMessage) => {
+      stompClient?.subscribe('/user/queue/messages', (message) => {
         const data = JSON.parse(message.body);
         onMessage(data);
       });
@@ -38,16 +34,7 @@ export function connect(userId: string, onMessage: (msg: any) => void) {
   stompClient.activate();
 }
 
-// 断开连接
-export function disconnect() {
-  if (stompClient && connected) {
-    stompClient.deactivate();
-    connected = false;
-  }
-}
-
-// 发送消息
-export function sendMessage(fromUserId: string, toUserId: string, content: string) {
+export function sendMessageWS(fromUserId: string, toUserId: string, content: string) {
   if (!stompClient || !connected) {
     console.error('未连接 STOMP');
     return;
