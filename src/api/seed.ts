@@ -1,5 +1,7 @@
 import request from "../utils/request";
-import type { SeedDetail } from "@/types/seed";
+import type { publishSeedData, SeedDetail } from "@/types/seed";
+// 获取认证token
+import auth from "../utils/auth"; // 确保有此文件并导出 getToken 方法
 import {
   getCategoryIdByName,
   getCategoryNameById,
@@ -85,18 +87,11 @@ export async function rateSeed(seedId: number, rating: number) {
     weight_factor: 1,
   });
 }
+import axios from "axios";
 
 // 发布种子 todo
-export async function publishSeed(data: {
-  name: string; // 种子标题
-  description: string; // 种子描述
-  file: File; // 种子文件
-  imgUrl?: string; // 种子图片URL
-  tags?: string[]; // 标签列表
-  price?: number; // 种子价格
-  category: string; // 种子分类
-}) {
-  const categoryId = getCategoryIdByName(data.category); // 使用导入的函数获取分类ID
+export async function publishSeed(file: File, data: publishSeedData) {
+  const categoryId = getCategoryIdByName(data.category || ""); // 使用导入的函数获取分类ID
 
   // 处理标签 - 将标签名称转换为ID
   const tagIds = data.tags
@@ -105,29 +100,68 @@ export async function publishSeed(data: {
       return tag.match(/^\d+$/) ? tag : getTagIdByName(tag);
     })
     .filter((id) => id !== undefined);
-  
-  // 准备额外数据
-  const extraData: Record<string, string> = {
-    torrent_name: data.name,
-    category_id: categoryId || "0",
-    torrent_description: data.description
-  };
-  
+  console.log("tagIds:", tagIds);
+
+  // 创建FormData对象
+  const formData = new FormData();
+
+  // 添加种子文件
+  formData.append("torrent_file", file);
+
+  // 添加其他字段
+  formData.append("torrent_name", data.name);
+  formData.append("category_id", categoryId || "0");
+  formData.append("torrent_description", data.description);
+
   // 添加可选数据
   if (data.price !== undefined) {
-    extraData.origin_price = data.price.toString();
+    formData.append("origin_price", data.price.toString());
   }
-  
-  if (tagIds && tagIds.length > 0) {
-    extraData.tags = JSON.stringify(tagIds);
+  // formData.append("tag", '1');
+  // formData.append("tag", '2');
+
+  // if (tagIds && tagIds.length > 0) {
+  //   formData.append("tag", JSON.stringify(tagIds));
+  // }
+  // 如果tagIds不为空，但长度为0，需要传递一个空数组而不是null
+  if (tagIds) {
+    // 对于每个标签ID，添加一个单独的tag参数
+    tagIds.forEach((tagId) => {
+      formData.append("tag", tagId.toString()); // 使用tag_ids[]表示这是一个数组
+    });
+  } else {
+    // 如果没有标签，添加一个空字段
+    formData.append("tag", "");
   }
-  
-  console.log("Publishing seed with data:", { file: data.file, extraData });
-  
-  // 使用专门的上传方法
-  return request.upload(
-    "http://localhost:8080/torrent/upload-torrent", 
-    { torrent_file: data.file }, // 文件对象
-    extraData // 额外数据
-  );
+
+  console.log("Publishing seed with data:", {
+    torrent_name: data.name,
+    category_id: categoryId || "0",
+    torrent_description: data.description,
+  });
+
+  const token = auth.getToken();
+  console.log("file:", file);
+  console.log("instanceof File:", file instanceof File);
+  console.log("file.name:", file.name);
+  console.log("file.size:", file.size);
+
+  // 判断是否使用代理 - 生产环境或指定环境不使用代理
+  // const isBrowser = typeof window !== 'undefined';
+  // const useProxy = isBrowser && process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_USE_PROXY !== 'false';
+
+  // 处理API地址，如果需要代理则使用代理地址
+  const apiUrl = "http://localhost:8080/torrent/upload-torrent";
+
+  // if (useProxy) {
+  //   // 将请求重定向到我们的代理
+  //   apiUrl = `/api/proxy?url=${encodeURIComponent('torrent/upload-torrent')}`;
+  // }
+
+  // 使用axios发送FormData
+  return axios.post(apiUrl, formData, {
+    headers: {
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+  });
 }

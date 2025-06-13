@@ -31,7 +31,6 @@ export interface SeedDetail{
 export interface publishSeedData {
     name: string;            // 种子标题
     description: string;     // 种子描述
-    file: File;              // 种子文件
     imgUrl?: string;         // 种子图片URL
     tags?: string[];         // 标签列表
     price?: number;         // 种子价格

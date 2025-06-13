@@ -70,10 +70,10 @@ export function getTagNameById(id: string): string {
 }
 
 // 根据标签名称获取标签ID
-export function getTagIdByName(name: string): string | undefined {
+export function getTagIdByName(name: string): number | undefined {
   for (const [id, tagName] of Object.entries(tagMap)) {
     if (tagName === name) {
-      return id;
+      return  Number(id);
     }
   }
   return undefined;
