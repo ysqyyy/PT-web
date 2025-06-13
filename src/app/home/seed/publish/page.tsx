@@ -16,7 +16,6 @@ export default function SeedPublish() {
   const [formData, setFormData] = useState<publishSeedData>({
     name: "",
     description: "",
-    file: null as unknown as File,
     imgUrl: "",
     tags: [],
     price: 0,
@@ -48,10 +47,7 @@ export default function SeedPublish() {
         return;
       }
 
-      const res = await publishSeed({
-        ...formData,
-        file,
-      });
+      const res = await publishSeed(file,formData);
       //返回值判断
       if (res.success) {
         message.success("种子发布成功");

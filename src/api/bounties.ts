@@ -142,13 +142,16 @@ export async function getBountyList(): Promise<BountyListItem[]> {
 export async function publishBounty(
   title: string,
   bounty: number,
-  description: string
+  description: string,
+  category: string,
+  tags?: string[]
 ) {
-  return request.post(`/api/request/bounty`, {
-    title,
-    bounty,
-    description,
-    attachments: [],
+  return request.post(`http://localhost:8080/bounty/publish`, {
+    bountyTitle: title,
+    rewardAmount: bounty,
+    bountyDescription: description,
+    categoryId: category,
+    tags: tags || [],
   });
 }
 // 提交种子  return number seedId
