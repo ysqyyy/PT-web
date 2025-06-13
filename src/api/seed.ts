@@ -1,7 +1,6 @@
 import request from "../utils/request";
 import type { publishSeedData, SeedDetail } from "@/types/seed";
-// 获取认证token
-import auth from "../utils/auth"; // 确保有此文件并导出 getToken 方法
+import auth from "../utils/auth";
 import {
   getCategoryIdByName,
   getCategoryNameById,
@@ -89,7 +88,7 @@ export async function rateSeed(seedId: number, rating: number) {
 }
 import axios from "axios";
 
-// 发布种子 todo
+// 发布种子 ok
 export async function publishSeed(file: File, data: publishSeedData) {
   const categoryId = getCategoryIdByName(data.category || ""); // 使用导入的函数获取分类ID
 

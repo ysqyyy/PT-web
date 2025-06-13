@@ -137,7 +137,7 @@ export async function getBountyList(): Promise<BountyListItem[]> {
     throw error;
   }
 }
-
+import axios from "axios";
 //发布悬赏
 export async function publishBounty(
   title: string,
@@ -159,5 +159,10 @@ export async function submitSeed(bountyId: number, seedFile: File | null) {
   if (!seedFile) {
     return Promise.reject(new Error("请选择种子文件"));
   }
-  return request.upload(`/api/request/bounty/${bountyId}/seed`, seedFile);
+  const formData = new FormData();
+  formData.append("file", seedFile);
+  formData.append("bounty_id", bountyId.toString());
+  console.log("提交种子数据:", seedFile, bountyId);
+  
+  return axios.post(`http://localhost:8080/bounty/upload-file`, formData);
 }

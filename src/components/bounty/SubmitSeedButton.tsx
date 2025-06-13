@@ -87,7 +87,7 @@ export default function SubmitSeedButton({
             <h2 className="text-lg font-bold mb-4">提交种子</h2>
             <Upload
               beforeUpload={beforeUpload}
-              accept=".torrent"
+              // accept=".torrent"
               maxCount={1}
               showUploadList={!!seedFile}
               fileList={seedFile ? [{ uid: "-1", name: seedFile.name }] : []}
