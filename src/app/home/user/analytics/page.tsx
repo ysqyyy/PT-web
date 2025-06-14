@@ -7,6 +7,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement
 import Navbar from "@/components/Navbar";
 import { getAnalyticsDashboard } from "@/api/analytics";
 import type { AnalyticsData } from "@/types/analytics";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // 注册 chart.js 插件
 ChartJS.register(
@@ -19,7 +20,7 @@ ChartJS.register(
   Legend
 );
 
-export default function AnalyticsPage() {
+export function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,12 +108,19 @@ export default function AnalyticsPage() {
                 <div className="bg-gray-100 p-4 rounded-lg shadow">
                   <h3 className="text-lg font-semibold">活跃用户数</h3>
                   <p className="text-xl font-bold">{analyticsData?.activeUsers || 0}</p>
-                </div>
-              </div>
+                </div>              </div>
             </>
           )}
         </div>
       </DashboardLayout>
-    </Navbar>
+    </Navbar>  );
+}
+
+// 包装组件，加入路由保护
+export default function AnalyticsPageWithProtection() {
+  return (
+    <ProtectedRoute requiredLevel={2}>
+      <AnalyticsPage />
+    </ProtectedRoute>
   );
 }

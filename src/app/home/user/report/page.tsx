@@ -5,6 +5,7 @@ import { Table, Button, Select, message, Modal } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import Navbar from "@/components/Navbar";
 import DashboardLayout from "@/components/DashboardLayout";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import {
     getAllUsers,
     setUserLevel,
@@ -23,7 +24,7 @@ const levelOptions = [
     { value: 6, label: "6" },
 ];
 
-export default function ReportManagePage() {
+export function ReportManagePage() {
     // 用户管理
     const [users, setUsers] = useState<UserItem[]>([]);
     const [userLoading, setUserLoading] = useState(false);
@@ -190,4 +191,13 @@ export default function ReportManagePage() {
             </DashboardLayout>
         </Navbar>
     );
+}
+
+// 包装组件，加入路由保护
+export default function ReportManagePageWithProtection() {
+  return (
+    <ProtectedRoute requiredLevel={2}>
+      <ReportManagePage />
+    </ProtectedRoute>
+  );
 }

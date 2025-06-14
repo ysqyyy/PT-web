@@ -12,7 +12,8 @@ import {
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
 import type { ArbitrationBounty } from "@/types/bounty";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
-export default function ArbitrationPage() {
+import ProtectedRoute from "@/components/ProtectedRoute";
+export function ArbitrationPage() {
   const [bounties, setBounties] = useState<ArbitrationBounty[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -116,5 +117,14 @@ export default function ArbitrationPage() {
         </div>
       </DashboardLayout>
     </Navbar>
+  );
+}
+
+// 包装组件，加入路由保护
+export default function ArbitrationPageWithProtection() {
+  return (
+    <ProtectedRoute requiredLevel={2}>
+      <ArbitrationPage />
+    </ProtectedRoute>
   );
 }

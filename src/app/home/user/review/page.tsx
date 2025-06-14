@@ -9,9 +9,10 @@ import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import { ReviewItem } from "@/types/review";
 import { getPendingReviews, approveResource, rejectResource } from "@/api/review";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 
-export default function ResourceReviewPage() {
+export function ResourceReviewPage() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -188,5 +189,14 @@ export default function ResourceReviewPage() {
         </div>
       </DashboardLayout>
     </Navbar>
+  );
+}
+
+// 包装组件，加入路由保护
+export default function ResourceReviewPageWithProtection() {
+  return (
+    <ProtectedRoute requiredLevel={2}>
+      <ResourceReviewPage />
+    </ProtectedRoute>
   );
 }

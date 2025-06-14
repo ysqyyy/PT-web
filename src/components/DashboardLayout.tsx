@@ -1,5 +1,5 @@
 // components/DashboardLayout.tsx
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -17,19 +17,41 @@ type DashboardLayoutProps = {
   title: string;
 };
 
-const navItems = [
-  { label: "我的资料", icon: <FileText />, path: "/home/user/profile" },
-  { label: "我的下载", icon: <LayoutDashboard />, path: "/home/user/downloads" },
-  { label: "数据分析", icon: <BarChart />, path: "/home/user/analytics" },
-  { label: "举报管理", icon: <Users />, path: "/home/user/users" },
-  { label: "资源审核", icon: <CheckCircle />, path: "/home/user/review" },
-  { label: "我的悬赏", icon: <Medal />, path: "/home/user/bounties" },
-  { label: "仲裁管理", icon: <CheckCircle />, path: "/home/user/arbitration" },
-  { label: "私信", icon: <MessageCircle />, path: "/home/user/message" }, // 新增
+// 定义菜单项及其所需的最低等级
+const allNavItems = [
+  { label: "我的资料", icon: <FileText />, path: "/home/user/profile", minLevel: 1 },
+  { label: "我的下载", icon: <LayoutDashboard />, path: "/home/user/downloads", minLevel: 1 },
+  { label: "我的悬赏", icon: <Medal />, path: "/home/user/bounties", minLevel: 1 },
+  { label: "私信", icon: <MessageCircle />, path: "/home/user/message", minLevel: 1 },
+  { label: "数据分析", icon: <BarChart />, path: "/home/user/analytics", minLevel: 2 },
+  { label: "举报管理", icon: <Users />, path: "/home/user/users", minLevel: 2 },
+  { label: "资源审核", icon: <CheckCircle />, path: "/home/user/review", minLevel: 2 },
+  { label: "仲裁管理", icon: <CheckCircle />, path: "/home/user/arbitration", minLevel: 2 },
 ];
 
 export default function DashboardLayout({ children, title }: DashboardLayoutProps) {
-  return (
+  const [userLevel, setUserLevel] = useState(1); // 默认为等级1
+  const [navItems, setNavItems] = useState(allNavItems.filter(item => item.minLevel <= 1));
+
+  useEffect(() => {
+    // 从localStorage获取用户信息
+    if (typeof window !== 'undefined') {
+      const userInfoStr = localStorage.getItem('userInfo');
+      if (userInfoStr) {
+        try {
+          const userInfo = JSON.parse(userInfoStr);
+          const level = userInfo.level ? parseInt(userInfo.level) : 1;
+          setUserLevel(level);
+          
+          // 根据用户等级过滤菜单项
+          const filteredItems = allNavItems.filter(item => item.minLevel <= level);
+          setNavItems(filteredItems);
+        } catch (error) {
+          console.error("解析用户信息失败:", error);
+        }
+      }
+    }
+  }, []);  return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <aside className="w-50 bg-teal-800 text-white rounded border-r p-4">
