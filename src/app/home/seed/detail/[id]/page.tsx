@@ -94,7 +94,7 @@ export default function SeedDetailPage() {
       if (existingConversation) {
         router.push(`/home/user/message?conversation=${existingConversation.id}`);
       } else {
-        toast.info("目前无法直接创建新会话，请先发送消息以建立对话。");
+        toast("目前无法直接创建新会话，请先发送消息以建立对话。");
       }
     } catch (error) {
       console.error("处理私信失败:", error);
