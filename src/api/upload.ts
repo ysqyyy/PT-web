@@ -1,5 +1,6 @@
 // src/api/upload.ts
-import request from '../utils/request';
+import axios from "axios";
+import auth from "../utils/auth";
 
 /**
  * 上传用户头像   ok
@@ -8,12 +9,17 @@ import request from '../utils/request';
  */
 export async function uploadAvatar(avatarFile: File): Promise<string> {
   try {
-    const response = await request.upload(
-      "http://localhost:8080/api/avatar/upload",
-      avatarFile
-    );
+    const token = auth.getToken();
+    const formData = new FormData();
+    formData.append("file", avatarFile);
+     const response=await axios.post("http://localhost:8080/api/avatar/upload", formData, {
+    headers: {
+      // "Content-Type": "multipart/form-data",
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+  });
     console.log("上传头像成功:", response);
-      return response.data;
+      return response.data.data; 
   } catch (error) {
     console.error("上传头像失败:", error);
     throw error;

@@ -146,19 +146,45 @@ export function AnalyticsPage() {
             </div>
           ) : (
             <>
-              {/* 用户趋势图表 */}
+              {/* 趋势图表（并排显示） */}
               <div className="bg-white rounded-xl shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">个人上传/下载趋势</h2>
-                <div className="mb-6">
-                  <Line data={userTrendChartData} options={userChartOptions} />
-                </div>
-              </div>
-
-              {/* 全站趋势图表 */}
-              <div className="bg-white rounded-xl shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">全站上传/下载趋势</h2>
-                <div className="mb-6">
-                  <Line data={allTrendChartData} options={allChartOptions} />
+                <h2 className="text-xl font-semibold mb-4">上传/下载趋势</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* 用户趋势图表 */}
+                  <div className="w-full">
+                    <h3 className="text-md font-medium mb-2 text-center">个人数据</h3>
+                    <div className="h-64">
+                      <Line data={userTrendChartData} options={{
+                        ...userChartOptions,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          ...userChartOptions.plugins,
+                          title: {
+                            ...userChartOptions.plugins.title,
+                            display: false
+                          }
+                        }
+                      }} />
+                    </div>
+                  </div>
+                  
+                  {/* 全站趋势图表 */}
+                  <div className="w-full">
+                    <h3 className="text-md font-medium mb-2 text-center">全站数据</h3>
+                    <div className="h-64">
+                      <Line data={allTrendChartData} options={{
+                        ...allChartOptions,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          ...allChartOptions.plugins,
+                          title: {
+                            ...allChartOptions.plugins.title,
+                            display: false
+                          }
+                        }
+                      }} />
+                    </div>
+                  </div>
                 </div>
               </div>
 

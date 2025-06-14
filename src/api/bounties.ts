@@ -179,7 +179,8 @@ export async function publishBounty(
     tags: tagIds || [],
   });
 }
-// 提交种子  return number seedId
+import auth from "@/utils/auth"; // 确保导入auth模块
+// 提交种子  ok
 export async function submitSeed(bountyId: number, seedFile: File | null) {
   if (!seedFile) {
     return Promise.reject(new Error("请选择种子文件"));
@@ -187,7 +188,22 @@ export async function submitSeed(bountyId: number, seedFile: File | null) {
   const formData = new FormData();
   formData.append("file", seedFile);
   formData.append("bounty_id", bountyId.toString());
+  const token = auth.getToken();
   console.log("提交种子数据:", seedFile, bountyId);
+  const res = await axios.post(
+    `http://localhost:8080/bounty/upload-file`,
+    formData,
+    {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : "",
+      },
+    }
+  );
+  // console.log("提交种子响应:", res);
+  const torrentId = Number(res.data.data);
+  // console.log("下载种子文件成功，种子ID:", torrentId);
+  await request.download(`http://localhost:8080/torrent/download/${torrentId}`);
 
-  return axios.post(`http://localhost:8080/bounty/upload-file`, formData);
+  console.log("提交种子响应:", res);
+  return res;
 }

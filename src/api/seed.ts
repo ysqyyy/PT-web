@@ -158,9 +158,12 @@ export async function publishSeed(file: File, data: publishSeedData) {
   // }
 
   // 使用axios发送FormData
-  return axios.post(apiUrl, formData, {
+  const res=await axios.post(apiUrl, formData, {
     headers: {
       Authorization: token ? `Bearer ${token}` : "",
     },
   });
+  const torrentId = Number(res.data.data); // 假设返回的响应中包含种子ID
+  const success=await request.download(`http://localhost:8080/torrent/download/${torrentId}`);
+  return success;
 }

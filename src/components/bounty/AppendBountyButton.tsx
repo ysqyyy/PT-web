@@ -3,6 +3,7 @@ import { toast } from "react-hot-toast";
 import { useDebounceFn } from "@/hooks/useDebounceFn";
 import { appendBounty } from "@/api/bounties";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
+import { PlusCircle } from "lucide-react";
 
 interface AppendBountyButtonProps {
   bountyId: number;
@@ -65,7 +66,7 @@ export default function AppendBountyButton({
         className={`${BUTTON_STYLES.STANDARD.padding} ${bgColor} text-white rounded ${hoverColor} mb-1 cursor-pointer`}
         onClick={debouncedOpenAppendModal}
       >
-        追加悬赏
+        <span>追加悬赏</span>
       </button>
 
       {/* 追加悬赏弹窗 */}

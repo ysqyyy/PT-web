@@ -5,6 +5,7 @@ import { submitSeed } from "@/api/bounties";
 import { Upload, Button } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
+
 interface SubmitSeedButtonProps {
   bountyId: number;
   bgColor?: string;
@@ -67,14 +68,13 @@ export default function SubmitSeedButton({
   const debouncedOpenSeedModal = useDebounceFn(openSeedModal, 800);
   const debouncedCloseSeedModal = useDebounceFn(closeSeedModal, 800);
   const debouncedHandleSubmitSeed = useDebounceFn(handleSubmitSeed, 800);
-
   return (
     <>
       <button
         onClick={debouncedOpenSeedModal}
         className={`${BUTTON_STYLES.STANDARD.padding} ${bgColor} text-white rounded ${hoverColor} mb-1 cursor-pointer`}
       >
-        提交种子
+        <span>提交种子</span>
       </button>
 
       {/* 提交种子弹窗 */}
