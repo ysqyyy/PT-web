@@ -57,7 +57,7 @@ export default function SeedCenter() {
     setLoading(true);
     try {
       console.log("加载推荐种子列表...");
-      const response = await getRecommendSeeds(currentPage, pageSize);
+      const response = await getRecommendSeeds();
       if (response && response.length > 0) {
         const formattedList = response.map((item) => ({
           id: item.torrentId,

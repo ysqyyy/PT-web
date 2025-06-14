@@ -35,6 +35,7 @@ export interface publishSeedData {
     tags?: string[];         // 标签列表
     price?: number;         // 种子价格
     category?: string;        // 种子分类
+    fileType?: string;       // 文件类型
 }
 // 列表页使用的种子简要信息
 export interface SeedListItem {

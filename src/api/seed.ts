@@ -11,14 +11,14 @@ import {
 } from "@/constants/categories";
 import { getTagIdByName, getTagNameById } from "@/constants/tags";
 
-/// 获取推荐种子列表
-export async function getRecommendSeeds(
-  page?: number,
-  pageSize?: number,
-) {
+/// 获取推荐种子列表 ok
+export async function getRecommendSeeds() {
+// page?: number,
+// pageSize?: number,
   const response = await request.get("http://localhost:8080/torrent/recommend");
   console.log("获取推荐种子:", response);
-  const res = response.data.records || [];  const seeds: getSeedListParams[] = res.map((item: any) => ({
+  const res = response.data.records || [];
+  const seeds: getSeedListParams[] = res.map((item: any) => ({
     torrentId: item.torrentId,
     torrentName: item.torrentName,
     torrentDescription: item.torrentDescription,
@@ -29,7 +29,7 @@ export async function getRecommendSeeds(
     score: item.score,
     downloadLimit: item.downloadLimit || 0,
     uploadTime: item.uploadTime || [],
-    tags: item.tagNames || null
+    tags: item.tagNames || null,
   }));
   console.log("获取推荐种子:", seeds);
   return seeds;
@@ -100,17 +100,17 @@ export async function getSeedList(params: {
   if (byKeyResult.length > 0 && categoryResult.length > 0) {
     // 创建一个Map来存储所有结果，并使用torrentId作为键来去重
     const allResults = new Map();
-    
+
     // 添加分类/标签搜索结果
-    categoryResult.forEach(item => {
+    categoryResult.forEach((item) => {
       allResults.set(item.torrentId, item);
     });
-    
+
     // 添加关键词搜索结果
-    byKeyResult.forEach(item => {
+    byKeyResult.forEach((item) => {
       allResults.set(item.torrentId, item);
     });
-    
+
     // 将Map转换回数组
     res = Array.from(allResults.values());
     console.log("并集结果数:", res.length);
@@ -211,8 +211,7 @@ export async function publishSeed(file: File, data: publishSeedData) {
   // 创建FormData对象
   const formData = new FormData();
 
-  // 添加种子文件
-  formData.append("torrent_file", file);
+ 
 
   // 添加其他字段
   formData.append("torrent_name", data.name);
@@ -247,24 +246,33 @@ export async function publishSeed(file: File, data: publishSeedData) {
   });
 
   const token = auth.getToken();
-  console.log("file:", file);
-  console.log("instanceof File:", file instanceof File);
-  console.log("file.name:", file.name);
-  console.log("file.size:", file.size);
-
+  // console.log("file:", file);
+  // console.log("instanceof File:", file instanceof File);
+  // console.log("file.name:", file.name);
+  // console.log("file.size:", file.size);
+  let apiUrl = "";
   // 判断是否使用代理 - 生产环境或指定环境不使用代理
   // const isBrowser = typeof window !== 'undefined';
   // const useProxy = isBrowser && process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_USE_PROXY !== 'false';
-
   // 处理API地址，如果需要代理则使用代理地址
-  const apiUrl = "http://localhost:8080/torrent/upload-torrent";
+  if (data.fileType === "normal") {
+    apiUrl = "http://localhost:8080/torrent/upload-file";
+    formData.append("file", file); // 添加文件类型，默认为"normal"
+
+    console.log("API URL for normal file:", apiUrl);
+  } else if (data.fileType === "torrent") {
+    apiUrl = "http://localhost:8080/torrent/upload-torrent";
+     // 添加种子文件
+  formData.append("torrent_file", file);
+    console.log("API URL for torrent file:", apiUrl);
+  }
 
   // if (useProxy) {
   //   // 将请求重定向到我们的代理
   //   apiUrl = `/api/proxy?url=${encodeURIComponent('torrent/upload-torrent')}`;
   // }
 
-  // 使用axios发送FormData  
+  // 使用axios发送FormData
   const res = await axios.post(apiUrl, formData, {
     headers: {
       Authorization: token ? `Bearer ${token}` : "",
