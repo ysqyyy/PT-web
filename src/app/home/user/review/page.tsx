@@ -8,9 +8,12 @@ import toast, { Toaster } from "react-hot-toast";
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import { ReviewItem } from "@/types/review";
-import { getPendingReviews, approveResource, rejectResource } from "@/api/review";
+import {
+  getPendingReviews,
+  approveResource,
+  rejectResource,
+} from "@/api/review";
 import ProtectedRoute from "@/components/ProtectedRoute";
-
 
 export function ResourceReviewPage() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
@@ -42,7 +45,7 @@ export function ResourceReviewPage() {
     try {
       await approveResource(id);
       toast.success("资源已通过");
-      setReviews(prevReviews => prevReviews.filter(item => item.id !== id));
+      setReviews((prevReviews) => prevReviews.filter((item) => item.id !== id));
     } catch (error) {
       toast.error("操作失败，请重试");
       console.error("Approval error:", error);
@@ -73,7 +76,9 @@ export function ResourceReviewPage() {
       await rejectResource(currentItemId, rejectReason);
       toast.success("资源已拒绝");
       // 更新状态，移除已拒绝的资源
-      setReviews(prevReviews => prevReviews.filter(item => item.id !== currentItemId));
+      setReviews((prevReviews) =>
+        prevReviews.filter((item) => item.id !== currentItemId)
+      );
       closeRejectModal();
     } catch (error) {
       toast.error("操作失败，请重试");
@@ -89,26 +94,36 @@ export function ResourceReviewPage() {
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-xl font-semibold mb-4">资源审核</h2>
           <Toaster position="top-center" />
-
           {loading && <div className="text-center py-4">处理中...</div>}
-
           {reviews.length === 0 && !loading && (
-            <div className="text-gray-400 text-center py-10">暂无待审核资源</div>
+            <div className="text-gray-400 text-center py-10">
+              暂无待审核资源
+            </div>
           )}
-
           {reviews.length > 0 && (
             <div className="overflow-x-auto">
-              <table className="min-w-full table-auto whitespace-nowrap">                <thead>
+              <table className="min-w-full table-auto whitespace-nowrap">
+                
+                <thead>
                   <tr>
-                    <th className="px-4 py-2 text-left min-w-[150px]">资源名</th>
-                    <th className="px-4 py-2 text-left min-w-[250px]">资源描述</th>
-                    <th className="px-4 py-2 text-left min-w-[100px]">上传者</th>
-                    <th className="px-4 py-2 text-left min-w-[120px]">提交日期</th>
+                    <th className="px-4 py-2 text-left min-w-[150px]">
+                      资源名
+                    </th>
+                    <th className="px-4 py-2 text-left min-w-[250px]">
+                      资源描述
+                    </th>
+                    <th className="px-4 py-2 text-left min-w-[100px]">
+                      上传者
+                    </th>
+                    <th className="px-4 py-2 text-left min-w-[120px]">
+                      提交日期
+                    </th>
                     <th className="px-4 py-2 text-left min-w-[150px]">操作</th>
                     <th className="px-4 py-2 text-left min-w-[100px]">下载</th>
                   </tr>
-                </thead>                <tbody>
-                  {reviews.map(item => (
+                </thead>
+                <tbody>
+                  {reviews.map((item) => (
                     <tr key={item.id}>
                       <td className="px-4 py-2">{item.name}</td>
                       <td className="px-4 py-2">
@@ -121,45 +136,50 @@ export function ResourceReviewPage() {
                       <td className="px-4 py-2 space-x-2">
                         <button
                           onClick={() => handleApprove(item.id)}
-                          className={`${BUTTON_STYLES.COLORS.primary.bg} ${BUTTON_STYLES.COLORS.primary.hover} text-white ${BUTTON_STYLES.STANDARD.padding} rounded`}
+                          className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
                           disabled={loading}
                         >
-                          通过
+                          <span className="flex items-center justify-center gap-1.5">
+                            通过
+                          </span>
                         </button>
                         <button
                           onClick={() => openRejectModal(item.id)}
-                          className={`${BUTTON_STYLES.COLORS.gray.bg} ${BUTTON_STYLES.COLORS.gray.hover} text-white ${BUTTON_STYLES.STANDARD.padding} rounded`}
+                          className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
                           disabled={loading}
                         >
-                          拒绝
+                          <span className="flex items-center justify-center gap-1.5">
+                            拒绝
+                          </span>
                         </button>
                       </td>
                       <td className="px-4 py-2">
-                        <DownloadBountyButton
-                          id={item.id}
-                        />
+                        <DownloadBountyButton id={item.id} />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          )}          {/* 拒绝原因模态框 */}
+          )}
+          {/* 拒绝原因模态框 */}
           {showRejectModal && currentItemId !== null && (
-            <div 
-              className="fixed inset-0 flex items-center justify-center p-4" 
-              style={{ 
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                zIndex: 99999 
+            <div
+              className="fixed inset-0 flex items-center justify-center p-4"
+              style={{
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                zIndex: 99999,
               }}
               onClick={closeRejectModal}
             >
-              <div 
-                className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-md relative" 
+              <div
+                className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-md relative"
                 style={{ zIndex: 100000 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <h3 className="text-lg font-semibold mb-4">拒绝资源: {reviews.find(r => r.id === currentItemId)?.name}</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  拒绝资源: {reviews.find((r) => r.id === currentItemId)?.name}
+                </h3>
                 <textarea
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
@@ -195,7 +215,7 @@ export function ResourceReviewPage() {
 // 包装组件，加入路由保护
 export default function ResourceReviewPageWithProtection() {
   return (
-    <ProtectedRoute requiredLevel={2}>
+    <ProtectedRoute requiredLevel={4}>
       <ResourceReviewPage />
     </ProtectedRoute>
   );

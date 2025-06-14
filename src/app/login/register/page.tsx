@@ -120,7 +120,7 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={debouncedHandleSubmit} className="space-y-4">
-          {" "}
+          
           {method === "invite" && (
             <>
               <input
@@ -161,7 +161,7 @@ export default function RegisterPage() {
                 </button>
               </div>
             </>
-          )}{" "}
+          )}
           {/* {method === "email" && (
             <>
               <input
@@ -234,7 +234,7 @@ export default function RegisterPage() {
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-500">
-          已有账号？{" "}
+          已有账号？
           <a href="/login" className="text-teal-600 hover:underline">
             立即登录
           </a>

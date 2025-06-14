@@ -66,22 +66,21 @@ export default function UserProfileCard({
       </div>
     );
   }
-
   return (
     <div className="bg-white rounded-xl shadow p-6 transition-all hover:shadow-md">
-      {/* 头部：头像和基本信息 */}{" "}
+      {/* 头部：头像和基本信息 */}
       <div className="flex items-center gap-4 mb-6">
         <div className="relative">
           <img
             src={userProfile.avatarUrl || "/default-avatar.svg"}
             alt={`${userProfile.username}的头像`}
-            className="w-20 h-20 rounded-full object-cover border-2 border-teal-100"
+            className="w-20 h-20 rounded-full object-cover border-2 border-teal-100 shadow-md"
             onError={(e) => {
               (e.target as HTMLImageElement).src = "/default-avatar.svg";
             }}
           />
           <span
-            className={`absolute bottom-0 right-0 px-2 py-1 text-xs font-medium rounded-full ${levelInfo.color}`}
+            className={`absolute bottom-0 right-0 px-2 py-1 text-xs font-medium rounded-full ${levelInfo.color} shadow-sm`}
           >
             {levelInfo.label}
           </span>
@@ -91,7 +90,7 @@ export default function UserProfileCard({
           <h2 className="text-xl font-semibold text-gray-800">
             {userProfile.username}
           </h2>
-          <p className="text-gray-500 text-sm flex items-center">
+          <p className="text-gray-500 text-sm flex items-center mt-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-4 w-4 mr-1"
@@ -126,13 +125,12 @@ export default function UserProfileCard({
             注册于 {formatDate(userProfile.registrationDate)}
           </p>
         </div>
-      </div>
-      {/* 用户简介 */}
+      </div>      {/* 用户简介 */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2 text-gray-700 flex items-center">
+        <h3 className="text-lg font-semibold mb-3 text-gray-700 flex items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-1"
+            className="h-5 w-5 mr-2 text-teal-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -146,9 +144,9 @@ export default function UserProfileCard({
           </svg>
           个人简介
         </h3>
-        <div className="bg-gray-50 p-3 rounded-lg">
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
           {userProfile.bio ? (
-            <p className="text-gray-600 whitespace-pre-line">
+            <p className="text-gray-700 whitespace-pre-line">
               {userProfile.bio}
             </p>
           ) : (
@@ -157,34 +155,34 @@ export default function UserProfileCard({
             </p>
           )}
         </div>
-      </div>
-      {/* 用户详细信息 */}
+      </div>      {/* 用户详细信息 */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-gray-50 p-3 rounded-lg">
-          <p className="text-sm text-gray-500">用户ID</p>
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors">
+          <p className="text-sm text-gray-500 mb-1">用户ID</p>
           <p className="font-medium text-gray-700">{userProfile.id}</p>
         </div>
-        <div className="bg-gray-50 p-3 rounded-lg">
-          <p className="text-sm text-gray-500">用户等级</p>
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors">
+          <p className="text-sm text-gray-500 mb-1">用户等级</p>
           <p className="font-medium text-gray-700">
             <span
-              className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${levelInfo.color}`}
+              className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${levelInfo.color} shadow-sm`}
             >
               {levelInfo.label}
             </span>
           </p>
         </div>
-      </div>      {/* 编辑按钮 */}
+      </div>      
+      {/* 编辑按钮 */}
       {onEditClick && (
         <div className="space-y-3">
           <button
             type="button"
-            className="w-full cursor-pointer border border-teal-700 text-teal-700 py-2 rounded-md hover:bg-teal-50 transition-colors flex items-center justify-center"
+            className="w-full cursor-pointer bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white py-3 rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 flex items-center justify-center"
             onClick={onEditClick}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
+              className="h-5 w-5 mr-2"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -203,12 +201,12 @@ export default function UserProfileCard({
           {onPasswordClick && (
             <button
               type="button"
-              className="w-full cursor-pointer border border-teal-700 text-teal-700 py-2 rounded-md hover:bg-teal-50 transition-colors flex items-center justify-center"
+              className="w-full cursor-pointer border-2 border-[#5E8B7E] text-[#5E8B7E] bg-white py-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
               onClick={onPasswordClick}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-1"
+                className="h-5 w-5 mr-2"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

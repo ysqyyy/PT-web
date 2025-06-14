@@ -219,7 +219,7 @@ export function AnalyticsPage() {
 // 包装组件，加入路由保护
 export default function AnalyticsPageWithProtection() {
   return (
-    <ProtectedRoute requiredLevel={2}>
+    <ProtectedRoute requiredLevel={7}>
       <AnalyticsPage />
     </ProtectedRoute>
   );

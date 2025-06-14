@@ -137,7 +137,7 @@ export default function CallBackPage() {
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-500">
-          记起密码？{" "}
+          记起密码？
           <a href="/login" className="text-teal-600 hover:underline">
             立即登录
           </a>

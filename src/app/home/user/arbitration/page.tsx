@@ -88,25 +88,30 @@ export function ArbitrationPage() {
                       <td className="px-4 py-2 space-x-2">
                         <div className="flex gap-2">
                           <button
-                            className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} text-white rounded ${BUTTON_STYLES.COLORS.primary.hover}`}
-                            onClick={() => handleApprove(item.submissionId || 0)}
+                            className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
+                            onClick={() =>
+                              handleApprove(item.submissionId || 0)
+                            }
                             disabled={loading}
                           >
-                            同意仲裁
+                            <span className="flex items-center justify-center gap-1.5">
+                              同意仲裁
+                            </span>
                           </button>
+                          <button></button>
                           <button
-                            className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.gray.bg} text-white rounded ${BUTTON_STYLES.COLORS.gray.hover}`}
-                            onClick={() => handleReject(item.submissionId|| 0)}
+                            className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
+                            onClick={() => handleReject(item.submissionId || 0)}
                             disabled={loading}
                           >
-                            驳回仲裁
+                            <span className="flex items-center justify-center gap-1.5">
+                              驳回仲裁
+                            </span>
                           </button>
                         </div>
                       </td>
                       <td className="px-4 py-2">
-                        <DownloadBountyButton
-                          id={item.torrentId || 0}
-                        />
+                        <DownloadBountyButton id={item.torrentId || 0} />
                       </td>
                     </tr>
                   ))}
@@ -123,7 +128,7 @@ export function ArbitrationPage() {
 // 包装组件，加入路由保护
 export default function ArbitrationPageWithProtection() {
   return (
-    <ProtectedRoute requiredLevel={2}>
+    <ProtectedRoute requiredLevel={5}>
       <ArbitrationPage />
     </ProtectedRoute>
   );

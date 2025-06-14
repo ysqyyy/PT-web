@@ -196,7 +196,7 @@ export function UsersPage() {
 // 包装组件，加入路由保护
 export default function UsersPageWithProtection() {
   return (
-    <ProtectedRoute requiredLevel={2}>
+    <ProtectedRoute requiredLevel={6}>
       <UsersPage />
     </ProtectedRoute>
   );

@@ -386,7 +386,7 @@ export default function SeedPublish() {
           background-size: 1000px 100%;
           animation: shimmer 2s infinite linear;
         }
-      `}</style>{" "}
+      `}</style>
       <div className="bg-gradient-to-b from-[#F6F9F8] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] p-8 max-w-5xl mx-auto fade-in">
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#E0E5E3]">
           <h1 className="text-2xl font-bold text-[#3D4D49] flex items-center">
@@ -421,7 +421,7 @@ export default function SeedPublish() {
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               ></path>
             </svg>
-            <span className="font-medium">提示:</span>{" "}
+            <span className="font-medium">提示:</span>
             完整的信息可以提高资源被找到的几率
           </div>
         </div>
@@ -505,7 +505,7 @@ export default function SeedPublish() {
                       </label>
 
                       <div className="space-y-4">
-                        {" "}
+                        
                         {/* Torrent文件上传 */}
                         <div
                           className={`border border-dashed rounded-xl p-4 transition-all duration-300 
@@ -617,7 +617,7 @@ export default function SeedPublish() {
                       </svg>
                       请选择一种文件类型上传，二选一即可
                     </div>
-                  </div>{" "}
+                  </div>
                 </div>
                 {/* 价格和分类在同一行 */}
                 <div
@@ -738,9 +738,9 @@ export default function SeedPublish() {
                       选择合适的分类可以帮助用户更快找到您的资源
                     </div>
                   </div>
-                </div>{" "}
+                </div>
               </div>
-            </div>{" "}
+            </div>
             {/* 标签 */}
             <div
               className="bg-[#F9FAF9] p-5 rounded-xl border border-[#E0E5E3] hover:border-[#5E8B7E] hover:shadow-md transition-all duration-300 group slide-in-bottom"
@@ -761,7 +761,7 @@ export default function SeedPublish() {
                     d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
                   ></path>
                 </svg>
-                标签{" "}
+                标签
                 <span className="text-xs font-normal text-[#8CA29F] ml-1">
                   (最多选择5个)
                 </span>
@@ -822,7 +822,7 @@ export default function SeedPublish() {
                     </div>
                   ))}
                 </div>
-              </div>{" "}
+              </div>
               <div className="bg-[#EFF6F4] rounded-lg p-4 border border-[#D5E3DE] shadow-sm">
                 <div className="flex items-start">
                   <div className="flex items-center text-sm font-medium text-[#3D4D49] mr-3 mt-1">
@@ -906,7 +906,7 @@ export default function SeedPublish() {
                 </svg>
                 添加标签有助于其他用户更容易找到您的资源
               </div>
-            </div>{" "}
+            </div>
             {/* 描述 */}
             <div
               className="bg-[#F9FAF9] p-5 rounded-xl border border-[#E0E5E3] hover:border-[#5E8B7E] hover:shadow-md transition-all duration-300 group slide-in-bottom"
@@ -955,8 +955,8 @@ export default function SeedPublish() {
                 </svg>
                 详细的资源描述能够帮助用户了解资源内容和质量
               </div>
-            </div>{" "}
-          </fieldset>{" "}
+            </div>
+          </fieldset>
           {/* 成功提示信息 */}
           {publishSuccess && (
             <div className="mb-6 p-5 bg-[#EFF6F4] text-[#3D6259] rounded-xl border border-[#D5E3DE] shadow-sm animate-fadeIn">
@@ -982,7 +982,7 @@ export default function SeedPublish() {
                 </span>
               </div>
             </div>
-          )}{" "}
+          )}
           {/* 按钮区域 */}
           <div className="flex justify-end gap-4 pt-6 border-t border-[#E0E5E3] mt-8">
             <Button

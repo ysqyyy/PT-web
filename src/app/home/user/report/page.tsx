@@ -196,7 +196,7 @@ export function ReportManagePage() {
 // 包装组件，加入路由保护
 export default function ReportManagePageWithProtection() {
   return (
-    <ProtectedRoute requiredLevel={2}>
+    <ProtectedRoute requiredLevel={6}>
       <ReportManagePage />
     </ProtectedRoute>
   );

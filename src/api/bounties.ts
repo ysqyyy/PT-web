@@ -42,7 +42,7 @@ export async function getMyAppendedBounties() {
       name: item.bounty?.bountyTitle,
       description: item.bounty?.bountyDescription,
       status: item.bounty?.bountyStatus,
-      total_amount: item.bounty?.totalAmount,
+      contributedAmount: item.contribution?.contributedAmount,
       publisher: item?.creatorName,
     }));
     console.log("处理后的悬赏列表:", bounties);

@@ -19,6 +19,7 @@ import SubmitSeedButton from "@/components/bounty/SubmitSeedButton";
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
 import PublishBountyButton from "@/components/bounty/PublishBountyButton";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
+import { X, Check, FileUp } from "lucide-react";
 
 export default function MyBountiesPage() {
   const [bounties, setBounties] = useState<MyBounty[]>([]);
@@ -132,7 +133,7 @@ export default function MyBountiesPage() {
             >
               我提交的悬赏
             </button>
-          </div>{" "}
+          </div>
           {/* 发布悬赏按钮 */}
           {activeTab === "published" && (
             <div className="flex justify-between mb-4">
@@ -167,69 +168,71 @@ export default function MyBountiesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {bounties.map((item) => (
-                      <tr key={item.bountyId}>
+                    {bounties.map((item, index) => (
+                      <tr key={`published-${item.bountyId}-${index}`}>
                         <td className="px-4 py-2">{item.name}</td>
                         <td className="px-4 py-2">
                           <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
                             {item.description}
                           </div>
                         </td>
-                        <td className="px-4 py-2">{item.reward_amount} 元</td>
+                        <td className="px-4 py-2">{item.reward_amount}元</td>
                         <td className="px-4 py-2">{item.total_amount} 元</td>
                         <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 space-x-2">
-                          {/* pending显示追加和取消 */}{" "}
+                          {/* pending显示追加和取消 */}
                           {item.status === "pending" && (
-                            <>
+                            <div className="flex flex-col space-y-2">
                               <AppendBountyButton
-                                bountyId={item.bountyId||0}
-                                bgColor={BUTTON_STYLES.COLORS.primary.bg}
-                                hoverColor={BUTTON_STYLES.COLORS.primary.hover}
+                                bountyId={item.bountyId || 0}
                                 onSuccess={loadData}
+                                className={`${BUTTON_STYLES.STANDARD.padding} w-auto inline-block`}
                               />
                               <button
-                                className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.gray.bg} text-white rounded ${BUTTON_STYLES.COLORS.gray.hover}`}
+                                className={`bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 w-auto flex items-center justify-center gap-1.5`}
                                 onClick={() =>
                                   debouncedHandleCancel(item.bountyId)
                                 }
                               >
-                                取消求种
+                                <X size={14} />
+                                <span>取消求种</span>
                               </button>
-                            </>
+                            </div>
                           )}
                           {/* unconfirmed显示确认资源和仲裁 */}
                           {item.status === "unconfirmed" && (
-                            <>
+                            <div className="flex flex-col space-y-2">
                               <button
-                                className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} text-white rounded ${BUTTON_STYLES.COLORS.primary.hover}`}
+                                className={`bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 inline-block flex items-center justify-center gap-1.5`}
                                 onClick={() =>
                                   debouncedHandleConfirm(item.submissionId)
                                 }
                               >
+                                <Check size={16} />
                                 确认资源
                               </button>
                               <button
-                                className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.gray.bg} text-white rounded ${BUTTON_STYLES.COLORS.gray.hover} ml-1`}
+                                className={`bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 inline-block flex items-center justify-center gap-1.5`}
                                 onClick={() =>
                                   debouncedOpenArbitrateModal(item.submissionId)
                                 }
                               >
+                                <FileUp size={16} />
                                 申请仲裁
                               </button>
-                            </>
+                            </div>
                           )}
                         </td>
                         <td className="px-4 py-2">
                           {(item.status === "unconfirmed" ||
                             item.status === "approved" ||
                             item.status === "under_review") && (
-                            <DownloadBountyButton id={item.torrentId||0} />
+                            <DownloadBountyButton id={item.torrentId || 0} />
                           )}
                         </td>
                       </tr>
                     ))}
-                  </tbody>{" "}
+                  </tbody>
                 </table>
               </div>
             )}
@@ -250,7 +253,7 @@ export default function MyBountiesPage() {
                       <th className="px-4 py-2 text-left min-w-[100px]">
                         当前金额
                       </th>
-                      <th className="px-4 py-2 text-left min-w-[80px]">状态</th>{" "}
+                      <th className="px-4 py-2 text-left min-w-[80px]">状态</th>
                       <th className="px-4 py-2 text-left min-w-[150px]">
                         操作
                       </th>
@@ -258,9 +261,8 @@ export default function MyBountiesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {appendedBounties.map((item) => (
-                      <tr key={item.bountyId}>
-                        {" "}
+                    {appendedBounties.map((item, index) => (
+                      <tr key={`appended-${item.bountyId}-${index}`}>
                         <td className="px-4 py-2">{item.name}</td>
                         <td className="px-4 py-2">
                           <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
@@ -268,25 +270,23 @@ export default function MyBountiesPage() {
                           </div>
                         </td>
                         <td className="px-4 py-2">{item.publisher}</td>
-                        <td className="px-4 py-2">{item.total_amount} 元</td>
+                        <td className="px-4 py-2">
+                          {item.contributedAmount} 元
+                        </td>
                         <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 space-x-2">
                           {item.status === "pending" && (
                             <>
-                              <div className="flex gap-1">
+                              <div className="flex space-x-2">
                                 <AppendBountyButton
                                   bountyId={item.bountyId || 0}
-                                  bgColor={BUTTON_STYLES.COLORS.primary.bg}
-                                  hoverColor={
-                                    BUTTON_STYLES.COLORS.primary.hover
-                                  }
                                   onSuccess={loadData}
+                                  className="inline-block"
                                 />
                                 <SubmitSeedButton
                                   bountyId={item.bountyId || 0}
-                                  bgColor={BUTTON_STYLES.COLORS.gray.bg}
-                                  hoverColor={BUTTON_STYLES.COLORS.gray.hover}
                                   onSuccess={loadData}
+                                  className="inline-block"
                                 />
                               </div>
                             </>
@@ -295,14 +295,14 @@ export default function MyBountiesPage() {
                         <td className="px-4 py-2">
                           {(item.status === "unconfirmed" ||
                             item.status === "approved" ||
-                          item.status=== "under_review") && (
-                            <DownloadBountyButton id={item.torrentId||0} />
+                            item.status === "under_review") && (
+                            <DownloadBountyButton id={item.torrentId || 0} />
                           )}
                         </td>
                       </tr>
                     ))}
                   </tbody>
-                </table>{" "}
+                </table>
               </div>
             )}
             {activeTab === "submitted" && (
@@ -327,11 +327,10 @@ export default function MyBountiesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {submittedBounties.map((item) => (
-                      <tr key={item.bountyId}>
+                    {submittedBounties.map((item, index) => (
+                      <tr key={`submitted-${item.bountyId}-${index}`}>
                         <td className="px-4 py-2">{item.name}</td>
                         <td className="px-4 py-2">
-                          {" "}
                           <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
                             {item.description}
                           </div>
@@ -339,12 +338,12 @@ export default function MyBountiesPage() {
                         <td className="px-4 py-2">{item.publisher}</td>
                         <td className="px-4 py-2">{item.total_amount} 元</td>
                         <td className="px-4 py-2">{item.status}</td>
-                     
+
                         <td className="px-4 py-2">
                           {(item.status === "unconfirmed" ||
                             item.status === "approved" ||
                             item.status === "under_review") && (
-                            <DownloadBountyButton id={item.torrentId||0} />
+                            <DownloadBountyButton id={item.torrentId || 0} />
                           )}
                         </td>
                       </tr>
@@ -358,29 +357,43 @@ export default function MyBountiesPage() {
           {showArbitrateModal && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50"
-              style={{ background: "rgba(0,0,0,0.15)" }}
+              style={{ background: "rgba(0,0,0,0.5)" }}
             >
-              <div className="bg-white p-6 rounded-2xl shadow-lg w-96">
-                <h2 className="text-lg font-bold mb-4">申请仲裁</h2>
+              <div className="bg-white p-6 rounded-2xl shadow-lg w-96 border border-[#E0E5E3]">
+                <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#E0E5E3]">
+                  <h2 className="text-lg font-bold text-[#3D4D49] flex items-center">
+                    <div className="h-5 w-1 bg-gradient-to-b from-[#5E8B7E] to-[#4F7A6F] rounded-full mr-2 shadow-sm"></div>
+                    申请仲裁
+                  </h2>
+                  <button
+                    onClick={debouncedCloseArbitrateModal}
+                    className="text-[#6B7C79] hover:text-[#3D4D49] transition-colors p-1 rounded-full hover:bg-[#F1F4F3]"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
                 <textarea
-                  className="border p-2 w-full mb-4"
+                  className="border border-[#E0E5E3] p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E8B7E] transition shadow-sm bg-[#F9FAF9] mb-5"
                   placeholder="请输入仲裁理由"
                   value={arbitrateReason}
                   onChange={(e) => setArbitrateReason(e.target.value)}
                   rows={3}
                 />
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-end space-x-3">
                   <button
                     onClick={debouncedCloseArbitrateModal}
-                    className={`${BUTTON_STYLES.STANDARD.padding} bg-gray-300 rounded hover:bg-gray-400`}
+                    className="px-4 py-2 bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
                   >
                     取消
                   </button>
                   <button
                     onClick={debouncedHandleArbitrate}
-                    className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} text-white rounded ${BUTTON_STYLES.COLORS.primary.hover}`}
+                    className={`px-4 py-2 bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white rounded-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-colors shadow-md flex items-center gap-1.5 ${
+                      !arbitrateReason ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     disabled={!arbitrateReason}
                   >
+                    <FileUp size={16} />
                     确认仲裁
                   </button>
                 </div>

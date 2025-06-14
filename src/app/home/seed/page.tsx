@@ -281,12 +281,12 @@ export default function SeedCenter() {
               搜索
             </button>
           </div>
-        </div>{" "}        {/* 种子列表卡片视图 */}
+        </div>        {/* 种子列表卡片视图 */}
         <div className="mb-2 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-teal-700">
             {selectedTags.length === 0 && currentCategory === "全部" && !searchTerm 
               ? "推荐种子" 
-              : "种子列表"}{" "}
+              : "种子列表"}
             {totalCount > 0 && (
               <span className="text-sm font-normal">
                 （共 {totalCount} 个）

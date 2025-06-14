@@ -3,18 +3,21 @@ import { toast } from "react-hot-toast";
 import { useDebounceFn } from "@/hooks/useDebounceFn";
 import { downloadResource } from "@/api/download";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
+import { Download } from "lucide-react";
 
 interface DownloadBountyButtonProps {
   id: number;
-  bgColor?: string;
-  hoverColor?: string;
+  bgColor?: string; // 保留参数以便兼容现有调用，但在组件内部不使用
+  hoverColor?: string; // 保留参数以便兼容现有调用，但在组件内部不使用
   onSuccess?: () => void; // 下载成功后的回调函数，可选参数
 }
 
 export default function DownloadBountyButton({
   id,
-  bgColor = BUTTON_STYLES.COLORS.secondary.bg,
-  hoverColor = BUTTON_STYLES.COLORS.secondary.hover,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  bgColor = BUTTON_STYLES.COLORS.secondary.bg, // 接收但不使用该参数
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hoverColor = BUTTON_STYLES.COLORS.secondary.hover, // 接收但不使用该参数
   onSuccess,
 }: DownloadBountyButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -41,25 +44,21 @@ export default function DownloadBountyButton({
 
   return (
     <button
-      className={`${BUTTON_STYLES.STANDARD.padding} ${bgColor} text-white rounded ${hoverColor} flex items-center cursor-pointer`}
+      className={`${BUTTON_STYLES.STANDARD.padding} bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 py-2 px-4 flex items-center justify-center gap-1.5 cursor-pointer ${isLoading ? 'opacity-70' : ''}`}
       onClick={debouncedHandleDownload}
       disabled={isLoading}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4 mr-1"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-        />
-      </svg>
-      {isLoading ? "下载中..." : "下载"}
+      {isLoading ? (
+        <>
+          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+          <span>下载中...</span>
+        </>
+      ) : (
+        <>
+          <Download size={16} />
+          <span>下载</span>
+        </>
+      )}
     </button>
   );
 }

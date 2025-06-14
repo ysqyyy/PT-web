@@ -21,7 +21,7 @@ export interface MyBounty extends BountyItem {
 
 // 我追加的悬赏
 export interface AppendedBounty extends BountyItem {
-  total_amount: number;
+  contributedAmount: number;
   publisher: string;
 }
 

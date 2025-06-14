@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { publishBounty } from "@/api/bounties";
 import { categoryMap } from "@/constants/categories";
 import { tagMap } from "@/constants/tags";
+import { Coins, X, Tag, FileText, HelpCircle } from "lucide-react";
 
 interface PublishBountyButtonProps {
   onSuccess?: () => void;
@@ -73,12 +74,15 @@ export default function PublishBountyButton({
   };
 
   return (
-    <>
-      <button
-        className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} cursor-pointer text-white rounded ${BUTTON_STYLES.COLORS.primary.hover} ${className}`}
+    <>      <button
+        data-testid="publish-bounty-btn"
+        className={`${BUTTON_STYLES.STANDARD.padding} bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 ${className}`}
         onClick={openModal}
       >
-        发布悬赏
+        <span className="flex items-center gap-1.5">
+          <Coins size={16} />
+          发布悬赏
+        </span>
       </button>
       
       {showModal && (
@@ -86,15 +90,29 @@ export default function PublishBountyButton({
           className="fixed inset-0 flex items-center justify-center z-50 overflow-y-auto pt-10 pb-10"
           style={{ background: "rgba(0,0,0,0.5)" }}
         >
-          <div className="bg-white p-8 rounded-2xl shadow-xl w-[550px] max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-5 text-gray-800 border-b pb-3">发布悬赏</h2>
+          <div className="bg-white p-8 rounded-2xl shadow-xl w-[550px] max-h-[90vh] overflow-y-auto border border-[#E0E5E3]">
+            <div className="flex justify-between items-center mb-5 border-b pb-3">
+              <h2 className="text-2xl font-bold text-[#3D4D49] flex items-center">
+                <div className="h-6 w-1 bg-gradient-to-b from-[#5E8B7E] to-[#4F7A6F] rounded-full mr-3 shadow-sm"></div>
+                发布悬赏
+              </h2>
+              <button 
+                onClick={closeModal} 
+                className="text-[#6B7C79] hover:text-[#3D4D49] transition-colors p-1 rounded-full hover:bg-[#F1F4F3]"
+              >
+                <X size={20} />
+              </button>
+            </div>
             
             {/* 资源标题 */}
-            <div className="mb-4">
-              <label className="block mb-2 font-medium text-gray-700">资源标题 <span className="text-red-500">*</span></label>
+            <div className="mb-5">
+              <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
+                <FileText size={16} className="mr-1.5 text-[#5E8B7E]" />
+                资源标题 <span className="text-red-500 ml-1">*</span>
+              </label>
               <input
                 type="text"
-                className="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="border border-[#E0E5E3] p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E8B7E] transition shadow-sm bg-[#F9FAF9]"
                 placeholder="请输入您想要的资源标题"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -102,10 +120,13 @@ export default function PublishBountyButton({
             </div>
             
             {/* 分类选择 */}
-            <div className="mb-4">
-              <label className="block mb-2 font-medium text-gray-700">分类 <span className="text-red-500">*</span></label>
+            <div className="mb-5">
+              <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
+                <Tag size={16} className="mr-1.5 text-[#5E8B7E]" />
+                分类 <span className="text-red-500 ml-1">*</span>
+              </label>
               <select
-                className="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="border border-[#E0E5E3] p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E8B7E] transition shadow-sm bg-[#F9FAF9]"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
@@ -117,17 +138,20 @@ export default function PublishBountyButton({
             </div>
             
             {/* 标签选择 */}
-            <div className="mb-4">
-              <label className="block mb-2 font-medium text-gray-700">标签 (最多5个)</label>
-              <div className="flex flex-wrap gap-2 mt-1">
+            <div className="mb-5">
+              <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
+                <Tag size={16} className="mr-1.5 text-[#5E8B7E]" />
+                标签 <span className="text-[#8CA29F] text-sm ml-1">(最多5个)</span>
+              </label>
+              <div className="flex flex-wrap gap-2 mt-1 bg-[#F9FAF9] p-3 rounded-lg border border-[#E0E5E3]">
                 {Object.entries(tagMap).map(([id, name]) => (
                   <div 
                     key={id}
                     onClick={() => toggleTag(id)}
-                    className={`px-3 py-1 rounded-full text-sm cursor-pointer transition duration-200 ${
+                    className={`px-3 py-1.5 rounded-full text-sm cursor-pointer transition duration-200 shadow-sm ${
                       selectedTags.includes(id) 
-                        ? 'bg-teal-600 text-white' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white' 
+                        : 'bg-[#F1F4F3] text-[#556B66] hover:bg-[#E0E5E3]'
                     }`}
                   >
                     {name}
@@ -137,28 +161,34 @@ export default function PublishBountyButton({
             </div>
             
             {/* 悬赏金额 */}
-            <div className="mb-4">
-              <label className="block mb-2 font-medium text-gray-700">悬赏金额 <span className="text-red-500">*</span></label>
+            <div className="mb-5">
+              <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
+                <Coins size={16} className="mr-1.5 text-[#5E8B7E]" />
+                悬赏金额 <span className="text-red-500 ml-1">*</span>
+              </label>
               <div className="relative">
                 <input
                   type="number"
-                  className="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                  className="border border-[#E0E5E3] p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E8B7E] transition shadow-sm bg-[#F9FAF9]"
                   placeholder="请输入悬赏金额"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   min={1}
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8CA29F]">
                   积分
                 </span>
               </div>
             </div>
             
             {/* 资源描述 */}
-            <div className="mb-5">
-              <label className="block mb-2 font-medium text-gray-700">资源描述</label>
+            <div className="mb-6">
+              <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
+                <HelpCircle size={16} className="mr-1.5 text-[#5E8B7E]" />
+                资源描述
+              </label>
               <textarea
-                className="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="border border-[#E0E5E3] p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E8B7E] transition shadow-sm bg-[#F9FAF9]"
                 placeholder="请详细描述您需要的资源，如资源版本、清晰度、字幕要求等"
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
@@ -167,22 +197,32 @@ export default function PublishBountyButton({
             </div>
             
             {/* 操作按钮 */}
-            <div className="flex justify-end space-x-3 pt-3 border-t">
+            <div className="flex justify-end space-x-3 pt-4 border-t border-[#E0E5E3]">
               <button
                 onClick={closeModal}
-                className="px-5 py-2 bg-gray-200 text-gray-700 cursor-pointer rounded-lg hover:bg-gray-300 transition duration-200"
+                className="px-5 py-2 bg-[#F1F4F3] text-[#556B66] cursor-pointer rounded-lg hover:bg-[#E0E5E3] transition duration-200 shadow-sm"
                 disabled={loading}
               >
                 取消
               </button>
               <button
                 onClick={handlePublish}
-                className={`px-5 py-2 bg-teal-600 text-white cursor-pointer rounded-lg hover:bg-teal-700 transition duration-200 ${
+                className={`px-5 py-2 bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white cursor-pointer rounded-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition duration-200 shadow-md flex items-center gap-2 ${
                   (!title || !amount || !category || loading) ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 disabled={!title || !amount || !category || loading}
               >
-                {loading ? "发布中..." : "确认发布"}
+                {loading ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-1"></div>
+                    发布中...
+                  </>
+                ) : (
+                  <>
+                    <Coins size={16} />
+                    确认发布
+                  </>
+                )}
               </button>
             </div>
           </div>
