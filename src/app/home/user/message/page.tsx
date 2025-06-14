@@ -258,21 +258,13 @@ export default function MessagePage() {
             onClick={() => handleSelectConversation(conversation.id)}
         >
           <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white mr-3">
-            {conversation.participantAvatar ? (
-                <Image
-                    src={conversation.participantAvatar}
-                    alt={conversation.participantName}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                />
-            ) : (
+
                 <span>
               {conversation.participantName
                   ? conversation.participantName.charAt(0).toUpperCase()
                   : ""}
             </span>
-            )}
+
           </div>
           <div className="flex-1">
             <div className="flex justify-between">
@@ -321,21 +313,12 @@ export default function MessagePage() {
         >
           {!isSender && (
               <div className="w-8 h-8 rounded-full bg-gray-300 mr-2 flex items-center justify-center">
-                {message.senderAvatar ? (
-                    <Image
-                        src={message.senderAvatar}
-                        alt={message.senderName}
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                    />
-                ) : (
+
                     <span>
                 {message.senderName
                     ? message.senderName.charAt(0).toUpperCase()
                     : ""}
               </span>
-                )}
               </div>
           )}
           <div
