@@ -5,9 +5,11 @@ export interface DownloadTrend {
 }
 
 export interface AnalyticsData {
-  downloadTrend: DownloadTrend;  // 下载趋势数据
-  totalDownloads: number;        // 总下载量
-  monthlyAverage: number;        // 月均下载量
-  totalResources: number;        // 资源总数
-  activeUsers: number;           // 活跃用户数
+  userMonthlyUpload: number[];    // 用户月度上传数据（近4个月）
+  userMonthlyDownload: number[];  // 用户月度下载数据（近4个月）
+  allMonthlyUpload: number[];     // 全站月度上传数据（近4个月）
+  allMonthlyDownload: number[];   // 全站月度下载数据（近4个月）
+  totalDownload: number;          // 总下载量
+  totalTorrentCount: number;      // 资源总数
+  activeUserCount: number;        // 活跃用户数
 }

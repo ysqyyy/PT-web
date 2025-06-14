@@ -30,8 +30,8 @@ export default function ProtectedRoute({ children, requiredLevel }: ProtectedRou
         
         if (userInfoStr) {
           const userInfo = JSON.parse(userInfoStr);
-          const userLevel = userInfo.level ? parseInt(userInfo.level) : 1;
-          
+          const userLevel = userInfo.user_level ? parseInt(userInfo.user_level) : 1;
+          console.log("用户等级pro:", userLevel);
           // 判断用户等级是否满足要求
           isAuthorized = userLevel >= requiredLevel;
         }

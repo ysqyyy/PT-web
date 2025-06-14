@@ -40,7 +40,8 @@ export default function DashboardLayout({ children, title }: DashboardLayoutProp
       if (userInfoStr) {
         try {
           const userInfo = JSON.parse(userInfoStr);
-          const level = userInfo.level ? parseInt(userInfo.level) : 1;
+          const level = userInfo.user_level ? parseInt(userInfo.user_level) : 1;
+          console.log("用户等级:", level);
           setUserLevel(level);
           
           // 根据用户等级过滤菜单项
