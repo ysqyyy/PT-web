@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { getSeedList } from "@/api/seed";
 import { SeedListItem } from "@/types/seed";
 import { getRecommendSeeds } from "@/api/seed";
+import { tagMap } from "@/constants/tags";
+import { message } from "antd";
 // 定义分类类型
 type Category =
   | "全部"
@@ -31,9 +33,9 @@ export default function SeedCenter() {
 
   // 筛选状态 - 只使用一个标签数组
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  // 分类列表
+  const [searchTerm, setSearchTerm] = useState("");  // 分类列表
   const categories: Category[] = [
+    "全部",
     "电影",
     "剧集",
     "音乐",
@@ -41,8 +43,6 @@ export default function SeedCenter() {
     "游戏",
     "综艺",
     "体育",
-    "软件",
-    "学习",
     "纪录片",
   ];
 
@@ -85,7 +85,6 @@ export default function SeedCenter() {
       setLoading(false);
     }
   }, [currentPage, pageSize]);
-
   // 获取种子列表的函数
   const fetchSeedList = useCallback(async () => {
     setLoading(true);
@@ -109,7 +108,7 @@ export default function SeedCenter() {
           tags: item.tags || [],
           size: item.torrentSize,
           price: item.originPrice,
-          status: item.status,
+          status: item.status || "未知", // 确保status不为null
           downloadCount: item.downloadCount || 0,
           // score: item.score || 0,
         }));
@@ -122,7 +121,7 @@ export default function SeedCenter() {
     } finally {
       setLoading(false);
     }
-  }, [currentCategory, selectedTags, searchTerm, currentPage, pageSize]); // 监听筛选条件变化
+  }, [currentCategory, selectedTags, searchTerm, currentPage, pageSize]);// 监听筛选条件变化
   useEffect(() => {
     // 如果没有筛选条件，显示推荐种子列表
     if (
@@ -140,10 +139,13 @@ export default function SeedCenter() {
     selectedTags,
     currentCategory,
     searchTerm,
-  ]);
-
-  // 搜索按钮点击事件
+  ]);  // 搜索按钮点击事件
   const handleSearch = () => {
+    // 如果在"全部"分类下进行搜索，自动切换到第一个实际分类
+    if (currentCategory === "全部" && searchTerm.trim() !== "") {
+      setCurrentCategory(categories.find(c => c !== "全部") || "电影");
+    }
+    
     if (
       selectedTags.length === 0 &&
       currentCategory === "全部" &&
@@ -154,15 +156,27 @@ export default function SeedCenter() {
       fetchSeedList();
     }
   };
+  
   // 切换选择状态
   const toggleSelection = (
     list: string[],
     setList: React.Dispatch<React.SetStateAction<string[]>>,
     item: string
   ) => {
+    // 如果当前在"全部"分类下选择标签，切换到第一个实际分类
+    if (currentCategory === "全部" && !list.includes(item)) {
+      setCurrentCategory(categories.find(c => c !== "全部") || "电影");
+    }
+    
+    // 正常的标签切换逻辑
     if (list.includes(item)) {
       setList(list.filter((i) => i !== item));
     } else {
+      // 限制最多选择5个标签
+      if (list.length >= 5) {
+        message.warning("最多只能选择5个标签");
+        return;
+      }
       setList([...list, item]);
     }
   };
@@ -171,50 +185,19 @@ export default function SeedCenter() {
   const handleSeedClick = (seedId: number) => {
     router.push(`/home/seed/detail/${seedId}`);
   }; // 常用标签列表
-  const commonTags = [
-    "喜剧",
-    "悬疑",
-    "爱情",
-    "动作",
-    "科幻",
-    "国产",
-    "欧美",
-    "日韩",
-    "港台",
-    "现场版",
-    "比赛",
-    "访谈",
-    "教学",
-    "流行",
-    "复古",
-    "电子",
-    "独立",
-    "自然",
-    "历史",
-    "科技",
-    "文化",
-    "角色扮演",
-    "竞技",
-    "开放世界",
-    "怀旧",
-    "新作",
-    "经典",
-    "连载中",
-    "完结",
-  ];
-
+    const allTags = Object.values(tagMap);
   // 渲染标签筛选条件
   const renderFilterConditions = () => {
     return (
       <div className="w-full">
         <div className="flex flex-wrap gap-2">
-          {commonTags.map((tag) => (
+          {allTags.map((tag) => (
             <button
               key={tag}
               onClick={() =>
                 toggleSelection(selectedTags, setSelectedTags, tag)
               }
-              className={`px-3 py-1 rounded text-sm ${
+              className={`px-3 py-1 rounded text-sm cursor-pointer ${
                 selectedTags.includes(tag)
                   ? "bg-teal-600 text-white"
                   : "bg-gray-200 text-gray-700"
@@ -229,6 +212,14 @@ export default function SeedCenter() {
         </div>
       </div>
     );
+  };// 处理分类点击
+  const handleCategoryClick = (category: Category) => {
+    setCurrentCategory(category);
+    
+    // 如果点击"全部"分类，清空已选择的标签
+    if (category === "全部") {
+      setSelectedTags([]);
+    }
   };
 
   return (
@@ -243,53 +234,59 @@ export default function SeedCenter() {
           >
             发布种子
           </button>
-        </div>
-        {/* 分类导航 */}
-        <div className="flex flex-wrap gap-2 mb-6 border-b pb-4">
+        </div>        {/* 分类导航 */}        <div className="flex flex-wrap gap-2 mb-6 border-b pb-4">
           {categories.map((category) => (
             <button
               key={category}
-              onClick={() => setCurrentCategory(category)}
-              className={`px-4 py-2 rounded transition-colors ${
+              onClick={() => handleCategoryClick(category)}
+              className={`px-4 py-2 rounded transition-colors cursor-pointer ${
                 currentCategory === category
                   ? "bg-teal-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  : category === "全部" 
+                    ? "bg-gray-300 text-gray-800 hover:bg-gray-400" 
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              {category}
+              {category === "全部" ? "全部" : category}
             </button>
           ))}
         </div>
-        {/* 筛选区域 */}
-        <div className="mb-6">
+        {/* 筛选区域 */}        <div className="mb-6">
           <h2 className="text-lg font-semibold mb-4 text-teal-700">
-            请选择标签
+            请选择标签 <span className="text-sm font-normal text-gray-500">(最多选择5个)</span>
           </h2>
           <div className="w-full">{renderFilterConditions()}</div>
         </div>
         {/* 搜索框 */}
-        <div className="mb-6">
-          <div className="flex gap-2">
+        <div className="mb-6">          <div className="flex gap-2">
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearchTerm(value);
+                
+                // 如果在"全部"分类下输入搜索关键词，自动切换到第一个实际分类
+                if (currentCategory === "全部" && value.trim() !== "") {
+                  setCurrentCategory(categories.find(c => c !== "全部") || "电影");
+                }
+              }}
               className="flex-1 p-2 border border-gray-300 rounded focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none"
               placeholder="输入关键词搜索..."
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-            />
-            <button
+            />            <button
               onClick={handleSearch}
               className="px-4 py-2 bg-teal-600 text-white cursor-pointer rounded hover:bg-teal-700 transition-colors"
             >
               搜索
             </button>
           </div>
-        </div>{" "}
-        {/* 种子列表卡片视图 */}
+        </div>{" "}        {/* 种子列表卡片视图 */}
         <div className="mb-2 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-teal-700">
-            种子列表{" "}
+            {selectedTags.length === 0 && currentCategory === "全部" && !searchTerm 
+              ? "推荐种子" 
+              : "种子列表"}{" "}
             {totalCount > 0 && (
               <span className="text-sm font-normal">
                 （共 {totalCount} 个）

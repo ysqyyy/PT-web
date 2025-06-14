@@ -75,7 +75,7 @@ export default function PublishBountyButton({
   return (
     <>
       <button
-        className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} text-white rounded ${BUTTON_STYLES.COLORS.primary.hover} ${className}`}
+        className={`${BUTTON_STYLES.STANDARD.padding} ${BUTTON_STYLES.COLORS.primary.bg} cursor-pointer text-white rounded ${BUTTON_STYLES.COLORS.primary.hover} ${className}`}
         onClick={openModal}
       >
         发布悬赏

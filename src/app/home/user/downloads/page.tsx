@@ -58,12 +58,12 @@ export default function DownloadsPage() {
                     <th className="px-4 py-2 text-left">文件大小</th>
                     <th className="px-4 py-2 text-left">操作</th>
                   </tr>
-                </thead>
-                <tbody>
-                  {downloadRecords.map((record) => (
-                    <tr key={record.id} className="border-b">
+                </thead>                <tbody>
+                  {downloadRecords.map((record, index) => (
+                    <tr key={`${record.id}-${record.date}-${index}`} className="border-b">
                       <td className="px-4 py-2">{record.fileName}</td>
-                      <td className="px-4 py-2">{record.date}</td>                      <td className="px-4 py-2">{record.size}</td>
+                      <td className="px-4 py-2">{record.date}</td>
+                      <td className="px-4 py-2">{record.size}</td>
                       <td className="px-4 py-2">
                         <DownloadBountyButton 
                           id={record.id}

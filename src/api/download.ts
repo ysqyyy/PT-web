@@ -30,8 +30,8 @@ export async function getDownloadRecords(): Promise<DownloadRecord[]> {
 export async function downloadResource(torrentId: number) {
   try {
     console.log('开始下载资源，ID:', torrentId);
-    await request.download(`http://localhost:8080/torrent/download/${torrentId}`);
-    
+    const res=await request.download(`http://localhost:8080/torrent/download/${torrentId}`);
+    console.log('下载资源成功:', res);
     return { success: true };
   } catch (error) {
     console.error('下载资源出错:', error);
