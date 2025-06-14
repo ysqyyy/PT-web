@@ -38,14 +38,27 @@ export interface publishSeedData {
 }
 // 列表页使用的种子简要信息
 export interface SeedListItem {
-    id: number;               // 种子ID
-    name: string;            // 种子名称
-    description?: string;    // 种子描述
-    size: string;             // 大小
-    category: string;         // 分类
-    tags?: string[];        // 标签列表
-    price: number;            // 价格
-    status: string;           // 状态
-    downloadCount?: number;   // 下载次数
-    score?: number;           // 评分
+    id: number;               // 种子ID//
+    name: string;            // 种子名称//
+    description?: string;    // 种子描述//
+    size: number;             // 大小//
+    // category: string;         // 分类
+    tags?: string[];        // 标签列表///
+    price: number;            // 价格//
+    status: string;           // 状态//
+    downloadCount?: number;   // 下载次数//
+    // score?: number;           // 评分
+}
+
+export interface getSeedListParams {
+    torrentId: number;          // 种子ID//
+    torrentName: string;       // 种子名称//
+    torrentDescription: string; // 种子描述//
+    torrentSize: number;       // 种子大小//
+    uploadTime: string[];      // 上传时间
+    downloadCount: number;     // 下载次数//
+    status: string | null;     // 种子状态//
+    tags: string[] | null;     // 标签列表//
+    originPrice: number;       // 原价//
+    downloadLimit: number;     // 下载限制
 }

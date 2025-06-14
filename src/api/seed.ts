@@ -1,11 +1,26 @@
 import request from "../utils/request";
-import type { publishSeedData, SeedDetail } from "@/types/seed";
+import type {
+  publishSeedData,
+  SeedDetail,
+  getSeedListParams,
+} from "@/types/seed";
 import auth from "../utils/auth";
 import {
   getCategoryIdByName,
   getCategoryNameById,
 } from "@/constants/categories";
 import { getTagIdByName, getTagNameById } from "@/constants/tags";
+
+//推荐
+export async function getRecommendSeeds(page: number, size: number) {
+  const response = await request.get("http://localhost:8080/api/recommendations/personalized?page=1&size=10", params => {
+    page = page; 
+    size = size;
+  });
+  const res = response.data;
+  console.log("获取推荐种子:", res);
+  return res;
+}
 // 获取种子列表 new
 export async function getSeedList(params: {
   category: string;
@@ -14,28 +29,98 @@ export async function getSeedList(params: {
   page?: number;
   pageSize?: number;
 }) {
-  // 转换分类名称为分类ID（如果传入的是分类名称而非ID）
-  const categoryParam = params.category.match(/^\d+$/)
+  //转换name和id
+  const categoryId = params.category.match(/^\d+$/)
     ? params.category
     : getCategoryIdByName(params.category);
-
-  // 转换标签名称为标签ID（如果有标签参数）
   const tagIds = params.tags
     ?.map((tag) => {
-      // 如果标签已经是数字ID，则直接使用，否则尝试将名称转换为ID
       return tag.match(/^\d+$/) ? tag : getTagIdByName(tag);
     })
     .filter((id) => id !== undefined) as string[] | undefined;
 
-  const requestParams = {
-    ...params,
-    category: categoryParam,
-    tags: tagIds,
-  };
+  let res: getSeedListParams[] = [];
+  let byKeyResult: getSeedListParams[] = [];
+  let categoryResult: getSeedListParams[] = [];
 
-  const res = await request.post("/api/request/seed/list", requestParams);
-  console.log("Seed list response:", res);
-  return res;
+  // 关键词
+  if (params.keywords && params.keywords.trim() !== "") {
+    const bykey = await request.get("http://localhost:8080/torrent/search", {
+      params: {
+        keyword: params.keywords.trim(),
+        page: 1,
+        size: 1000,
+      },
+    });
+    byKeyResult = bykey?.data?.items || []; //ok
+    console.log("关键词搜索结果数:", byKeyResult.length, byKeyResult);
+  }
+
+  // 处理分类和标签筛选结果
+  if (!tagIds || tagIds.length === 0) {
+    const bycat = await request.get(
+      "http://localhost:8080/torrent/by-category",
+      {
+        params: {
+          category_id: categoryId,
+          page: 1,
+          size: 1000,
+        },
+      }
+    );
+    categoryResult = bycat?.data || []; //ok
+    console.log("分类搜索结果数:", categoryResult.length, categoryResult);
+  } else {
+    const bytagandcat = await request.post(
+      "http://localhost:8080/torrent/filter",
+      {
+        categoryId: categoryId,
+        tags: params.tags,
+        page: 1,
+        size: 1000,
+      }
+    );
+    categoryResult = bytagandcat?.data?.items || [];
+    console.log("分类和标签搜索结果数:", categoryResult.length, categoryResult);
+  }
+
+  // 如果关键词搜索和分类/标签搜索都有结果，取交集
+  if (byKeyResult.length > 0 && categoryResult.length > 0) {
+    // 获取种子ID以便进行交集计算
+    const keywordIds = new Set(byKeyResult.map((item) => item.torrentId));
+    res = categoryResult.filter((item) =>
+      keywordIds.has(item.torrentId)&&res.indexOf(item) === -1
+    );
+    console.log("交集结果数:", res.length);
+  }
+  // 如果只有关键词搜索有结果
+  else if (byKeyResult.length > 0) {
+    res = byKeyResult;
+  }
+  // 如果只有分类/标签搜索有结果
+  else {
+    res = categoryResult;
+  }
+
+  // 手动分页处理
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedResults = res.slice(startIndex, endIndex);
+
+  // 返回分页后的结果和总数
+  return {
+    success: true,
+    message: "获取种子列表成功",
+    data: {
+      torrents: paginatedResults,
+      total: res.length,
+      page: page,
+      size: pageSize,
+      pages: Math.ceil(res.length / pageSize),
+    },
+  };
 }
 
 // 获取种子详情 ok
@@ -158,12 +243,14 @@ export async function publishSeed(file: File, data: publishSeedData) {
   // }
 
   // 使用axios发送FormData
-  const res=await axios.post(apiUrl, formData, {
+  const res = await axios.post(apiUrl, formData, {
     headers: {
       Authorization: token ? `Bearer ${token}` : "",
     },
   });
   const torrentId = Number(res.data.data); // 假设返回的响应中包含种子ID
-  const success=await request.download(`http://localhost:8080/torrent/download/${torrentId}`);
+  const success = await request.download(
+    `http://localhost:8080/torrent/download/${torrentId}`
+  );
   return success;
 }

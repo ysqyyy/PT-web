@@ -67,7 +67,20 @@ export default function SeedCenter() {
       });
 
       if (res.success) {
-        setSeedItems(res.data || []);
+        const seedList = res.data.torrents || [];
+        const formattedList = seedList.map((item) => ({
+          id: item.torrentId,
+          name: item.torrentName,
+          description: item.torrentDescription,
+          // category: item.category,
+          tags: item.tags || [],
+          size: item.torrentSize,
+          price: item.originPrice,
+          status: item.status,
+          downloadCount: item.downloadCount || 0,
+          // score: item.score || 0,
+        }));
+        setSeedItems(formattedList);
         console.log("种子列表数据:", seedItems);
         setTotalCount(res.data.total || 0);
       }
@@ -104,49 +117,15 @@ export default function SeedCenter() {
   // 点击种子名称跳转到详情页
   const handleSeedClick = (seedId: number) => {
     router.push(`/home/seed/detail/${seedId}`);
-  }; // 常用标签列表
+  };  // 常用标签列表
   const commonTags = [
-    // 常用类型标签
-    "剧情",
-    "喜剧",
-    "家庭",
-    "动作",
-    "冒险",
-    "爱情",
-    "科幻",
-    "奇幻",
-    "动画",
-    "恐怖",
-    "惊悚",
-    "纪录片",
-    // 常用格式标签
-    "4K",
-    "1080P",
-    "720P",
-    "HDR",
-    "IMAX",
-    "HEVC",
-    "H.265",
-    "BDRip",
-    "WEB-DL",
-    // 常用地区标签
-    "大陆",
-    "香港",
-    "台湾",
-    "日本",
-    "韩国",
-    "美国",
-    "英国",
-    "印度",
-    // 常用年份标签
-    "2025",
-    "2024",
-    "2023",
-    "2022",
-    "2021",
-    "2020",
-    "2019",
-    "2018",
+    "喜剧", "悬疑", "爱情", "动作", "科幻", 
+    "国产", "欧美", "日韩", "港台", 
+    "现场版", "比赛", "访谈", "教学", 
+    "流行", "复古", "电子", "独立", 
+    "自然", "历史", "科技", "文化", 
+    "角色扮演", "竞技", "开放世界", "怀旧", 
+    "新作", "经典", "连载中", "完结"
   ];
 
   // 渲染标签筛选条件
@@ -288,9 +267,9 @@ export default function SeedCenter() {
               >
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="px-2 py-1 bg-teal-50 text-teal-700 rounded text-xs font-medium">
+                    {/* <span className="px-2 py-1 bg-teal-50 text-teal-700 rounded text-xs font-medium">
                       {item.category}
-                    </span>
+                    </span> */}
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
                         item.status === "可用"
@@ -351,14 +330,14 @@ export default function SeedCenter() {
                         {item.downloadCount}
                       </span>
                     )}
-                    {item.score !== undefined && (
+                    {/* {item.score !== undefined && (
                       <span className="text-xs text-gray-500 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                         </svg>
                         {item.score ? item.score.toFixed(1) : "-"}
                       </span>
-                    )}
+                    )} */}
                   </div>
                   {/* <button className="text-sm text-teal-600 hover:text-teal-800 transition-colors flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

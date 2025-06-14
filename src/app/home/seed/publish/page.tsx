@@ -2,17 +2,18 @@
 import React, { useState } from "react";
 import Navbar from "../../../../components/Navbar";
 import { useRouter } from "next/navigation";
-import { Upload, Button, message, Input, Tag, Select } from "antd";
+import { Upload, Button, message, Input, Select } from "antd";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
 import { publishSeed } from "@/api/seed";
 import { publishSeedData } from "@/types/seed";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
+import { tagMap } from "@/constants/tags";
 const { TextArea } = Input;
 const { Option } = Select;
+import {getRecommendSeeds} from "@/api/seed";
 
-export default function SeedPublish() {
-  const router = useRouter();
+export default function SeedPublish() {  const router = useRouter();
   const [formData, setFormData] = useState<publishSeedData>({
     name: "",
     description: "",
@@ -23,11 +24,27 @@ export default function SeedPublish() {
   });
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [tagInputVisible, setTagInputVisible] = useState(false);
-  const [tagInputValue, setTagInputValue] = useState("");
+  
+  // 获取所有标签
+  const allTags = Object.values(tagMap);
+  
   const presets = {
     categories: ["电影", "电视剧", "动漫", "综艺", "纪录片", "音乐", "游戏"],
   };
+  onMounted(() => {
+    // 初始化表单数据
+    setFormData({
+      name: "",
+      description: "",
+      imgUrl: "",
+      tags: [],
+      price: 0,
+      category: "电影",
+    });
+    getRecommendSeeds();
+    setFileList([]);
+  }
+  );
   // 提交表单，发布种子
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,15 +62,13 @@ export default function SeedPublish() {
       if (!file) {
         message.error("文件上传失败");
         return;
-      }
-
-      const res = await publishSeed(file,formData);
+      }      const res = await publishSeed(file,formData);
       //返回值判断
       if (res.success) {
         message.success("种子发布成功");
         router.push("/home/seed");
       } else {
-        message.error(res.message || "种子发布失败");
+        message.error("种子发布失败");
       }
     } catch (error) {
       console.error("种子发布失败:", error);
@@ -81,29 +96,11 @@ export default function SeedPublish() {
 
     setFileList(newFileList);
   };
-
   // 标签相关操作
-  const handleTagClose = (removedTag: string) => {
-    const tags = formData.tags?.filter((tag) => tag !== removedTag) || [];
-    setFormData({ ...formData, tags });
+  const handleTagChange = (value: string[]) => {
+    setFormData({ ...formData, tags: value });
   };
 
-  const showTagInput = () => {
-    setTagInputVisible(true);
-  };
-
-  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTagInputValue(e.target.value);
-  };
-
-  const handleTagInputConfirm = () => {
-    if (tagInputValue && !formData.tags?.includes(tagInputValue)) {
-      const tags = [...(formData.tags || []), tagInputValue];
-      setFormData({ ...formData, tags });
-    }
-    setTagInputVisible(false);
-    setTagInputValue("");
-  };
   return (
     <Navbar name="种子中心">
       {" "}
@@ -311,38 +308,20 @@ export default function SeedPublish() {
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-teal-500 transition-all duration-300">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               标签
-            </label>
-            <div className="flex flex-wrap gap-2 border border-gray-200 rounded-lg p-3 min-h-[50px] bg-white">
-              {formData.tags?.map((tag) => (
-                <Tag
-                  key={tag}
-                  closable
-                  onClose={() => handleTagClose(tag)}
-                  className="m-1 px-3 py-1 text-sm rounded-full bg-teal-50 border-teal-200 text-teal-700"
-                >
+            </label>            <Select
+              mode="tags"
+              value={formData.tags}
+              onChange={handleTagChange}
+              className="w-full"
+              placeholder="请选择标签"
+              size="large"
+            >
+              {allTags.map((tag) => (
+                <Option key={tag} value={tag}>
                   {tag}
-                </Tag>
+                </Option>
               ))}
-              {tagInputVisible ? (
-                <Input
-                  type="text"
-                  size="small"
-                  className="w-[120px] m-1"
-                  value={tagInputValue}
-                  onChange={handleTagInputChange}
-                  onBlur={handleTagInputConfirm}
-                  onPressEnter={handleTagInputConfirm}
-                  autoFocus
-                />
-              ) : (
-                <Tag
-                  className="m-1 px-3 py-1 border-dashed cursor-pointer hover:border-teal-500 rounded-full"
-                  onClick={showTagInput}
-                >
-                  <PlusOutlined /> 添加标签
-                </Tag>
-              )}
-            </div>
+            </Select>
             <div className="text-xs text-gray-500 mt-2">
               添加标签有助于其他用户更容易找到您的资源
             </div>
