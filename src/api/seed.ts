@@ -11,15 +11,28 @@ import {
 } from "@/constants/categories";
 import { getTagIdByName, getTagNameById } from "@/constants/tags";
 
-//推荐
-export async function getRecommendSeeds(page: number, size: number) {
-  const response = await request.get("http://localhost:8080/api/recommendations/personalized?page=1&size=10", params => {
-    page = page; 
-    size = size;
-  });
-  const res = response.data;
-  console.log("获取推荐种子:", res);
-  return res;
+/// 获取推荐种子列表
+export async function getRecommendSeeds(
+  page?: number,
+  pageSize?: number,
+) {
+  const response = await request.get("http://localhost:8080/torrent/recommend");
+  console.log("获取推荐种子:", response);
+  const res = response.data.records || [];  const seeds: getSeedListParams[] = res.map((item: any) => ({
+    torrentId: item.torrentId,
+    torrentName: item.torrentName,
+    torrentDescription: item.torrentDescription,
+    torrentSize: item.torrentSize,
+    downloadCount: item.downloadCount,
+    status: item.torrentStatus, // 使用torrentStatus赋值给status
+    originPrice: item.originPrice,
+    score: item.score,
+    downloadLimit: item.downloadLimit || 0,
+    uploadTime: item.uploadTime || [],
+    tags: item.tagNames || null
+  }));
+  console.log("获取推荐种子:", seeds);
+  return seeds;
 }
 // 获取种子列表 new
 export async function getSeedList(params: {
@@ -83,15 +96,24 @@ export async function getSeedList(params: {
     categoryResult = bytagandcat?.data?.items || [];
     console.log("分类和标签搜索结果数:", categoryResult.length, categoryResult);
   }
-
-  // 如果关键词搜索和分类/标签搜索都有结果，取交集
+  // 如果关键词搜索和分类/标签搜索都有结果，取并集而不是交集
   if (byKeyResult.length > 0 && categoryResult.length > 0) {
-    // 获取种子ID以便进行交集计算
-    const keywordIds = new Set(byKeyResult.map((item) => item.torrentId));
-    res = categoryResult.filter((item) =>
-      keywordIds.has(item.torrentId)&&res.indexOf(item) === -1
-    );
-    console.log("交集结果数:", res.length);
+    // 创建一个Map来存储所有结果，并使用torrentId作为键来去重
+    const allResults = new Map();
+    
+    // 添加分类/标签搜索结果
+    categoryResult.forEach(item => {
+      allResults.set(item.torrentId, item);
+    });
+    
+    // 添加关键词搜索结果
+    byKeyResult.forEach(item => {
+      allResults.set(item.torrentId, item);
+    });
+    
+    // 将Map转换回数组
+    res = Array.from(allResults.values());
+    console.log("并集结果数:", res.length);
   }
   // 如果只有关键词搜索有结果
   else if (byKeyResult.length > 0) {
@@ -242,7 +264,7 @@ export async function publishSeed(file: File, data: publishSeedData) {
   //   apiUrl = `/api/proxy?url=${encodeURIComponent('torrent/upload-torrent')}`;
   // }
 
-  // 使用axios发送FormData
+  // 使用axios发送FormData  
   const res = await axios.post(apiUrl, formData, {
     headers: {
       Authorization: token ? `Bearer ${token}` : "",

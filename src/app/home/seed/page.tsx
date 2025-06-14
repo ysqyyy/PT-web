@@ -4,7 +4,7 @@ import Navbar from "../../../components/Navbar";
 import { useRouter } from "next/navigation";
 import { getSeedList } from "@/api/seed";
 import { SeedListItem } from "@/types/seed";
-
+import { getRecommendSeeds } from "@/api/seed";
 // 定义分类类型
 type Category =
   | "全部"
@@ -52,12 +52,45 @@ export default function SeedCenter() {
   const [totalCount, setTotalCount] = useState(0);
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize] = useState(20); // 加载推荐种子列表
+  const loadRecommendedSeeds = useCallback(async () => {
+    setLoading(true);
+    try {
+      console.log("加载推荐种子列表...");
+      const response = await getRecommendSeeds(currentPage, pageSize);
+      if (response && response.length > 0) {
+        const formattedList = response.map((item) => ({
+          id: item.torrentId,
+          name: item.torrentName,
+          description: item.torrentDescription,
+          tags: item.tags || [],
+          size: item.torrentSize,
+          price: item.originPrice,
+          status: item.status ? item.status : "可用",
+          downloadCount: item.downloadCount || 0,
+        }));
+        setSeedItems(formattedList);
+        setTotalCount(response.length);
+        console.log("推荐种子加载成功:", formattedList.length);
+      } else {
+        setSeedItems([]);
+        setTotalCount(0);
+        console.log("没有推荐种子");
+      }
+    } catch (error) {
+      console.error("获取推荐种子失败:", error);
+      setSeedItems([]);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, pageSize]);
 
   // 获取种子列表的函数
   const fetchSeedList = useCallback(async () => {
     setLoading(true);
     try {
+      console.log("加载筛选后的种子列表...");
       const res = await getSeedList({
         category: currentCategory,
         tags: selectedTags,
@@ -81,7 +114,7 @@ export default function SeedCenter() {
           // score: item.score || 0,
         }));
         setSeedItems(formattedList);
-        console.log("种子列表数据:", seedItems);
+        console.log("种子列表数据:", formattedList);
         setTotalCount(res.data.total || 0);
       }
     } catch (error) {
@@ -89,18 +122,38 @@ export default function SeedCenter() {
     } finally {
       setLoading(false);
     }
-  }, [currentCategory, selectedTags, searchTerm, currentPage, pageSize]);
-
-  // 监听筛选条件变化
+  }, [currentCategory, selectedTags, searchTerm, currentPage, pageSize]); // 监听筛选条件变化
   useEffect(() => {
-    fetchSeedList();
-  }, [fetchSeedList]);
+    // 如果没有筛选条件，显示推荐种子列表
+    if (
+      selectedTags.length === 0 &&
+      currentCategory === "全部" &&
+      !searchTerm
+    ) {
+      loadRecommendedSeeds();
+    } else {
+      fetchSeedList();
+    }
+  }, [
+    fetchSeedList,
+    loadRecommendedSeeds,
+    selectedTags,
+    currentCategory,
+    searchTerm,
+  ]);
 
   // 搜索按钮点击事件
   const handleSearch = () => {
-    fetchSeedList();
+    if (
+      selectedTags.length === 0 &&
+      currentCategory === "全部" &&
+      !searchTerm
+    ) {
+      loadRecommendedSeeds();
+    } else {
+      fetchSeedList();
+    }
   };
-
   // 切换选择状态
   const toggleSelection = (
     list: string[],
@@ -117,15 +170,37 @@ export default function SeedCenter() {
   // 点击种子名称跳转到详情页
   const handleSeedClick = (seedId: number) => {
     router.push(`/home/seed/detail/${seedId}`);
-  };  // 常用标签列表
+  }; // 常用标签列表
   const commonTags = [
-    "喜剧", "悬疑", "爱情", "动作", "科幻", 
-    "国产", "欧美", "日韩", "港台", 
-    "现场版", "比赛", "访谈", "教学", 
-    "流行", "复古", "电子", "独立", 
-    "自然", "历史", "科技", "文化", 
-    "角色扮演", "竞技", "开放世界", "怀旧", 
-    "新作", "经典", "连载中", "完结"
+    "喜剧",
+    "悬疑",
+    "爱情",
+    "动作",
+    "科幻",
+    "国产",
+    "欧美",
+    "日韩",
+    "港台",
+    "现场版",
+    "比赛",
+    "访谈",
+    "教学",
+    "流行",
+    "复古",
+    "电子",
+    "独立",
+    "自然",
+    "历史",
+    "科技",
+    "文化",
+    "角色扮演",
+    "竞技",
+    "开放世界",
+    "怀旧",
+    "新作",
+    "经典",
+    "连载中",
+    "完结",
   ];
 
   // 渲染标签筛选条件
@@ -187,7 +262,9 @@ export default function SeedCenter() {
         </div>
         {/* 筛选区域 */}
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4 text-teal-700">请选择标签</h2>
+          <h2 className="text-lg font-semibold mb-4 text-teal-700">
+            请选择标签
+          </h2>
           <div className="w-full">{renderFilterConditions()}</div>
         </div>
         {/* 搜索框 */}
@@ -208,12 +285,18 @@ export default function SeedCenter() {
               搜索
             </button>
           </div>
-        </div>        {/* 种子列表卡片视图 */}
+        </div>{" "}
+        {/* 种子列表卡片视图 */}
         <div className="mb-2 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-teal-700">
-            种子列表 {totalCount > 0 && <span className="text-sm font-normal">（共 {totalCount} 个）</span>}
+            种子列表{" "}
+            {totalCount > 0 && (
+              <span className="text-sm font-normal">
+                （共 {totalCount} 个）
+              </span>
+            )}
           </h2>
-          <div className="flex space-x-2">
+          {/* <div className="flex space-x-2">
             <button className="px-3 py-1 text-sm border border-teal-600 text-teal-600 rounded hover:bg-teal-50 transition-colors">
               最新发布
             </button>
@@ -223,9 +306,8 @@ export default function SeedCenter() {
             <button className="px-3 py-1 text-sm border border-gray-300 text-gray-600 rounded hover:bg-gray-50 transition-colors">
               评分最高
             </button>
-          </div>
+          </div> */}
         </div>
-        
         {loading ? (
           <div className="py-20 flex flex-col justify-center items-center">
             <svg
@@ -252,16 +334,30 @@ export default function SeedCenter() {
           </div>
         ) : seedItems.length === 0 ? (
           <div className="py-20 flex flex-col justify-center items-center bg-gray-50 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 12H4M12 4v16m8-8a8 8 0 11-16 0 8 8 0 0116 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-16 w-16 text-gray-300 mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M20 12H4M12 4v16m8-8a8 8 0 11-16 0 8 8 0 0116 0z"
+              />
             </svg>
             <p className="text-gray-500 mb-2">暂无种子数据</p>
-            <p className="text-gray-400 text-sm">请尝试调整筛选条件或发布一个新种子</p>
+            <p className="text-gray-400 text-sm">
+              请尝试调整筛选条件或发布一个新种子
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            {seedItems.map((item) => (              <div 
-                key={item.id} 
+            {seedItems.map((item) => (
+              <div
+                key={item.id}
                 className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:border-teal-300 transition-all transform hover:-translate-y-1 cursor-pointer"
                 onClick={() => handleSeedClick(item.id)}
               >
@@ -282,21 +378,24 @@ export default function SeedCenter() {
                       {item.status}
                     </span>
                   </div>
-                  
+
                   <h3 className="font-semibold text-gray-800 text-lg mb-2 line-clamp-2 hover:text-teal-600 transition-colors">
                     {item.name}
                   </h3>
-                  
+
                   {item.description && (
                     <p className="text-sm text-gray-500 mb-3 line-clamp-2">
                       {item.description}
                     </p>
                   )}
-                  
+
                   {item.tags && item.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
                       {item.tags.slice(0, 3).map((tag, index) => (
-                        <span key={index} className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                        <span
+                          key={index}
+                          className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                        >
                           {tag}
                         </span>
                       ))}
@@ -307,25 +406,51 @@ export default function SeedCenter() {
                       )}
                     </div>
                   )}
-                  
+
                   <div className="flex justify-between items-center text-sm mt-4">
                     <div className="flex items-center text-gray-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
                       </svg>
                       {item.size}
                     </div>
-                    <div className={`font-medium ${item.price > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                    <div
+                      className={`font-medium ${
+                        item.price > 0 ? "text-amber-600" : "text-green-600"
+                      }`}
+                    >
                       {item.price > 0 ? `${item.price} 积分` : "免费"}
                     </div>
                   </div>
                 </div>
-                  <div className="bg-gray-50 px-4 py-3 flex justify-between items-center border-t">
+                <div className="bg-gray-50 px-4 py-3 flex justify-between items-center border-t">
                   <div className="flex items-center">
                     {item.downloadCount !== undefined && (
                       <span className="text-xs text-gray-500 mr-3 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3 w-3 mr-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                          />
                         </svg>
                         {item.downloadCount}
                       </span>
@@ -350,7 +475,6 @@ export default function SeedCenter() {
             ))}
           </div>
         )}
-
         {/* 分页控件 */}
         {!loading && seedItems.length > 0 && (
           <div className="mt-8 flex justify-center">
@@ -363,51 +487,63 @@ export default function SeedCenter() {
                 }}
                 disabled={currentPage === 1}
                 className={`px-3 py-2 rounded-md ${
-                  currentPage === 1 
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                  : "bg-white text-teal-600 hover:bg-teal-50 border border-gray-300"
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-teal-600 hover:bg-teal-50 border border-gray-300"
                 }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
-              
+
               {/* 页码按钮 */}
-              {Array.from({ length: Math.min(5, Math.ceil(totalCount / pageSize)) }, (_, i) => {
-                // 计算要显示的页码
-                let pageNum;
-                const totalPages = Math.ceil(totalCount / pageSize);
-                
-                if (totalPages <= 5) {
-                  // 如果总页数小于等于5，直接显示1到totalPages
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  // 如果当前页靠前，显示1到5
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  // 如果当前页靠后，显示最后5页
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  // 否则显示当前页及其前后2页
-                  pageNum = currentPage - 2 + i;
+              {Array.from(
+                { length: Math.min(5, Math.ceil(totalCount / pageSize)) },
+                (_, i) => {
+                  // 计算要显示的页码
+                  let pageNum;
+                  const totalPages = Math.ceil(totalCount / pageSize);
+
+                  if (totalPages <= 5) {
+                    // 如果总页数小于等于5，直接显示1到totalPages
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    // 如果当前页靠前，显示1到5
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    // 如果当前页靠后，显示最后5页
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    // 否则显示当前页及其前后2页
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-4 py-2 rounded-md ${
+                        currentPage === pageNum
+                          ? "bg-teal-600 text-white"
+                          : "bg-white text-gray-700 hover:bg-teal-50 border border-gray-300"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
                 }
-                
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`px-4 py-2 rounded-md ${
-                      currentPage === pageNum
-                        ? "bg-teal-600 text-white"
-                        : "bg-white text-gray-700 hover:bg-teal-50 border border-gray-300"
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-              
+              )}
+
               <button
                 onClick={() => {
                   const totalPages = Math.ceil(totalCount / pageSize);
@@ -418,12 +554,21 @@ export default function SeedCenter() {
                 disabled={currentPage >= Math.ceil(totalCount / pageSize)}
                 className={`px-3 py-2 rounded-md ${
                   currentPage >= Math.ceil(totalCount / pageSize)
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white text-teal-600 hover:bg-teal-50 border border-gray-300"
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-teal-600 hover:bg-teal-50 border border-gray-300"
                 }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
             </div>

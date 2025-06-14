@@ -1,23 +1,21 @@
 "use client";
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Navbar from "../../../../components/Navbar";
 import { useRouter } from "next/navigation";
 import { Upload, Button, message, Input, Select } from "antd";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
-import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
+import { UploadOutlined } from "@ant-design/icons"; // 移除了 PlusOutlined
 import { publishSeed } from "@/api/seed";
 import { publishSeedData } from "@/types/seed";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import { tagMap } from "@/constants/tags";
 const { TextArea } = Input;
 const { Option } = Select;
-import {getRecommendSeeds} from "@/api/seed";
 
-export default function SeedPublish() {  const router = useRouter();
-  const [formData, setFormData] = useState<publishSeedData>({
+export default function SeedPublish() {  const router = useRouter();  const [formData, setFormData] = useState<publishSeedData>({
     name: "",
     description: "",
-    imgUrl: "",
+    // imgUrl: "", // 图片上传已注释
     tags: [],
     price: 0,
     category: "电影",
@@ -31,20 +29,7 @@ export default function SeedPublish() {  const router = useRouter();
   const presets = {
     categories: ["电影", "电视剧", "动漫", "综艺", "纪录片", "音乐", "游戏"],
   };
-  onMounted(() => {
-    // 初始化表单数据
-    setFormData({
-      name: "",
-      description: "",
-      imgUrl: "",
-      tags: [],
-      price: 0,
-      category: "电影",
-    });
-    getRecommendSeeds();
-    setFileList([]);
-  }
-  );
+ 
   // 提交表单，发布种子
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,9 +87,9 @@ export default function SeedPublish() {  const router = useRouter();
   };
 
   return (
-    <Navbar name="种子中心">
-      {" "}
+    <Navbar name="种子中心">      {" "}
       <style jsx global>{`
+        /* 图片上传相关样式已注释
         .upload-picture-card-wrapper .ant-upload-select {
           width: 150px !important;
           height: 150px !important;
@@ -113,6 +98,7 @@ export default function SeedPublish() {  const router = useRouter();
           width: 150px !important;
           height: 150px !important;
         }
+        */
         .custom-primary-button {
           background-color: #0f766e !important;
           border-color: #0f766e !important;
@@ -140,9 +126,8 @@ export default function SeedPublish() {  const router = useRouter();
         <h1 className="text-2xl font-bold mb-8 text-teal-700 pb-2 border-b border-gray-200">
           发布种子
         </h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="md:col-span-3 space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* 名称 */}
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-teal-500 transition-all duration-300 h-full flex flex-col justify-between">
@@ -249,10 +234,8 @@ export default function SeedPublish() {  const router = useRouter();
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* 右侧封面图片（占1列） */}
-            <div className="md:row-span-2 flex flex-col justify-start h-full">
+            </div>            {/* 右侧封面图片（占1列） - 已注释 */}
+            {/* <div className="md:row-span-2 flex flex-col justify-start h-full">
               <div className="border border-gray-200 rounded-lg hover:border-teal-500 transition-all duration-300 flex flex-col items-center justify-center h-full p-4 bg-gray-50">
                 <Upload
                   listType="picture-card"
@@ -302,7 +285,7 @@ export default function SeedPublish() {  const router = useRouter();
                   添加一张高质量的封面图能够提升资源的吸引力
                 </p>
               </div>
-            </div>
+            </div> */}
           </div>
           {/* 标签 */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-teal-500 transition-all duration-300">

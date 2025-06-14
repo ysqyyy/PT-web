@@ -61,4 +61,5 @@ export interface getSeedListParams {
     tags: string[] | null;     // 标签列表//
     originPrice: number;       // 原价//
     downloadLimit: number;     // 下载限制
+    score?: number;          // 评分
 }
