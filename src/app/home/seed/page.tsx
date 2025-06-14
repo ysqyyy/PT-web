@@ -230,7 +230,7 @@ export default function SeedCenter() {
           <h1 className="text-2xl font-bold text-teal-700">种子搜索</h1>
           <button
             onClick={handlePublishClick}
-            className="px-4 py-2 bg-teal-600 text-white cursor-pointer rounded hover:bg-teal-700 transition-colors"
+                            className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
           >
             发布种子
           </button>
@@ -276,7 +276,7 @@ export default function SeedCenter() {
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             />            <button
               onClick={handleSearch}
-              className="px-4 py-2 bg-teal-600 text-white cursor-pointer rounded hover:bg-teal-700 transition-colors"
+                            className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
             >
               搜索
             </button>

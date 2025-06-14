@@ -189,12 +189,11 @@ export default function MyBountiesPage() {
                                 className={`${BUTTON_STYLES.STANDARD.padding} w-auto inline-block`}
                               />
                               <button
-                                className={`bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 w-auto flex items-center justify-center gap-1.5`}
+                                className="px-4 py-2 cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
                                 onClick={() =>
                                   debouncedHandleCancel(item.bountyId)
                                 }
                               >
-                                <X size={14} />
                                 <span>取消求种</span>
                               </button>
                             </div>

@@ -98,7 +98,7 @@ export default function SubmitSeedButton({
               </h2>
               <button 
                 onClick={debouncedCloseSeedModal} 
-                className="text-[#6B7C79] hover:text-[#3D4D49] transition-colors p-1 rounded-full hover:bg-[#F1F4F3]"
+                className="text-[#6B7C79]  cursor-pointer hover:text-[#3D4D49] transition-colors p-1 rounded-full hover:bg-[#F1F4F3]"
                 disabled={isSubmitting}
               >
                 <X size={18} />
@@ -138,7 +138,7 @@ export default function SubmitSeedButton({
             <div className="flex justify-end space-x-3">
               <button
                 onClick={debouncedCloseSeedModal}
-                className="px-4 py-2 bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
+                className="px-4 py-2  cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
                 disabled={isSubmitting}
               >
                 取消

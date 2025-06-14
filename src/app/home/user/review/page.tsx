@@ -103,7 +103,6 @@ export function ResourceReviewPage() {
           {reviews.length > 0 && (
             <div className="overflow-x-auto">
               <table className="min-w-full table-auto whitespace-nowrap">
-                
                 <thead>
                   <tr>
                     <th className="px-4 py-2 text-left min-w-[150px]">
@@ -145,7 +144,7 @@ export function ResourceReviewPage() {
                         </button>
                         <button
                           onClick={() => openRejectModal(item.id)}
-                          className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
+                          className="px-4 py-2 cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
                           disabled={loading}
                         >
                           <span className="flex items-center justify-center gap-1.5">

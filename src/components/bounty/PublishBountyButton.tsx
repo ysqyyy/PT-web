@@ -98,7 +98,7 @@ export default function PublishBountyButton({
               </h2>
               <button 
                 onClick={closeModal} 
-                className="text-[#6B7C79] hover:text-[#3D4D49] transition-colors p-1 rounded-full hover:bg-[#F1F4F3]"
+                className="text-[#6B7C79] cursor-pointer hover:text-[#3D4D49] transition-colors p-1 rounded-full hover:bg-[#F1F4F3]"
               >
                 <X size={20} />
               </button>
