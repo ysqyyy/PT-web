@@ -296,10 +296,14 @@ request.download = async (url: string, filename?: string, options?: RequestOptio
       throw error;
     }
   }
-  
+
+  const token=auth.getToken();
   // 发送请求下载文件
   const response = await fetch(downloadUrl, {
     ...options,
+    headers: {
+      Authorization: token ? `Bearer ${token}` : "",
+    },
     method: options?.method || 'GET',
     credentials: 'include'
   });

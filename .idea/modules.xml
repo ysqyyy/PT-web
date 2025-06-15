@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ratio-king_client-ysq.iml" filepath="$PROJECT_DIR$/.idea/ratio-king_client-ysq.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RatioKing_client.iml" filepath="$PROJECT_DIR$/RatioKing_client.iml" />
     </modules>
   </component>
 </project>

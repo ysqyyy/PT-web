@@ -11,7 +11,7 @@ import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import { toast, Toaster } from "react-hot-toast";
 import { getConversations } from "@/api/message";
 import { Conversation } from "@/types/message";
-
+import request from "@/utils/request";
 export default function SeedDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function SeedDetailPage() {
   const [hoverRating, setHoverRating] = useState(0);
   const [seedDetail, setSeedDetail] = useState<SeedDetail | null>(null);
   const [loading, setLoading] = useState(false);
-
+  const [urlload,setUrlLoad]=useState<string>("");//
   // 获取种子详情
   useEffect(() => {
     const fetchData = async () => {
@@ -33,6 +33,13 @@ export default function SeedDetailPage() {
           setSeedDetail(detailRes);
           setRating(detailRes.score || 0);
         }
+        const urldata=await request.get(`http://localhost:8080/torrent/download/${seedId}`);
+        console.log("种子详情数据:", urldata);
+
+        const url= urldata.data?.magnetUrl || "";
+        console.log("种子详情磁力链接:", url);
+        setUrlLoad(url);//
+
       } catch (error) {
         console.error("获取数据失败:", error);
         toast.error("获取种子详情失败");
@@ -178,27 +185,30 @@ export default function SeedDetailPage() {
         <div className="flex flex-wrap gap-4 mb-6 pb-4">
           <div className="flex-1">
             <div className="text-sm text-gray-500 mb-1">
-              发种人：{seedDetail.publisherName} 
+              发种人：{seedDetail.publisherName}
+            </div>
+            <div className="text-sm text-gray-500 mb-1">
+              磁力链接：{urlload}
             </div>
             <div className="flex flex-wrap gap-2">
-              <DownloadBountyButton id={seedDetail.torrentId} />
+              <DownloadBountyButton id={seedDetail.torrentId}/>
               <button
-                onClick={handleSendMessage}
+                  onClick={handleSendMessage}
 
-                className={`${BUTTON_STYLES.STANDARD.padding} cursor-pointer bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white rounded flex items-center`}
+                  className={`${BUTTON_STYLES.STANDARD.padding} cursor-pointer bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white rounded flex items-center`}
               >
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                 >
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                   />
                 </svg>
                 私信发布者

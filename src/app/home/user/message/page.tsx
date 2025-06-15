@@ -319,6 +319,7 @@ export default function MessagePage() {
                     ? message.senderName.charAt(0).toUpperCase()
                     : ""}
               </span>
+
               </div>
           )}
           <div
