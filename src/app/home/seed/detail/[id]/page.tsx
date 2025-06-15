@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../../../../components/Navbar";
 import { useParams, useRouter } from "next/navigation";
-import { message } from "antd";
 import { getSeedDetail, rateSeed } from "@/api/seed";
 
 import CommentSection from "@/components/comment/CommentSection";
@@ -27,8 +26,7 @@ export default function SeedDetailPage() {
     const fetchData = async () => {
       if (!seedId) return;
 
-      setLoading(true);
-      try {
+      setLoading(true);      try {
         const detailRes = await getSeedDetail(Number(seedId));
 
         if (detailRes) {
@@ -37,7 +35,7 @@ export default function SeedDetailPage() {
         }
       } catch (error) {
         console.error("获取数据失败:", error);
-        message.error("获取种子详情失败");
+        toast.error("获取种子详情失败");
       } finally {
         setLoading(false);
       }
@@ -45,18 +43,28 @@ export default function SeedDetailPage() {
 
     fetchData();
   }, [seedId]);
-
   // 提交评分
   const handleSubmitRating = async () => {
     if (rating === 0) {
-      message.error("请选择评分");
+      toast.error("请选择评分");
       return;
     }
 
     try {
       const res = await rateSeed(Number(seedId), rating);
-      if (res.success) {
-        message.success(`感谢您的评分: ${rating}星`);
+      console.log("评分结果:", res);
+      if (res.status==='success') {
+        toast.success(`感谢您的评分: ${rating}星`, {
+          duration: 2000,
+          icon: '⭐',
+        });
+        
+        // 短暂延迟后刷新页面，让用户有时间看到 toast 消息
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+        
+        // 立即更新本地状态
         if (seedDetail) {
           setSeedDetail({
             ...seedDetail,
@@ -67,7 +75,7 @@ export default function SeedDetailPage() {
       }
     } catch (error) {
       console.error("评分失败:", error);
-      message.error("评分失败");
+      toast.error("评分失败");
     }
   };
 
@@ -114,10 +122,10 @@ export default function SeedDetailPage() {
       </Navbar>
     );
   }
-
   if (!seedDetail) {
     return (
       <Navbar name="种子中心">
+        <Toaster position="top-center" />
         <div className="bg-white rounded-lg shadow p-6 text-center">
           未找到种子信息
         </div>
@@ -127,6 +135,7 @@ export default function SeedDetailPage() {
 
   return (
     <Navbar name="种子中心">
+      <Toaster position="top-center" />
       <div className="bg-white rounded-lg shadow p-6">
         {/* 种子标题区域 */}
         <div className="mb-6 pb-4">
@@ -169,7 +178,7 @@ export default function SeedDetailPage() {
         <div className="flex flex-wrap gap-4 mb-6 pb-4">
           <div className="flex-1">
             <div className="text-sm text-gray-500 mb-1">
-              发种人：{seedDetail.publisherName} ({seedDetail.publisherLevel})
+              发种人：{seedDetail.publisherName} 
             </div>
             <div className="flex flex-wrap gap-2">
               <DownloadBountyButton id={seedDetail.torrentId} />
@@ -250,41 +259,47 @@ export default function SeedDetailPage() {
               </div>
             </div>
           </div>
-        </div>
-        {/* 资源评分区域 */}
-        <div className="mb-6 pb-4 flex justify-between items-center">
-          <div className="flex items-center mb-4">
-            <div className="mr-4">
-              <span className="text-3xl font-bold">
-                {seedDetail.score || 0}
-              </span>
-              <span className="text-gray-500">/5分</span>
+        </div>        {/* 资源评分区域 */}
+        <div className="mb-6 pb-4 bg-gray-50 p-5 rounded-lg shadow-sm">
+          <h2 className="text-lg font-semibold mb-4 text-gray-700 pb-2 border-b border-gray-200">资源评分</h2>
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center mb-4 md:mb-0">
+              <div className="mr-4 bg-white p-3 rounded-lg shadow-sm">
+                <span className="text-3xl font-bold text-teal-600">
+                  {seedDetail.score || 0}
+                </span>
+                <span className="text-gray-500">/5分</span>
+              </div>
+              <div className="text-gray-500">
+                共有 <span className="font-medium">{seedDetail.scoreCount || 0}</span> 人评分
+              </div>
             </div>
-            <div className="text-gray-500">
-              {seedDetail.scoreCount || 0}人评分
-            </div>
-          </div>
 
-          <div className="mb-4 flex items-center">
-            <div className="flex items-center mr-8">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  className="text-2xl focus:outline-none"
-                  onClick={() => setRating(star)}
-                  onMouseEnter={() => setHoverRating(star)}
-                  onMouseLeave={() => setHoverRating(0)}
-                >
-                  {star <= (hoverRating || rating) ? "★" : "☆"}
-                </button>
-              ))}
+            <div className="flex items-center">
+              <div className="flex items-center mr-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    className="text-2xl focus:outline-none transition-all duration-200"
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                  >
+                    {star <= (hoverRating || rating) ? (
+                      <span className="text-yellow-400">★</span>
+                    ) : (
+                      <span className="text-gray-300 hover:text-yellow-200">☆</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <button
+                className={`bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2`}
+                onClick={handleSubmitRating}
+              >
+                提交评分
+              </button>
             </div>
-            <button
-              className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
-              onClick={handleSubmitRating}
-            >
-              提交评分
-            </button>
           </div>
         </div>
         {/* 评论区域 - 使用 CommentSection 组件 */}

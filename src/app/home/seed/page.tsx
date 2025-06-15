@@ -199,7 +199,7 @@ export default function SeedCenter() {
               }
               className={`px-3 py-1 rounded text-sm cursor-pointer ${
                 selectedTags.includes(tag)
-                  ? "bg-teal-600 text-white"
+                  ? "bg-[#5E8B7E] text-white"
                   : "bg-gray-200 text-gray-700"
               }`}
             >
@@ -241,7 +241,7 @@ export default function SeedCenter() {
               onClick={() => handleCategoryClick(category)}
               className={`px-4 py-2 rounded transition-colors cursor-pointer ${
                 currentCategory === category
-                  ? "bg-teal-600 text-white"
+                  ? "bg-[#5E8B7E] text-white"
                   : category === "全部" 
                     ? "bg-gray-300 text-gray-800 hover:bg-gray-400" 
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"

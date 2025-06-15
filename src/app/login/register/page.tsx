@@ -56,10 +56,8 @@ export default function RegisterPage() {
         password,
         userName,
         inviteCode,
-      });
-
-      if (response.success) {
-        toast.success(response.message || "注册成功");
+      });      if (response.code === 200) {
+        toast.success(response.message || "注册成功，请查收验证邮件");
         router.push("/login");
       } else {
         toast.error(response.message || "注册失败");
@@ -80,46 +78,27 @@ export default function RegisterPage() {
     }
     return () => clearTimeout(timer);
   }, [countdown]);
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <Toaster />
-      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg">
-        <Image
-          src="/RadioKing.png"
-          alt="Logo"
-          width={300}
-          height={300}
-          priority // 可选，提升加载优先级（首页 logo 推荐加）
-          className="mx-auto"
-        />
-
-        <div className="flex items-center justify-center gap-2 mb-4">
-          {/* <label className="flex mr-10 gap-2">
-            <input
-              type="radio"
-              name="registerMethod"
-              value="email"
-              checked={method === "email"}
-              onChange={() => setMethod("email")}
-              className="accent-teal-600"
-            />
-            邮箱注册
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="registerMethod"
-              value="invite"
-              checked={method === "invite"}
-              onChange={() => setMethod("invite")}
-              className="accent-teal-600"
-            />
-            邀请码注册
-          </label> */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-teal-50 p-6">
+      <Toaster position="top-center" />
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-teal-600 to-teal-500 py-4 px-6 text-white">
+          <h1 className="text-2xl font-bold text-center">创建新账号</h1>
         </div>
+        
+        <div className="p-8">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/RadioKing.png"
+              alt="Logo"
+              width={200}
+              height={200}
+              priority
+              className="mx-auto"
+            />
+          </div>
 
-        <form onSubmit={debouncedHandleSubmit} className="space-y-4">
+          <form onSubmit={debouncedHandleSubmit} className="space-y-5">
           
           {method === "invite" && (
             <>
@@ -241,5 +220,5 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
-  );
-}
+    </div>
+  );  }

@@ -72,16 +72,13 @@ export async function register({ userName, password, email, inviteCode }: {
       inviteCode 
     });
     
-    return {
-      success: response.code === 200,
-      message: response.message,
-      data: response.data
-    };
-  } catch (error) {
+    return response;
+  } catch (error: any) {
     console.error("注册失败:", error);
     return {
-      success: false,
-      message: error || "注册失败，请稍后重试"
+      code: 500,
+      message: error?.message || "注册失败，请稍后重试",
+      data: null
     };
   }
 }

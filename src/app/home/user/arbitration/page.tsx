@@ -100,7 +100,7 @@ export function ArbitrationPage() {
                           </button>
                           <button></button>
                           <button
-                className="px-4 py-2 cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
+                            className="px-4 py-2 cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
                             onClick={() => handleReject(item.submissionId || 0)}
                             disabled={loading}
                           >
