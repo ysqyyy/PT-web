@@ -281,7 +281,7 @@ request.download = async (url: string, filename?: string, options?: RequestOptio
         ...options,
         method: options?.method || 'GET'
       });
-      console.log('获取下载URL成功:', response);
+      
       // 检查响应中是否包含downloadUrl
       if (response && response.data && response.data.downloadUrl) {
         downloadUrl = response.data.downloadUrl;
@@ -291,7 +291,6 @@ request.download = async (url: string, filename?: string, options?: RequestOptio
         console.error('下载失败: 响应中没有找到下载URL', response);
         throw new Error('下载失败: 响应中没有找到下载URL');
       }
-      return response.data.magnetUrl;
     } catch (error) {
       console.error('获取下载URL失败:', error);
       throw error;
