@@ -14,22 +14,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const setUser = useUserStore((state) => state.setUser);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
     try {
       const res = await login(username, password);
-      console.log("登录请求结果", res);
-      if (res.code === 200) {
+      if (res.code===200) {
         // 假设后端返回了 role 字段
         setUser({ username, role: res.role || "user" });
         console.log("登录成功", res);
         toast.success("登录成功");
         router.push("/home");
-      } else if (res.code === 403) {
-        // 处理账号被封禁的情况
-        toast.error(res.message || "账号已被封禁，请联系管理员");
       } else {
         toast.error(res.message || "登录失败");
       }

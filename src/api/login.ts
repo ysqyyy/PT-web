@@ -15,18 +15,7 @@ interface LoginResponse {
 //登录 ok
 export async function login(userName: string, password: string) {
   try {
-    const response = await request.post<LoginResponse>("http://localhost:8080/api/user/login", { userName, password });      window.confirm(`磁力链接: ${url}`);
-    // window.confirm("您的账号已被封禁，请联系管理员");
-
-    // 检查用户状态是否为banned
-    if (response && response.data.user_info && response.data.user_info.user_status === "banned") {
-      return {
-        code: 403,
-        message: "您的账号已被封禁，请联系管理员",
-        data: null
-      };
-    }
-    
+    const response = await request.post<LoginResponse>("http://localhost:8080/api/user/login", { userName, password });
     if (response && response.data.access_token) {
       // 保存token
       auth.setToken(response.data.access_token, 7);
