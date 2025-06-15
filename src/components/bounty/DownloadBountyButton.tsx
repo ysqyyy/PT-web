@@ -21,15 +21,16 @@ export default function DownloadBountyButton({
   onSuccess,
 }: DownloadBountyButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-
   // 下载资源
   const handleDownload = async () => {
     if (!id) return;
     
     try {
       setIsLoading(true);
-      await downloadResource(id);
+      const url = await downloadResource(id);
       toast.success("资源下载已开始");
+      // 使用window.confirm显示下载URL
+      window.confirm(`磁力链接: ${url}`);
       if (onSuccess) {
         onSuccess();
       }
