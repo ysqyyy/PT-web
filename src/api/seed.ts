@@ -34,6 +34,44 @@ export async function getRecommendSeeds() {
   console.log("获取推荐种子:", seeds);
   return seeds;
 }
+// 获取种子列表 by keyword ok
+export async function getSeedListBySearch(keyword: string) {
+  try {
+    let byKeyResult: getSeedListParams[] = [];
+  // 关键词
+  if (keyword && keyword.trim() !== "") {
+    const bykey = await request.get("http://localhost:8080/torrent/search", {
+      params: {
+        keyword: keyword.trim(),
+        page: 1,
+        size: 1000,
+      },
+    });
+    byKeyResult = bykey?.data?.items || []; //ok
+    console.log("关键词搜索结果数:", byKeyResult.length, byKeyResult);
+  }
+    // 将API返回的数据格式化为应用中使用的格式
+    const seeds: getSeedListParams[] = byKeyResult.map((item: any) => ({
+      torrentId: item.torrentId,
+      torrentName: item.torrentName,
+      torrentDescription: item.torrentDescription || "",
+      torrentSize: item.torrentSize || "未知",
+      downloadCount: item.downloadCount || 0,
+      status: item.torrentStatus || "normal",
+      originPrice: item.originPrice || 0,
+      score: item.score || 0,
+      downloadLimit: item.downloadLimit || 0,
+      uploadTime: item.uploadTime || [],
+      tags: item.tagNames || [],
+    }));
+    
+    return seeds;
+  } catch (error) {
+    console.error("搜索种子失败:", error);
+    return [];
+  }
+}
+
 // 获取种子列表 new
 export async function getSeedList(params: {
   category: string;
@@ -53,21 +91,7 @@ export async function getSeedList(params: {
     .filter((id) => id !== undefined) as string[] | undefined;
 
   let res: getSeedListParams[] = [];
-  let byKeyResult: getSeedListParams[] = [];
   let categoryResult: getSeedListParams[] = [];
-
-  // 关键词
-  if (params.keywords && params.keywords.trim() !== "") {
-    const bykey = await request.get("http://localhost:8080/torrent/search", {
-      params: {
-        keyword: params.keywords.trim(),
-        page: 1,
-        size: 1000,
-      },
-    });
-    byKeyResult = bykey?.data?.items || []; //ok
-    console.log("关键词搜索结果数:", byKeyResult.length, byKeyResult);
-  }
 
   // 处理分类和标签筛选结果
   if (!tagIds || tagIds.length === 0) {
@@ -96,35 +120,11 @@ export async function getSeedList(params: {
     categoryResult = bytagandcat?.data?.items || [];
     console.log("分类和标签搜索结果数:", categoryResult.length, categoryResult);
   }
-  // 如果关键词搜索和分类/标签搜索都有结果，取并集而不是交集
-  if (byKeyResult.length > 0 && categoryResult.length > 0) {
-    // 创建一个Map来存储所有结果，并使用torrentId作为键来去重
-    const allResults = new Map();
-
-    // 添加分类/标签搜索结果
-    categoryResult.forEach((item) => {
-      allResults.set(item.torrentId, item);
-    });
-
-    // 添加关键词搜索结果
-    byKeyResult.forEach((item) => {
-      allResults.set(item.torrentId, item);
-    });
-
+  
     // 将Map转换回数组
-    res = Array.from(allResults.values());
-    console.log("并集结果数:", res.length);
-  }
-  // 如果只有关键词搜索有结果
-  else if (byKeyResult.length > 0) {
-    res = byKeyResult;
-  }
-  // 如果只有分类/标签搜索有结果
-  else {
-    res = categoryResult;
-  }
-
-  // 手动分页处理
+    res = Array.from(categoryResult.values());
+    console.log("结果数:", res.length);
+  // 手动处理
   const page = params.page || 1;
   const pageSize = params.pageSize || 10;
   const startIndex = (page - 1) * pageSize;
