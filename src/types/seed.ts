@@ -42,7 +42,7 @@ export interface SeedListItem {
     id: number;               // 种子ID//
     name: string;            // 种子名称//
     description?: string;    // 种子描述//
-    size: number;             // 大小//
+    size: number | string;    // 大小//
     // category: string;         // 分类
     tags?: string[];        // 标签列表///
     price: number;            // 价格//

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Upload, Button, message, Input, Select } from "antd";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import { UploadOutlined } from "@ant-design/icons";
-import { publishSeed } from "@/api/seed";
+import { useSeed } from "@/hooks/useSeed";
 import { publishSeedData } from "@/types/seed";
 import { tagMap } from "@/constants/tags";
 const { TextArea } = Input;
@@ -13,6 +13,7 @@ const { Option } = Select;
 
 export default function SeedPublish() {
   const router = useRouter();
+  const { publishSeedMutation } = useSeed();
   const [formData, setFormData] = useState<publishSeedData>({
     name: "",
     description: "",
@@ -95,11 +96,13 @@ export default function SeedPublish() {
       const updatedFormData = {
         ...formData,
         fileType: hasTorrentFile ? "torrent" : "normal",
-      };
-
-      const res = await publishSeed(file, updatedFormData);
+      };      
+      const result = await publishSeedMutation.mutateAsync({ 
+        file, 
+        data: updatedFormData 
+      });
       //返回值判断
-      if (res.success) {
+      if (result.success) {
         setPublishSuccess(true);
         message.success({
           content: "种子发布成功，即将返回种子列表页面",
@@ -430,9 +433,8 @@ export default function SeedPublish() {
             <div className="grid grid-cols-1 gap-8">
               <div className="space-y-6">
                 <div
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                  className="grid grid-cols-1 md:grid-cols-2 gap-6 slide-in-bottom"
                   style={{ animationDelay: "0.1s" }}
-                  className="slide-in-bottom"
                 >
                   {/* 名称 */}
                   <div className="bg-[#F9FAF9] p-5 rounded-xl border border-[#E0E5E3] hover:border-[#5E8B7E] hover:shadow-md transition-all duration-300 h-full flex flex-col justify-between group">

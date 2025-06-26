@@ -6,7 +6,7 @@ export const getPendingReviews = async (): Promise<ReviewItem[]> => {
   try {
     // 真实的后端API调用
     console.log("开始获取待审核资源...");
-    const response = await request.get('/api/admin/torrents/pending');
+    const response = await request.get('/api/admin/torrents/pending').promise;
     console.log("获取待审核资源成功:", response.data);
     const reviews: ReviewItem[] = response.data.list.map((item: any) => ({
       id: item.torrentId,
@@ -27,7 +27,7 @@ export const getPendingReviews = async (): Promise<ReviewItem[]> => {
 // 批准资源 ok
 export const approveResource = async (id: number): Promise<{ success: boolean }> => {
   try {
-    const response = await request.post(`/api/admin/review`,{torrentId:id,action:"approve"});
+    const response = await request.post(`/api/admin/review`,{torrentId:id,action:"approve"}).promise;
     return response;
   } catch (error) {
     console.error("批准资源失败:", error);

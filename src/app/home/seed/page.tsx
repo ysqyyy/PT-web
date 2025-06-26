@@ -1,12 +1,11 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Navbar from "../../../components/Navbar";
 import { useRouter } from "next/navigation";
-import { getSeedList, getSeedListBySearch } from "@/api/seed";
 import { SeedListItem } from "@/types/seed";
-import { getRecommendSeeds } from "@/api/seed";
 import { tagMap } from "@/constants/tags";
 import { message } from "antd";
+import { useSeed } from "@/hooks/useSeed";
 // 定义分类类型
 type Category =
   | "全部"
@@ -23,7 +22,7 @@ type Category =
 
 export default function SeedCenter() {
   const router = useRouter();
-
+  const { useRecommendSeeds, useSeedSearch, useSeedList } = useSeed();
   // 处理发布按钮点击
   const handlePublishClick = () => {
     router.push("/home/seed/publish");
@@ -32,8 +31,9 @@ export default function SeedCenter() {
   const [currentCategory, setCurrentCategory] = useState<Category>("全部");
 
   // 筛选状态 - 只使用一个标签数组
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState(""); // 搜索关键词
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);  const [searchTerm, setSearchTerm] = useState(""); // 搜索关键词  
+  const [pageSize, _setPageSize] = useState(2);
+  
   const categories: Category[] = [
     "全部",
     "电影",
@@ -48,153 +48,202 @@ export default function SeedCenter() {
 
   // 种子列表数据
   const [seedItems, setSeedItems] = useState<SeedListItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
-  // 分页状态
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20); // 加载推荐种子列表
-  const loadRecommendedSeeds = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await getRecommendSeeds();
-      if (response && response.length > 0) {
-        const formattedList = response.map((item) => ({
-          id: item.torrentId,
-          name: item.torrentName,
-          description: item.torrentDescription,
-          tags: item.tags || [],
-          size: item.torrentSize,
-          price: item.originPrice,
-          status: item.status ? item.status : "可用",
-          downloadCount: item.downloadCount || 0,
-        }));
-        setSeedItems(formattedList);
-        setTotalCount(response.length);
-        console.log("推荐种子加载成功:", formattedList.length);
-      } else {
-        setSeedItems([]);
-        setTotalCount(0);
-        console.log("没有推荐种子");
-      }
-    } catch (error) {
-      console.error("获取推荐种子失败:", error);
-      setSeedItems([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
+  const [totalCount, setTotalCount] = useState(0);  
+  
+  // 滚动加载相关
+  const loaderRef = useRef<HTMLDivElement>(null);
+    // 加载推荐种子列表 - 无限滚动版本
+  const { 
+    data: recommendedSeedsData, 
+    isLoading: isRecommendedLoading,
+    fetchNextPage: fetchNextRecommendPage,
+    hasNextPage: hasNextRecommendPage,
+    isFetchingNextPage: isFetchingNextRecommendPage,
+    refetch: refetchRecommendedSeeds,
+    isError: isRecommendError
+  } = useRecommendSeeds(pageSize);
+  
+  // 搜索结果 - 无限滚动版本
+  const { 
+    data: searchResults, 
+    isLoading: isSearchLoading,
+    fetchNextPage: fetchNextSearchPage,
+    hasNextPage: hasNextSearchPage,
+    isFetchingNextPage: isFetchingNextSearchPage,
+    refetch: refetchSearchResults
+  } = useSeedSearch(searchTerm, pageSize);
+  
+  // 筛选后的种子列表 - 无限滚动版本
+  const { 
+    data: filteredSeedList, 
+    isLoading: isFilteredLoading,
+    fetchNextPage: fetchNextFilteredPage,
+    hasNextPage: hasNextFilteredPage,
+    isFetchingNextPage: isFetchingNextFilteredPage,
+    refetch: refetchFilteredSeedList
+  } = useSeedList({
+    category: currentCategory,
+    tags: selectedTags,
+    keywords: searchTerm,
+    pageSize: pageSize,
+  });
+  
+  // 整合加载状态
+  const isLoading = isRecommendedLoading || isSearchLoading || isFilteredLoading;
+  const isFetchingNextPage = isFetchingNextRecommendPage || isFetchingNextSearchPage || isFetchingNextFilteredPage;
+  const hasNextPage = hasNextRecommendPage || hasNextSearchPage || hasNextFilteredPage;
+    // 加载更多数据的函数
+  const loadMoreItems = useCallback(() => {
+    if (isFetchingNextPage || !hasNextPage) {
+      console.log('Skip loading more items:', { isFetchingNextPage, hasNextPage });
+      return;
     }
-  }, [currentPage, pageSize]);
-  // 获取种子列表的函数
-  const fetchSeedList = useCallback(async () => {
-    setLoading(true);
-    try {
-      console.log("加载筛选后的种子列表...");
-      const res = await getSeedList({
-        category: currentCategory,
-        tags: selectedTags,
-        keywords: searchTerm,
-        page: currentPage,
-        pageSize: pageSize,
-      });
-
-      if (res.success) {
-        const seedList = res.data.torrents || [];
-        const formattedList = seedList.map((item) => ({
-          id: item.torrentId,
-          name: item.torrentName,
-          description: item.torrentDescription,
-          // category: item.category,
-          tags: item.tags || [],
-          size: item.torrentSize,
-          price: item.originPrice,
-          status: item.status || "未知", // 确保status不为null
-          downloadCount: item.downloadCount || 0,
-          // score: item.score || 0,
-        }));
-        setSeedItems(formattedList);
-        console.log("种子列表数据:", formattedList);
-        setTotalCount(res.data.total || 0);
-      }
-    } catch (error) {
-      console.error("获取种子列表失败:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentCategory, selectedTags, searchTerm, currentPage, pageSize]); // 监听筛选条件变化
-  useEffect(() => {
-    // 如果没有筛选条件，显示推荐种子列表
-    if (
-      selectedTags.length === 0 &&
-      currentCategory === "全部" &&
-      !searchTerm
-    ) {
-      loadRecommendedSeeds();
+    
+    console.log('Loading more items...');
+    
+    if (selectedTags.length === 0 && currentCategory === "全部" && !searchTerm) {
+      console.log('Loading more recommended seeds');
+      fetchNextRecommendPage();
+    } else if (searchTerm) {
+      console.log('Loading more search results for:', searchTerm);
+      fetchNextSearchPage();
     } else {
-      fetchSeedList();
+      console.log('Loading more filtered seeds for category:', currentCategory, 'tags:', selectedTags);
+      fetchNextFilteredPage();
     }
   }, [
-    fetchSeedList,
-    loadRecommendedSeeds,
-    selectedTags,
-    currentCategory,
-    searchTerm,
-  ]);  // 搜索按钮点击事件
+    isFetchingNextPage, 
+    hasNextPage, 
+    fetchNextRecommendPage, 
+    fetchNextSearchPage, 
+    fetchNextFilteredPage,
+    selectedTags, 
+    currentCategory, 
+    searchTerm
+  ]);
+  // 无限滚动处理
+  useEffect(() => {
+    const currentObserverTarget = loaderRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          console.log('Intersection observed! Loading more items...');
+          loadMoreItems();
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px 200px 0px' }
+    );
+    
+    if (currentObserverTarget) {
+      observer.observe(currentObserverTarget);
+      console.log('Observer attached to loader element');
+    }
+    
+    return () => {
+      if (currentObserverTarget) {
+        observer.unobserve(currentObserverTarget);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, loadMoreItems]);
+    // 加载推荐种子列表
+  useEffect(() => {
+    if (recommendedSeedsData && recommendedSeedsData.pages.length > 0) {
+      const allSeeds = recommendedSeedsData.pages.flatMap(page => page.seeds || []);
+      
+      const formattedList = allSeeds.map((item) => ({
+        id: item.torrentId,
+        name: item.torrentName,
+        description: item.torrentDescription,
+        tags: item.tags || [],
+        size: item.torrentSize,
+        price: item.originPrice,
+        status: item.status ? item.status : "可用",
+        downloadCount: item.downloadCount || 0,
+      }));
+      
+      setSeedItems(formattedList);
+      
+      // 使用最后一页的总数
+      const lastPage = recommendedSeedsData.pages[recommendedSeedsData.pages.length - 1];
+      setTotalCount(lastPage.totalItems || 0);
+      console.log("加载推荐种子成功，总数:", lastPage.totalItems);
+    } else if (isRecommendedLoading) {
+      console.log("正在加载推荐种子...");
+    } else if (!isRecommendedLoading && (!recommendedSeedsData || recommendedSeedsData.pages.length === 0)) {
+      console.log("推荐种子数据为空，尝试重新加载");
+      if (selectedTags.length === 0 && currentCategory === "全部" && !searchTerm) {
+        refetchRecommendedSeeds();
+      }
+    }
+  }, [recommendedSeedsData, isRecommendedLoading, refetchRecommendedSeeds, selectedTags, currentCategory, searchTerm]);
+  
+  // 处理搜索结果
+  useEffect(() => {
+    if (searchTerm && searchResults && searchResults.pages.length > 0) {
+      const allSearchResults = searchResults.pages.flatMap(page => page.seeds || []);
+      
+      const formattedList = allSearchResults.map((item) => ({
+        id: item.torrentId,
+        name: item.torrentName,
+        description: item.torrentDescription || "",
+        tags: item.tags || [],
+        size: typeof item.torrentSize === 'number' 
+          ? item.torrentSize 
+          : typeof item.torrentSize === 'string' && !isNaN(parseFloat(item.torrentSize))
+            ? parseFloat(item.torrentSize)
+            : 0,
+        price: item.originPrice || 0,
+        status: item.status || "可用",
+        downloadCount: item.downloadCount || 0,
+      }));
+      
+      setSeedItems(formattedList);
+      
+      // 使用最后一页的总数
+      const lastPage = searchResults.pages[searchResults.pages.length - 1];
+      setTotalCount(lastPage.totalItems || 0);
+    }
+  }, [searchTerm, searchResults]);
+  
+  // 获取筛选后的种子列表
+  useEffect(() => {
+    if (filteredSeedList && filteredSeedList.pages.length > 0 && 
+       (selectedTags.length > 0 || currentCategory !== "全部")) {
+      
+      const allFilteredSeeds = filteredSeedList.pages.flatMap(page => page.torrents || []);
+      
+      const formattedList = allFilteredSeeds.map((item) => ({
+        id: item.torrentId,
+        name: item.torrentName,
+        description: item.torrentDescription,
+        tags: item.tags || [],
+        size: item.torrentSize,
+        price: item.originPrice,
+        status: item.torrentStatus || "未知",
+        downloadCount: item.downloadCount || 0,
+      }));
+      
+      setSeedItems(formattedList);
+      
+      // 使用最后一页的总数
+      const lastPage = filteredSeedList.pages[filteredSeedList.pages.length - 1];
+      setTotalCount(lastPage.totalItems || 0);
+    }
+  }, [filteredSeedList, selectedTags, currentCategory]);
+  
+  // 搜索按钮点击事件
   const handleSearch = () => {
     if (searchTerm) {
-      setLoading(true);
-      getSeedListBySearch(searchTerm)
-        .then((results) => {
-          if (results && results.length > 0) {
-            const formattedList = results.map((item) => ({
-              id: item.torrentId,
-              name: item.torrentName,
-              description: item.torrentDescription || "",
-              tags: item.tags || [],
-              // 确保 size 是数字类型
-              size: typeof item.torrentSize === 'number' 
-                ? item.torrentSize 
-                : typeof item.torrentSize === 'string' && !isNaN(parseFloat(item.torrentSize))
-                  ? parseFloat(item.torrentSize)
-                  : 0,
-              price: item.originPrice || 0,
-              status: item.status || "可用",
-              downloadCount: item.downloadCount || 0,
-            }));
-            setSeedItems(formattedList);
-            setTotalCount(results.length);
-            console.log("搜索结果:", formattedList.length);
-          } else {
-            setSeedItems([]);
-            setTotalCount(0);
-            message.info("未找到匹配的种子");
-            console.log("未找到匹配的搜索结果");
-          }
-        })
-        .catch((error) => {
-          console.error("搜索失败:", error);
-          message.error("搜索失败，请稍后重试");
-          setSeedItems([]);
-          setTotalCount(0);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      fetchSeedList();
+      // 重置数据，新的搜索结果会通过 useEffect 加载
+      setSeedItems([]);
+      setTotalCount(0);
     }
-  };
-
-  // 切换选择状态
+  };  // 切换选择状态
   const toggleSelection = (
     list: string[],
     setList: React.Dispatch<React.SetStateAction<string[]>>,
     item: string
   ) => {
-    // // 如果当前在"全部"分类下选择标签，切换到第一个实际分类
-    // if (currentCategory === "全部" && !list.includes(item)) {
-    //   setCurrentCategory(categories.find(c => c !== "全部") || "电影");
-    // }
-
     // 正常的标签切换逻辑
     if (list.includes(item)) {
       setList(list.filter((i) => i !== item));
@@ -206,6 +255,10 @@ export default function SeedCenter() {
       }
       setList([...list, item]);
     }
+    
+    // 重置数据，新的筛选结果会通过 useEffect 加载
+    setSeedItems([]);
+    setTotalCount(0);
   };
 
   // 点击种子名称跳转到详情页
@@ -239,7 +292,7 @@ export default function SeedCenter() {
         </div>
       </div>
     );
-  }; // 处理分类点击
+  };  // 处理分类点击
   const handleCategoryClick = (category: Category) => {
     setCurrentCategory(category);
 
@@ -247,6 +300,10 @@ export default function SeedCenter() {
     if (category === "全部") {
       setSelectedTags([]);
     }
+    
+    // 重置数据，新的筛选结果会通过 useEffect 加载
+    setSeedItems([]);
+    setTotalCount(0);
   };
 
   return (
@@ -338,7 +395,7 @@ export default function SeedCenter() {
             </button>
           </div> */}
         </div>
-        {loading ? (
+        {isLoading ? (
           <div className="py-20 flex flex-col justify-center items-center">
             <svg
               className="animate-spin h-10 w-10 text-teal-600 mb-4"
@@ -379,9 +436,31 @@ export default function SeedCenter() {
               />
             </svg>
             <p className="text-gray-500 mb-2">暂无种子数据</p>
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 text-sm mb-4">
               请尝试调整筛选条件或发布一个新种子
             </p>
+            
+            {/* 添加重试按钮 */}
+            {(isRecommendError || seedItems.length === 0) && (
+              <button
+                onClick={() => {
+                  console.log("重试加载数据");
+                  setSeedItems([]);
+                  setTotalCount(0);
+                  
+                  if (selectedTags.length === 0 && currentCategory === "全部" && !searchTerm) {
+                    refetchRecommendedSeeds();
+                  } else if (searchTerm) {
+                    refetchSearchResults();
+                  } else {
+                    refetchFilteredSeedList();
+                  }
+                }}
+                className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
+              >
+                重新加载
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
@@ -494,114 +573,52 @@ export default function SeedCenter() {
                       </span>
                     )} */}
                   </div>
-                  {/* <button className="text-sm text-teal-600 hover:text-teal-800 transition-colors flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                    </svg>
-                    感谢
-                  </button> */}
                 </div>
               </div>
             ))}
           </div>
         )}
-        {/* 分页控件 */}
-        {!loading && seedItems.length > 0 && (
-          <div className="mt-8 flex justify-center">
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={() => {
-                  if (currentPage > 1) {
-                    setCurrentPage(currentPage - 1);
-                  }
-                }}
-                disabled={currentPage === 1}
-                className={`px-3 py-2 rounded-md ${
-                  currentPage === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-teal-600 hover:bg-teal-50 border border-gray-300"
-                }`}
-              >
+          {/* 无限滚动加载指示器 */}
+        {!isLoading && seedItems.length > 0 && (
+          <div 
+            ref={loaderRef} 
+            className="mt-8 py-8 text-center border-t border-gray-200"
+            style={{ minHeight: '100px' }}
+          >
+            {isFetchingNextPage ? (
+              <div className="flex justify-center items-center">
                 <svg
+                  className="animate-spin h-6 w-6 text-teal-600 mr-2"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+                  fill="none"
+                  viewBox="0 0 24 24"
                 >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
                   <path
-                    fillRule="evenodd"
-                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
-              </button>
-
-              {/* 页码按钮 */}
-              {Array.from(
-                { length: Math.min(5, Math.ceil(totalCount / pageSize)) },
-                (_, i) => {
-                  // 计算要显示的页码
-                  let pageNum;
-                  const totalPages = Math.ceil(totalCount / pageSize);
-
-                  if (totalPages <= 5) {
-                    // 如果总页数小于等于5，直接显示1到totalPages
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    // 如果当前页靠前，显示1到5
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    // 如果当前页靠后，显示最后5页
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    // 否则显示当前页及其前后2页
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`px-4 py-2 rounded-md ${
-                        currentPage === pageNum
-                          ? "bg-teal-600 text-white"
-                          : "bg-white text-gray-700 hover:bg-teal-50 border border-gray-300"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                }
-              )}
-
-              <button
-                onClick={() => {
-                  const totalPages = Math.ceil(totalCount / pageSize);
-                  if (currentPage < totalPages) {
-                    setCurrentPage(currentPage + 1);
-                  }
-                }}
-                disabled={currentPage >= Math.ceil(totalCount / pageSize)}
-                className={`px-3 py-2 rounded-md ${
-                  currentPage >= Math.ceil(totalCount / pageSize)
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-teal-600 hover:bg-teal-50 border border-gray-300"
-                }`}
+                <span className="text-gray-600">加载更多...</span>
+              </div>
+            ) : hasNextPage ? (
+              <button 
+                onClick={loadMoreItems}
+                className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                加载更多
               </button>
-            </div>
+            ) : (
+              <span className="text-gray-500">已加载全部内容</span>
+            )}
           </div>
         )}
       </div>
