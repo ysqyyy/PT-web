@@ -7,7 +7,7 @@ import type { AnalyticsData } from '@/types/analytics';
  */
 export async function getAnalyticsDashboard(): Promise<AnalyticsData> {
   try {
-    const response = await request.get('http://localhost:8080/analyse/summary');
+    const response = await request.get('/analyse/summary');
     const res={
       totalDownload: response.totalDownload || 0,
       userMonthlyUpload:response.userMonthlyUpload || [0, 0, 0, 0],

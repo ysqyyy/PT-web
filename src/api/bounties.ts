@@ -9,7 +9,7 @@ import type {
 // 获取我的悬赏列表 ok
 export async function getMyBounties() {
   try {
-    const data = await request.get("http://localhost:8080/bounty/mybounties");
+    const data = await request.get("/bounty/mybounties");
     const bounties: MyBounty[] = data.map((item: any) => ({
       bountyId: item.bounty?.bountyId, //追加 取消悬赏用
       torrentId: item.submission?.torrentId, // 下载用
@@ -31,7 +31,7 @@ export async function getMyBounties() {
 export async function getMyAppendedBounties() {
   try {
     const data = await request.get(
-      "http://localhost:8080/bounty/mycontributions"
+      "/bounty/mycontributions"
     );
     console.log("获取我追加的悬赏列表:", data);
     const bounties: AppendedBounty[] = data.map((item: any) => ({
@@ -56,7 +56,7 @@ export async function getMyAppendedBounties() {
 export async function getMySubmittedBounties(): Promise<SubmittedBounty[]> {
   try {
     const data = await request.get(
-      "http://localhost:8080/bounty/mysubmissions"
+      "/bounty/mysubmissions"
     );
     const bounties: SubmittedBounty[] = data.map((item: any) => ({
       bountyId: item.bounty.bountyId,
@@ -79,7 +79,7 @@ export async function getMySubmittedBounties(): Promise<SubmittedBounty[]> {
 export async function appendBounty(bountyId: number, amount: number) {
   try {
     const response = await request.post(
-      "http://localhost:8080/bounty/addamount",
+      "/bounty/addamount",
       { bountyId: bountyId, contributedAmount: amount }
     );
     return response;
@@ -91,7 +91,7 @@ export async function appendBounty(bountyId: number, amount: number) {
 //取消悬赏 ok
 export async function cancelBounty(bountyId: number) {
   try {
-    const response = await request.post("http://localhost:8080/bounty/cancel", {
+    const response = await request.post("/bounty/cancel", {
       bountyId: bountyId,
     });
     return response;
@@ -104,7 +104,7 @@ export async function cancelBounty(bountyId: number) {
 export async function confirmBounty(submissionId: number) {
   try {
     const response = await request.post(
-      "http://localhost:8080/bounty/approve",
+      "/bounty/approve",
       { submissionId: submissionId }
     );
     console.log("确认悬赏成功:", response);
@@ -116,7 +116,7 @@ export async function confirmBounty(submissionId: number) {
 }
 //申请仲裁 ok
 export async function arbitrateBounty(submissionId: number, reason: string) {
-  return request.post(`http://localhost:8080/bounty/reject`, {
+  return request.post(`/bounty/reject`, {
     reason: reason,
     submissionId: submissionId,
   });
@@ -125,7 +125,7 @@ export async function arbitrateBounty(submissionId: number, reason: string) {
 // 获取悬赏列表 ok
 export async function getBountyList(): Promise<BountyListItem[]> {
   try {
-    const response = await request.get("http://localhost:8080/bounty/all");
+    const response = await request.get("/bounty/all");
     console.log("获取悬赏列表:", response);
     const bounties: BountyListItem[] = response.map((item: any) => ({
       bountyId: item.bounty?.bountyId, // 追加悬赏用  提交种子用
@@ -171,7 +171,7 @@ export async function publishBounty(
     categoryId,
     tagIds,
   });
-  return request.post(`http://localhost:8080/bounty/publish`, {
+  return request.post(`/bounty/publish`, {
     bountyTitle: title,
     rewardAmount: bounty,
     bountyDescription: description,
@@ -191,7 +191,7 @@ export async function submitSeed(bountyId: number, seedFile: File | null) {
   const token = auth.getToken();
   console.log("提交种子数据:", seedFile, bountyId);
   const res = await axios.post(
-    `http://localhost:8080/bounty/upload-file`,
+    `/bounty/upload-file`,
     formData,
     {
       headers: {
@@ -202,7 +202,7 @@ export async function submitSeed(bountyId: number, seedFile: File | null) {
   // console.log("提交种子响应:", res);
   const torrentId = Number(res.data.data);
   // console.log("下载种子文件成功，种子ID:", torrentId);
-  await request.download(`http://localhost:8080/torrent/download/${torrentId}`);
+  await request.download(`/torrent/download/${torrentId}`);
 
   console.log("提交种子响应:", res);
   return res;

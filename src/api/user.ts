@@ -6,7 +6,7 @@ import type { UserProfile, UpdateProfileParams, UserMessage } from '@/types/user
  */
 export async function getUserProfile(): Promise<UserProfile> {
   try {
-    const response = await request.get('http://localhost:8080/api/user/info');
+    const response = await request.get('/api/user/info');
     const data = response.data;
     // console.log('获取用户资料:', response);
     const userProfile: UserProfile = {
@@ -37,7 +37,7 @@ export async function updateUserProfile(params: UpdateProfileParams): Promise<{s
       avatarUrl: params.avatarUrl,
       bio: params.bio
     }
-    const response = await request.put('http://localhost:8080/api/user/info', param);
+    const response = await request.put('/api/user/info', param);
     return response;
   } catch (error) {
     console.error('更新用户资料失败:', error);
@@ -64,7 +64,7 @@ export async function getUserMessages(): Promise<UserMessage[]> {
  */
 export async function updateUserPassword(oldPassword: string, newPassword: string): Promise<{success: boolean}> {
   try {
-    const response = await request.put('http://localhost:8080/api/user/password', {
+    const response = await request.put('/api/user/password', {
       oldPassword,
       newPassword
     });

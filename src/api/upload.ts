@@ -12,7 +12,7 @@ export async function uploadAvatar(avatarFile: File): Promise<string> {
     const token = auth.getToken();
     const formData = new FormData();
     formData.append("file", avatarFile);
-     const response=await axios.post("http://localhost:8080/api/avatar/upload", formData, {
+     const response=await axios.post("/api/avatar/upload", formData, {
     headers: {
       // "Content-Type": "multipart/form-data",
       Authorization: token ? `Bearer ${token}` : "",

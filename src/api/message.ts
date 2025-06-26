@@ -8,7 +8,7 @@ import { Message, Conversation } from "@/types/message";
 export async function getConversations(): Promise<Conversation[]> {
   try {
     const response = await request.get(
-        "http://localhost:8080/api/messages/conversations"
+        "/api/messages/conversations"
     );
     // 打印返回内容，调试用
     console.log("getConversations返回：", response);
@@ -53,7 +53,7 @@ export async function getConversationMessages(
 ): Promise<Message[]> {
   try {
     const response = await request.get(
-        `http://localhost:8080/api/messages/conversations/${conversationId}`
+        `/api/messages/conversations/${conversationId}`
     );
     console.log("getConversationMessages返回：", response);
 
@@ -94,7 +94,7 @@ export async function sendMessage(message: {
 }): Promise<Message> {
   try {
     const response = await request.post(
-        "http://localhost:8080/api/messages/send",
+        "/api/messages/send",
         { data: message }
     );
     return response.data;
@@ -113,7 +113,7 @@ export async function markMessageAsRead(
     messageId: string
 ): Promise<{ success: boolean }> {
   try {
-    await request.put(`http://localhost:8080/api/messages/${messageId}/read`);
+    await request.put(`/api/messages/${messageId}/read`);
     return { success: true };
   } catch (error) {
     console.error("标记消息已读失败:", error);
@@ -131,7 +131,7 @@ export async function createConversation(
 ): Promise<Conversation> {
   try {
     const response = await request.post(
-        "http://localhost:8080/api/messages/conversations",
+        "/api/messages/conversations",
         {
           data: { participantId: userId },
         }

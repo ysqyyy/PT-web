@@ -1,349 +1,342 @@
-/**
- * 请求中间件 - 封装fetch请求
- * 提供统一的请求处理、错误处理和拦截器功能
- */
-import auth from './auth';
+import axios, {
+  AxiosRequestConfig,
+  AxiosResponse,
+  AxiosInstance,
+  AxiosError,
+  isCancel,
+} from "axios";
+import auth from "./auth";
 
-interface RequestOptions extends RequestInit {
-  params?: Record<string, string | number | boolean>; // URL查询参数
-  data?: any; // 请求体数据
-  timeout?: number; // 请求超时时间(ms)
-}
-
-interface Response<T = any> {
-  data: T;
+// 自定义错误类型
+export class HttpError extends Error {
   status: number;
-  statusText: string;
-  headers: Headers;
-  ok: boolean;
+  data?: any;
+  isUnauthorized?: boolean;
+
+  constructor(message: string, status: number, data?: any) {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+    this.data = data;
+    this.isUnauthorized = status === 401;
+    Object.setPrototypeOf(this, HttpError.prototype);
+  }
 }
 
-// 拦截器
-export const interceptors = {
-  request: {
-    use: (callback: (options: RequestOptions) => RequestOptions) => {
-      requestInterceptors.push(callback);
-    }
-  },
-  response: {
-    use: (
-      onFulfilled: (response: Response) => Response | Promise<Response>,
-      onRejected?: (error: any) => any
-    ) => {
-      responseInterceptors.push({ onFulfilled, onRejected });
-    }
+export class RequestCancelledError extends Error {
+  constructor(message = "请求已取消") {
+    super(message);
+    this.name = "RequestCancelledError";
+    Object.setPrototypeOf(this, RequestCancelledError.prototype);
   }
-};
+}
 
-// 拦截器数组
-const requestInterceptors: ((options: RequestOptions) => RequestOptions)[] = [];
-const responseInterceptors: {
-  onFulfilled: (response: Response) => Response | Promise<Response>;
-  onRejected?: (error: any) => any;
-}[] = [];
+// 可取消请求接口
+export interface CancelableRequest<T> {
+  promise: Promise<T>;
+  cancel: (reason?: string) => void;
+}
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-// 判断是否处于浏览器环境
-const isBrowser = typeof window !== 'undefined';
-// 判断是否使用代理 - 生产环境或指定环境不使用代理
-const useProxy = isBrowser && process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_USE_PROXY !== 'false';
+// 环境变量
+const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const isBrowser = typeof window !== "undefined";
+const useProxy =
+  isBrowser &&
+  process.env.NODE_ENV !== "production" &&
+  process.env.NEXT_PUBLIC_USE_PROXY !== "false";
 
-// 添加请求拦截器，自动从cookie中获取token并添加到请求头
-interceptors.request.use((options) => {
-  if (!(options.body instanceof FormData)) {
-    options.headers = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-  }
-  const token = auth.getToken();
-  if (token) {
-    options.headers = {
-      ...options.headers,
-      'Authorization': `Bearer ${token}`
-    };
-  }
-  return options;
+// 创建axios实例
+const axiosInstance: AxiosInstance = axios.create({
+  baseURL: IS_DEVELOPMENT ? BASE_URL : "",
+  timeout: 30000,
+  withCredentials: true,
 });
 
-// 添加响应拦截器，处理401未授权错误
-interceptors.response.use(
-  (response) => response,
+// 请求拦截器
+axiosInstance.interceptors.request.use(
+  (config) => {
+    if (!(config.data instanceof FormData)) {
+      config.headers = config.headers || {};
+      config.headers["Content-Type"] =
+        config.headers["Content-Type"] || "application/json";
+    }
+    const token = auth.getToken();
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (useProxy && config.url && config.url.includes("localhost:8080")) {
+      const path = config.url.split("localhost:8080")[1];
+      config.url = `/api/proxy?url=${encodeURIComponent(
+        path.startsWith("/") ? path.substring(1) : path
+      )}`;
+    }
+    return config;
+  },
   (error) => {
-    // 检查是否是401错误
-    if (error && error.status === 401) {
-      auth.removeToken();
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+    return Promise.reject(error);
+  }
+);
+
+// 响应拦截器
+axiosInstance.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (isCancel(error)) {
+      return Promise.reject(new RequestCancelledError());
+    }
+    if (error.response) {
+      const { status, statusText, data } = error.response;
+      if (status === 401) {
+        auth.removeToken();
+        if (
+          typeof window !== "undefined" &&
+          !window.location.pathname.includes("/login")
+        ) {
+          window.location.href = "/login";
+        }
       }
+      return Promise.reject(
+        new HttpError(statusText || `请求失败: ${status}`, status, data)
+      );
+    } else if (error.request) {
+      if (error.code === "ECONNABORTED") {
+        return Promise.reject(
+          new Error(`请求超时: ${error.config.timeout || 30000}ms`)
+        );
+      }
+      return Promise.reject(new Error("未收到响应"));
     }
     return Promise.reject(error);
   }
 );
 
+// 创建可取消请求（使用AbortController）
+function createCancelableRequest<T>(
+  requestFn: (signal: AbortSignal) => Promise<T>
+): CancelableRequest<T> {
+  const controller = new AbortController();
+  return {
+    promise: requestFn(controller.signal),
+    cancel: (reason?: string) => controller.abort(reason),
+    //error.cause获取reason
+  };
+}
+
 /**
  * 请求函数
- * @param url 请求地址
- * @param options 请求选项
- * @returns Promise
  */
-async function request<T = any>(url: string, options: RequestOptions = {}): Promise<T> {
-  let mergedOptions = { ...options };
-  // 拼接 base url
-  if (!/^https?:\/\//.test(url)) {
-    url = BASE_URL + url;
-  }
-  
-  // 如果是开发环境且请求的是localhost:8080，使用代理
-  if (useProxy && url.includes('localhost:8080')) {
-    // 将 localhost:8080 后面的路径提取出来
-    const path = url.split('localhost:8080')[1];
-    // 将请求重定向到我们的代理
-    url = `/api/proxy?url=${encodeURIComponent(path.startsWith('/') ? path.substring(1) : path)}`;
-  }
-
-  // 默认携带凭证
-  if (mergedOptions.credentials === undefined) {
-    mergedOptions.credentials = 'include';
-  }
-  
-  // 处理查询参数
-  if (options.params) {
-    const queryString = new URLSearchParams();
-    Object.entries(options.params).forEach(([key, value]) => {
-      queryString.append(key, String(value));
-    });
-    const separator = url.includes('?') ? '&' : '?';
-    url = `${url}${separator}${queryString.toString()}`;
-    delete mergedOptions.params;
-  }
-  // 处理请求体
-  if (options.data) {
-    if (!(options.body instanceof FormData)) {
-      // Content-Type已经在请求拦截器中设置，这里只处理body
-      mergedOptions.body = JSON.stringify(options.data);
-    } else {
-      mergedOptions.body = options.data;
-    }
-    delete mergedOptions.data;
-  }
-
-  // 应用请求拦截器
-  for (const interceptor of requestInterceptors) {
-    mergedOptions = interceptor(mergedOptions);
-  }
-  
-  // 处理超时
-  let timeoutId: NodeJS.Timeout | null = null;
-  const fetchPromise = fetch(url, mergedOptions);
-  
-  let finalPromise: Promise<Response<T>>;
-  
-  if (options.timeout) {
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => {
-        reject(new Error(`请求超时: ${options.timeout}ms`));
-      }, options.timeout);
-    });
-    
-    finalPromise = Promise.race([fetchPromise, timeoutPromise]) as Promise<Response<T>>;
-  } else {
-    finalPromise = fetchPromise as Promise<Response<T>>;
-  }
-
+async function request<T = any>(
+  url: string,
+  options: AxiosRequestConfig = {}
+): Promise<T> {
   try {
-    let response = await finalPromise;
-    
-    // 清除超时定时器
-    if (timeoutId) clearTimeout(timeoutId);
-    
-    // 构建响应对象
-    const responseObject: Response<T> = {
-      data: {} as T,
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-      ok: response.ok
-    };
-    
-    // 解析响应内容
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      responseObject.data = await response.json();
-    } else if (contentType && contentType.includes('text/')) {
-      responseObject.data = await response.text() as unknown as T;
-    } else {
-      // 如果是blob或其他类型，保留原始响应
-      responseObject.data = response as unknown as T;
-    }
-    
-    // 应用响应拦截器
-    let transformedResponse = responseObject;
-    for (const { onFulfilled } of responseInterceptors) {
-      transformedResponse = await onFulfilled(transformedResponse);
-    }
-      // 检查HTTP状态码
-    if (!response.ok) {
-      const error: any = new Error(transformedResponse.statusText || `请求失败: ${response.status}`);
-      error.status = response.status;
-      error.data = transformedResponse.data;
-      
-      // 如果是401错误，标记为未授权
-      if (response.status === 401) {
-        error.isUnauthorized = true;
-      }
-      
-      throw error;
-    }
-    
-    return transformedResponse.data;
+    const response = await axiosInstance.request<T>({
+      url,
+      ...options,
+    });
+    return response.data;
   } catch (error) {
-    // 清除超时定时器
-    if (timeoutId) clearTimeout(timeoutId);
-    
-    // 应用错误拦截器
-    let processedError = error;
-    for (const { onRejected } of responseInterceptors) {
-      if (onRejected) {
-        processedError = onRejected(processedError) || processedError;
-      }
-    }
-    
-    throw processedError;
+    throw error;
   }
 }
 
 // HTTP请求方法
-request.get = <T = any>(url: string, options?: RequestOptions) => 
-  request<T>(url, { method: 'GET', ...options });
+request.get = <T = any>(
+  url: string,
+  options?: AxiosRequestConfig
+): CancelableRequest<T> => {
+  return createCancelableRequest((signal) =>
+    request<T>(url, { method: "GET", ...options, signal })
+  );
+};
 
-request.post = <T = any>(url: string, data?: any, options?: RequestOptions) => 
-  request<T>(url, { method: 'POST', data, ...options });
+request.post = <T = any>(
+  url: string,
+  data?: any,
+  options?: AxiosRequestConfig
+): CancelableRequest<T> => {
+  return createCancelableRequest((signal) =>
+    request<T>(url, { method: "POST", data, ...options, signal })
+  );
+};
 
-request.put = <T = any>(url: string, data?: any, options?: RequestOptions) => 
-  request<T>(url, { method: 'PUT', data, ...options });
+request.put = <T = any>(
+  url: string,
+  data?: any,
+  options?: AxiosRequestConfig
+): CancelableRequest<T> => {
+  return createCancelableRequest((signal) =>
+    request<T>(url, { method: "PUT", data, ...options, signal })
+  );
+};
 
-request.delete = <T = any>(url: string, options?: RequestOptions) => 
-  request<T>(url, { method: 'DELETE', ...options });
+request.delete = <T = any>(
+  url: string,
+  options?: AxiosRequestConfig
+): CancelableRequest<T> => {
+  return createCancelableRequest((signal) =>
+    request<T>(url, { method: "DELETE", ...options, signal })
+  );
+};
 
-request.patch = <T = any>(url: string, data?: any, options?: RequestOptions) => 
-  request<T>(url, { method: 'PATCH', data, ...options });
+request.patch = <T = any>(
+  url: string,
+  data?: any,
+  options?: AxiosRequestConfig
+): CancelableRequest<T> => {
+  return createCancelableRequest((signal) =>
+    request<T>(url, { method: "PATCH", data, ...options, signal })
+  );
+};
 
-// 文件上传专用方法
-request.upload = async <T = any>(url: string, files: File | File[] | Record<string, File>, data?: Record<string, any>, options?: RequestOptions): Promise<T> => {
-  const formData = new FormData();
-  
-  // 处理文件
-  if (files instanceof File) {
-    // 单个文件
-    formData.append('file', files);
-  } else if (Array.isArray(files)) {
-    // 文件数组
-    files.forEach((file, index) => {
-      formData.append(`file${index}`, file);
-    });
-  } else {
-    // 键值对形式的文件
-    Object.entries(files).forEach(([key, file]) => {
-      formData.append(key, file);
-    });
-  }
-  
-  // 添加其他数据
-  if (data) {
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (typeof value === 'object') {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, String(value));
+// 下载文件方法
+request.download = (
+  url: string,
+  filename?: string,
+  options?: AxiosRequestConfig
+): CancelableRequest<{ success: boolean }> => {
+  return createCancelableRequest(async (signal) => {
+    try {
+      const response = await axiosInstance.request({
+        url,
+        ...options,
+        method: options?.method || "GET",
+        responseType: "blob",
+        signal,
+      });
+      const blob = new Blob([response.data]);
+      const objectUrl = window.URL.createObjectURL(blob);
+      if (!filename) {
+        const contentDisposition = response.headers["content-disposition"];
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+          if (filenameMatch && filenameMatch[1]) {
+            filename = filenameMatch[1];
+          }
         }
       }
-    });
-  }
-  // console.log('上传文件:', { url,  });
-  return request<T>(url, {
-    method: 'POST',
-    body: formData,
-    ...options
-  });
-};
-
-// 添加用于下载文件的辅助方法
-request.download = async (url: string, filename?: string, options?: RequestOptions) => {
-  // 首先检查是否需要先获取下载URL
-  let downloadUrl = url;
-  
-  // 如果URL不是直接的文件链接，先发送请求获取下载URL
-  if (!url.match(/\.(torrent|zip|pdf|doc|docx|xls|xlsx|jpg|png|gif|mp3|mp4)$/i)) {
-    try {
-      const response = await request(url, {
-        ...options,
-        method: options?.method || 'GET'
-      });
-      
-      // 检查响应中是否包含downloadUrl
-      if (response && response.data && response.data.downloadUrl) {
-        downloadUrl = response.data.downloadUrl;
-      } else if (response && response.downloadUrl) {
-        downloadUrl = response.downloadUrl;
-      } else {
-        console.error('下载失败: 响应中没有找到下载URL', response);
-        throw new Error('下载失败: 响应中没有找到下载URL');
+      if (!filename) {
+        filename = url.split("/").pop() || "download";
       }
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(objectUrl);
+      }, 100);
+      return { success: true };
     } catch (error) {
-      console.error('获取下载URL失败:', error);
+      console.error("下载失败:", error);
       throw error;
     }
-  }
-
-  const token=auth.getToken();
-  // 发送请求下载文件
-  const response = await fetch(downloadUrl, {
-    ...options,
-    headers: {
-      Authorization: token ? `Bearer ${token}` : "",
-    },
-    method: options?.method || 'GET',
-    credentials: 'include'
   });
-  
-  if (!response.ok) {
-    throw new Error(`下载失败: ${response.status} ${response.statusText}`);
-  }
-  
-  const blob = await response.blob();
-  const objectUrl = window.URL.createObjectURL(blob);
-  
-  // 尝试从Content-Disposition头中获取文件名
-  if (!filename) {
-    const contentDisposition = response.headers.get('content-disposition');
-    if (contentDisposition) {
-      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-      if (filenameMatch && filenameMatch[1]) {
-        filename = filenameMatch[1];
-      }
-    }
-  }
-  
-  // 如果未能获取文件名，使用URL的最后部分
-  if (!filename) {
-    filename = downloadUrl.split('/').pop() || 'download';
-  }
-  
-  const link = document.createElement('a');
-  link.href = objectUrl;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  
-  // 清理
-  setTimeout(() => {
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(objectUrl);
-  }, 100);
-  
-  return { success: true };
 };
+
+// 表单提交方法
+request.form = <T = any>(
+  url: string,
+  formData: FormData,
+  options?: AxiosRequestConfig
+): CancelableRequest<T> => {
+  return createCancelableRequest((signal) =>
+    request<T>(url, {
+      method: "POST",
+      data: formData,
+      ...options,
+      signal,
+    })
+  );
+};
+
+// 上传文件方法
+//进度显示传回调
+// (event) => {
+//     if (event.total) {
+//       const percent = Math.round((event.loaded * 100) / event.total);
+//       console.log(`上传进度: ${percent}%`);
+//     }
+request.upload = <T = any>(
+  url: string,
+  files: File | File[],
+  fieldName = "file",
+  options?: AxiosRequestConfig
+): CancelableRequest<T> => {
+  const formData = new FormData();
+  if (Array.isArray(files)) {
+    files.forEach((file, index) => {
+      formData.append(`${fieldName}[${index}]`, file, file.name);
+    });
+  } else {
+    formData.append(fieldName, files, files.name);
+  }
+  if (options?.data) {
+    Object.entries(options.data).forEach(([key, value]) => {
+      formData.append(key, String(value));
+    });
+  }
+  return createCancelableRequest((signal) =>
+    request<T>(url, {
+      method: "POST",
+      data: formData,
+      ...options,
+      onUploadProgress: options?.onUploadProgress,
+      signal,
+    })
+  );
+};
+
+// 批量请求方法
+request.all = <T extends any[]>(
+  requests: CancelableRequest<T[number]>[]
+): CancelableRequest<T> => {
+  return {
+    promise: Promise.all(requests.map((req) => req.promise)) as Promise<T>,
+    cancel: (reason?: string) => {
+      requests.forEach((req) => req.cancel(reason));
+    },
+  };
+};
+
+// // 创建独立实例的方法
+// request.create = (defaultConfig: AxiosRequestConfig = {}) => {
+//   const newAxiosInstance = axios.create({
+//     ...axiosInstance.defaults,
+//     ...defaultConfig
+//   });
+//   if (axiosInstance.interceptors.request.handlers && axiosInstance.interceptors.request.handlers.length > 0) {
+//     axiosInstance.interceptors.request.handlers.forEach(h =>
+//       newAxiosInstance.interceptors.request.use(h.fulfilled, h.rejected)
+//     );
+//   }
+//   if (axiosInstance.interceptors.response.handlers && axiosInstance.interceptors.response.handlers.length > 0) {
+//     axiosInstance.interceptors.response.handlers.forEach(h =>
+//       newAxiosInstance.interceptors.response.use(h.fulfilled, h.rejected)
+//     );
+//   }
+//   const newRequest = <T = any>(url: string, options?: AxiosRequestConfig): CancelableRequest<T> => {
+//     return createCancelableRequest(source => {
+//       const config: AxiosRequestConfig = {
+//         ...defaultConfig,
+//         ...options,
+//         url,
+//         cancelToken: source.token
+//       };
+//       return request<T>(url, config);
+//     });
+//   };
+//   Object.keys(request).forEach(key => {
+//     if (key !== 'create') {
+//       newRequest[key] = request[key];
+//     }
+//   });
+//   return newRequest;
+// };
 
 export default request;

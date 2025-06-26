@@ -6,7 +6,7 @@ import { DownloadRecord } from '@/types/download';
  */
 export async function getDownloadRecords(): Promise<DownloadRecord[]> {
   try {
-    const response = await request.get('http://localhost:8080/torrent/download-records');
+    const response = await request.get('/torrent/download-records');
     console.log('获取下载记录:', response.data);
     const records: DownloadRecord[] = response.data.map((item: any) => ({
       id: item.torrentId,
@@ -30,7 +30,7 @@ export async function getDownloadRecords(): Promise<DownloadRecord[]> {
 export async function downloadResource(torrentId: number) {
   try {
     console.log('开始下载资源，ID:', torrentId);
-    const res=await request.download(`http://localhost:8080/torrent/download/${torrentId}`);
+    const res=await request.download(`/torrent/download/${torrentId}`);
     console.log('下载资源成功:', res);
     return { success: true };
   } catch (error) {

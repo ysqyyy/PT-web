@@ -4,7 +4,7 @@ import { Comment, CommentReply } from "../types/comment";
 // 获取种子评论（带二级评论）  ok
 export async function getSeedComments(seedId: number): Promise<Comment[]> {
     const response = await request.get(
-        `http://localhost:8080/api/values/torrent/${seedId}/comments`
+        `/api/values/torrent/${seedId}/comments`
     );
     console.log("获取种子评论接口返回:", response);
     const comments: Comment[] = response.data.comments.map((item: any) => ({
@@ -44,7 +44,7 @@ export async function postComment(
 ): Promise<Comment> {
     console.log("发表一级评论接口参数:", { seedId, content });
     const response = await request.post(
-        " http://localhost:8080/api/values/comment",
+        " /api/values/comment",
         {
             torrent_id: seedId,
             comment_content: content,
@@ -78,7 +78,7 @@ export async function replyToComment(
 ): Promise<CommentReply> {
     console.log("回复评论接口参数:", { seedId, commentId, content });
     const response = await request.post(
-        "http://localhost:8080/api/values/comment",
+        "/api/values/comment",
         {
             torrent_id: seedId,
             comment_content: content,
@@ -108,7 +108,7 @@ export async function replyToComment(
 export async function likeComment(
     commentId: number
 ): Promise<{ success: boolean; likes: number }> {
-    const response=await request.post(`http://localhost:8080/api/values/comments/${commentId}/like`, { action: "like" });
+    const response=await request.post(`/api/values/comments/${commentId}/like`, { action: "like" });
     console.log("点赞评论接口返回:", response);
     return {
         success: response.status,
@@ -119,7 +119,7 @@ export async function likeComment(
 export async function unlikeComment(
     commentId: number
 ): Promise<{ success: boolean; likes: number }> {
-const response=await request.post(`http://localhost:8080/api/values/comments/${commentId}/like`, { action: "unlike" });
+const response=await request.post(`/api/values/comments/${commentId}/like`, { action: "unlike" });
     console.log("取消点赞评论接口返回:", response);
     return {
         success: response.status,
@@ -131,7 +131,7 @@ const response=await request.post(`http://localhost:8080/api/values/comments/${c
 export async function reportComment(commentId: number, reason: string): Promise<any> {
     console.log("举报评论接口参数:", { commentId, reason });
     const response = await request.post(
-        `http://localhost:8080/api/values/comments/${commentId}/report`,
+        `/api/values/comments/${commentId}/report`,
         {
             reason: reason,
         }

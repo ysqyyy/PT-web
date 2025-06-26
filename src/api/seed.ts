@@ -11,13 +11,14 @@ import {
 } from "@/constants/categories";
 import { getTagIdByName, getTagNameById } from "@/constants/tags";
 
-/// 获取推荐种子列表 ok
+/// 获取推荐种子列表 ok pro
 export async function getRecommendSeeds() {
 // page?: number,
 // pageSize?: number,
-  const response = await request.get("http://localhost:8080/torrent/recommend");
-  console.log("获取推荐种子:", response);
-  const res = response.data.records || [];
+  const response = await request.get("/torrent/recommend");
+  const data = await response.promise;
+  console.log("获取推荐种子:", data);
+  const res = data.data.records || [];
   const seeds: getSeedListParams[] = res.map((item: any) => ({
     torrentId: item.torrentId,
     torrentName: item.torrentName,
@@ -40,7 +41,7 @@ export async function getSeedListBySearch(keyword: string) {
     let byKeyResult: getSeedListParams[] = [];
   // 关键词
   if (keyword && keyword.trim() !== "") {
-    const bykey = await request.get("http://localhost:8080/torrent/search", {
+    const bykey = await request.get("/torrent/search", {
       params: {
         keyword: keyword.trim(),
         page: 1,
@@ -96,7 +97,7 @@ export async function getSeedList(params: {
   // 处理分类和标签筛选结果
   if (!tagIds || tagIds.length === 0) {
     const bycat = await request.get(
-      "http://localhost:8080/torrent/by-category",
+      "/torrent/by-category",
       {
         params: {
           category_id: categoryId,
@@ -109,7 +110,7 @@ export async function getSeedList(params: {
     console.log("分类搜索结果数:", categoryResult.length, categoryResult);
   } else {
     const bytagandcat = await request.post(
-      "http://localhost:8080/torrent/filter",
+      "/torrent/filter",
       {
         categoryId: categoryId,
         tags: params.tags,
@@ -148,9 +149,10 @@ export async function getSeedList(params: {
 // 获取种子详情 ok
 export async function getSeedDetail(id: number) {
   console.log("Fetching seed detail for ID:", id);
-  const response = await request.get(
-    `http://localhost:8080/torrent/info/${id}`
+  const resp = await request.get(
+    `/torrent/info/${id}`
   );
+  const response=await resp.promise;
   console.log("Seed detail response:", response);
   const res = response.data;
   const seedDetail: SeedDetail = {
@@ -186,7 +188,7 @@ export async function getSeedDetail(id: number) {
 // 评分种子 ok
 export async function rateSeed(seedId: number, rating: number) {
   console.log("Rating seed with ID:", seedId, "Rating:", rating);
-  return request.post(" http://localhost:8080/api/values/ratings", {
+  return request.post(" /api/values/ratings", {
     torrent_id: seedId,
     rating: rating,
     comment: "",
@@ -256,12 +258,12 @@ export async function publishSeed(file: File, data: publishSeedData) {
   // const useProxy = isBrowser && process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_USE_PROXY !== 'false';
   // 处理API地址，如果需要代理则使用代理地址
   if (data.fileType === "normal") {
-    apiUrl = "http://localhost:8080/torrent/upload-file";
+    apiUrl = "/torrent/upload-file";
     formData.append("file", file); // 添加文件类型，默认为"normal"
 
     console.log("API URL for normal file:", apiUrl);
   } else if (data.fileType === "torrent") {
-    apiUrl = "http://localhost:8080/torrent/upload-torrent";
+    apiUrl = "/torrent/upload-torrent";
      // 添加种子文件
   formData.append("torrent_file", file);
     console.log("API URL for torrent file:", apiUrl);
@@ -280,7 +282,7 @@ export async function publishSeed(file: File, data: publishSeedData) {
   });
   const torrentId = Number(res.data.data); // 假设返回的响应中包含种子ID
   const success = await request.download(
-    `http://localhost:8080/torrent/download/${torrentId}`
+    `/torrent/download/${torrentId}`
   );
   return success;
 }

@@ -68,36 +68,36 @@ export interface ApiResponse<T> {
 }
 
 export async function getUserValues(): Promise<ApiResponse<UserValues>> {
-    return request.get('http://localhost:8080/api/values/info');
+    return request.get('/api/values/info');
 }
 
 export async function exchangeMagicValue(amount: number): Promise<ApiResponse<ExchangeMagicValueResponseData>> {
     // 1点券 = 10魔力值，接口为 /api/points/exchange/score
-    return request.post('http://localhost:8080/api/points/exchange/score', { amount });
+    return request.post('/api/points/exchange/score', { amount });
 }
 
 export async function exchangePointsToScore(amount: number): Promise<ApiResponse<ExchangePointsToScoreResponseData>> {
     // 1点券 = 10积分，接口为 /api/points/exchange/point
-    return request.post('http://localhost:8080/api/points/exchange/point', { amount });
+    return request.post('/api/points/exchange/point', { amount });
 }
 
 export async function exchangeMagicValueForBadge(titleId: number): Promise<ApiResponse<ExchangeMagicValueForBadgeResponseData>> {
     // 魔力值兑换勋章，接口为 /api/magic/exchange?titleId=${titleId}
-    return request.post(`http://localhost:8080/api/magic/exchange/title?titleId=${titleId}`);
+    return request.post(`/api/magic/exchange/title?titleId=${titleId}`);
 }
 
 // 添加每日签到接口调用函数
 export async function dailySignIn(): Promise<ApiResponse<DailySignInResponseData>> {
-    return request.post('http://localhost:8080/api/values/signin', {});
+    return request.post('/api/values/signin', {});
 }
 // 添加获取用户所有拥有的勋章接口调用函数
 export async function getUserBadges(): Promise<ApiResponse<Badge[]>> {
-    return request.get('http://localhost:8080/api/titles/user');
+    return request.get('/api/titles/user');
 }
 
 // 添加获取所有设置的勋章接口调用函数
 export async function getAllBadges(): Promise<ApiResponse<Badge[]>> {
-    return request.get('http://localhost:8080/api/titles/all');
+    return request.get('/api/titles/all');
 }
 
 // 充值返回类型
@@ -115,5 +115,5 @@ export interface TicketRechargeResponseData {
 
 // 点券充值API
 export async function rechargeTicket(amount: number): Promise<ApiResponse<TicketRechargeResponseData>> {
-    return request.post('http://localhost:8080/api/ticket/recharge', { amount });
+    return request.post('/api/ticket/recharge', { amount });
 }

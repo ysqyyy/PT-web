@@ -12,12 +12,12 @@ interface LoginResponse {
   };
 }
 
-//登录 ok
+//登录 ok pro
 export async function login(userName: string, password: string) {
   try {
-    const response = await request.post<LoginResponse>("http://localhost:8080/api/user/login", { userName, password });
+    const res = request.post<LoginResponse>("/api/user/login", { userName, password });
     // window.confirm("您的账号已被封禁，请联系管理员");
-
+    const response =await res.promise;
     // 检查用户状态是否为banned
     if (response && response.data.user_info && response.data.user_info.user_status === "banned") {
       return {
@@ -48,7 +48,7 @@ export async function login(userName: string, password: string) {
 export async function logout() {
   try {
     // 调用登出接口
-    // await request.post("http://localhost:8080/api/user/logout");
+    // await request.post("/api/user/logout");
     // 清除本地token和用户信息
     auth.removeToken();
     localStorage.removeItem('userInfo');
@@ -76,7 +76,7 @@ export async function register({ userName, password, email, inviteCode }: {
       data?: {
         user_id: number;
       };
-    }>("http://localhost:8080/api/user/register", { 
+    }>("/api/user/register", { 
       userName, 
       password, 
       email, 

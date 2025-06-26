@@ -30,18 +30,62 @@ export const auth = {
       window.location.href = '/login';
     }
   },
-
-  // 刷新token (如果后端提供了刷新token的接口)
-  refreshToken: async () => {
-    try {
-      // 这里应该调用刷新token的API
-      // 例如：const response = await request.post('/api/refresh-token');
-      // 暂时模拟一个刷新成功的情况
-      return true;
-    } catch (error) {
-      console.error('刷新token失败', error);
-      return false;
+  
+  // 设置刷新令牌
+  setRefreshToken(token:string, expiryDays = 30) {
+    localStorage.setItem('refresh_token', token);
+    
+    // 设置过期时间
+    if (expiryDays) {
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + expiryDays);
+      localStorage.setItem('refresh_token_expiry', expiryDate.toISOString());
     }
+  },
+  
+  // 获取刷新令牌
+  getRefreshToken() {
+    const token = localStorage.getItem('refresh_token');
+    const expiry = localStorage.getItem('refresh_token_expiry');
+    
+    // 检查刷新令牌是否过期
+    if (token && expiry && new Date(expiry) > new Date()) {
+      return token;
+    }
+    
+    // 如果过期，清除令牌
+    if (token && expiry) {
+      this.removeRefreshToken();
+    }
+    
+    return null;
+  }
+  ,
+  // 移除刷新令牌
+  removeRefreshToken() {
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('refresh_token_expiry');
+  },
+  
+  // 清除所有令牌
+  removeAllToken() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('token_expiry');
+    this.removeRefreshToken();
+  },
+  // 检查访问令牌是否即将过期 可能会用到
+  isTokenExpiringSoon(minutes = 5) {
+    const expiry = localStorage.getItem('token_expiry');
+    if (!expiry) return true;
+    
+    const expiryDate = new Date(expiry);
+    const now = new Date();
+    
+    // 计算分钟差
+    const diffMinutes = Math.floor((expiryDate.getTime() - now.getTime()) / (60 * 1000));
+    
+    // 如果剩余时间少于指定分钟数，返回true
+    return diffMinutes < minutes;
   }
 };
 
