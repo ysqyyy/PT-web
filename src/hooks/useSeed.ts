@@ -26,7 +26,7 @@ interface SeedRecord {
  */
 export function useSeed() {
   const queryClient = useQueryClient();
-    // 获取推荐种子列表 - 无限滚动版本
+    // 获取推荐种子列表 - 无限滚动版本 ok
   const useRecommendSeeds = (pageSize: number = 12) => useInfiniteQuery({
     queryKey: ["recommendSeedsInfinite"],
     queryFn: async ({ pageParam = 1 }) => {
@@ -66,7 +66,8 @@ export function useSeed() {
     refetchOnMount: true, // 组件挂载时重新获取数据
     refetchOnWindowFocus: false, // 窗口获取焦点时不重新获取数据
     staleTime: 5 * 60 * 1000, // 5分钟缓存
-  });    // 按关键词搜索种子 - 无限滚动版本
+  });   
+   // 按关键词搜索种子 - 无限滚动版本  ok 无无限滚动
   const useSeedSearch = (keyword: string, pageSize: number = 12) => useInfiniteQuery({
     queryKey: ["seedSearchInfinite", keyword],
     queryFn: async ({ pageParam = 1 }) => {
@@ -116,7 +117,8 @@ export function useSeed() {
     refetchOnWindowFocus: false, // 窗口获取焦点时不重新获取数据
     enabled: !!keyword && keyword.trim() !== "", // 只有当有关键词时才执行查询
     staleTime: 2 * 60 * 1000, // 2分钟缓存
-  });    // 获取种子列表（带分类和标签筛选）
+  });   
+   // 获取种子列表（带分类和标签筛选）
   const useSeedList = (params: {
     category: string;
     tags?: string[];
@@ -140,6 +142,7 @@ export function useSeed() {
       
       // 根据是否有标签选择不同的API调用
       if (!params.tags || params.tags.length === 0) {
+        //无无限滚动
         const response = await seedApi.getSeedList(apiParams).promise;
         categoryResult = response?.data || [];
       } else {

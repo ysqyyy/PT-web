@@ -202,7 +202,9 @@ export async function submitSeed(bountyId: number, seedFile: File | null) {
   // console.log("提交种子响应:", res);
   const torrentId = Number(res.data.data);
   // console.log("下载种子文件成功，种子ID:", torrentId);
-  await request.download(`/torrent/download/${torrentId}`);
+  const response =await request.get(`/torrent/download/${torrentId}`).promise;
+  const url= response.data?.downloadUrl;
+  await request.download(url).promise;
 
   console.log("提交种子响应:", res);
   return res;

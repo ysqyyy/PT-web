@@ -40,11 +40,11 @@ export interface CancelableRequest<T> {
 // 环境变量
 const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-const isBrowser = typeof window !== "undefined";
-const useProxy =
-  isBrowser &&
-  process.env.NODE_ENV !== "production" &&
-  process.env.NEXT_PUBLIC_USE_PROXY !== "false";
+// const isBrowser = typeof window !== "undefined";
+// const useProxy =
+//   isBrowser &&
+//   process.env.NODE_ENV !== "production" &&
+//   process.env.NEXT_PUBLIC_USE_PROXY !== "false";
 
 // 创建axios实例
 const axiosInstance: AxiosInstance = axios.create({
@@ -66,12 +66,12 @@ axiosInstance.interceptors.request.use(
       config.headers = config.headers || {};
       config.headers["Authorization"] = `Bearer ${token}`;
     }
-    if (useProxy && config.url && config.url.includes("localhost:8080")) {
-      const path = config.url.split("localhost:8080")[1];
-      config.url = `/api/proxy?url=${encodeURIComponent(
-        path.startsWith("/") ? path.substring(1) : path
-      )}`;
-    }
+    // if (useProxy && config.url && config.url.includes("localhost:8080")) {
+    //   const path = config.url.split("localhost:8080")[1];
+    //   config.url = `/api/proxy?url=${encodeURIComponent(
+    //     path.startsWith("/") ? path.substring(1) : path
+    //   )}`;
+    // }
     return config;
   },
   (error) => {
@@ -200,42 +200,90 @@ request.download = (
   options?: AxiosRequestConfig
 ): CancelableRequest<{ success: boolean }> => {
   return createCancelableRequest(async (signal) => {
-    try {
-      const response = await axiosInstance.request({
-        url,
-        ...options,
-        method: options?.method || "GET",
-        responseType: "blob",
-        signal,
-      });
-      const blob = new Blob([response.data]);
-      const objectUrl = window.URL.createObjectURL(blob);
-      if (!filename) {
-        const contentDisposition = response.headers["content-disposition"];
-        if (contentDisposition) {
-          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-          if (filenameMatch && filenameMatch[1]) {
-            filename = filenameMatch[1];
-          }
+    const downloadUrl = url;
+    const token = auth.getToken();
+    // 发送请求下载文件
+    const response = await fetch(downloadUrl, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : "",
+      },
+      method: options?.method || "GET",
+      credentials: "include",
+      signal, // Pass the correct AbortSignal here
+    });
+
+    if (!response.ok) {
+      throw new Error(`下载失败: ${response.status} ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    const objectUrl = window.URL.createObjectURL(blob);
+
+    // 尝试从Content-Disposition头中获取文件名
+    if (!filename) {
+      const contentDisposition = response.headers.get("content-disposition");
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1];
         }
       }
-      if (!filename) {
-        filename = url.split("/").pop() || "download";
-      }
-      const link = document.createElement("a");
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(objectUrl);
-      }, 100);
-      return { success: true };
-    } catch (error) {
-      console.error("下载失败:", error);
-      throw error;
     }
+
+    // 如果未能获取文件名，使用URL的最后部分
+    if (!filename) {
+      filename = downloadUrl.split("/").pop() || "download";
+    }
+
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+
+    // 清理
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(objectUrl);
+    }, 100);
+
+    return { success: true };
+    // const response = await axiosInstance.request({
+    //   url,
+    //   ...options,
+    //   method: options?.method || "GET",
+    //   responseType: "blob",
+    //   signal,
+    // });
+    // console.log("下载响应:", response);
+    //   const blob = new Blob([response.data]);
+    //   const objectUrl = window.URL.createObjectURL(blob);
+    //   if (!filename) {
+    //     const contentDisposition = response.headers["content-disposition"];
+    //     if (contentDisposition) {
+    //       const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+    //       if (filenameMatch && filenameMatch[1]) {
+    //         filename = filenameMatch[1];
+    //       }
+    //     }
+    //   }
+    //   if (!filename) {
+    //     filename = url.split("/").pop() || "download";
+    //   }
+    //   const link = document.createElement("a");
+    //   link.href = objectUrl;
+    //   link.download = filename;
+    //   document.body.appendChild(link);
+    //   link.click();
+    //   setTimeout(() => {
+    //     document.body.removeChild(link);
+    //     window.URL.revokeObjectURL(objectUrl);
+    //   }, 100);
+    //   return { success: true };
+    // } catch (error) {
+    //   console.error("下载失败:", error);
+    //   throw error;
+    // }
   });
 };
 

@@ -1,11 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Navbar from "../../../../../components/Navbar";
 import { useParams, useRouter } from "next/navigation";
-import { getSeedDetail, rateSeed } from "@/api/seed";
-
+import { useSeed } from "@/hooks/useSeed";
 import CommentSection from "@/components/comment/CommentSection";
-import { SeedDetail } from "@/types/seed";
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import { toast, Toaster } from "react-hot-toast";
@@ -18,38 +16,42 @@ export default function SeedDetailPage() {
   const seedId = params?.id?.toString();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [seedDetail, setSeedDetail] = useState<SeedDetail | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [urlload,setUrlLoad]=useState<string>("");//
+  const [urlload, setUrlLoad] = useState<string>("");
+  
+  // 使用useSeed hook
+  const { useSeedDetail, rateSeedMutation } = useSeed();
+  
   // 获取种子详情
-  useEffect(() => {
-    const fetchData = async () => {
+  const { data: seedDetail, isLoading, isError, refetch } = useSeedDetail(seedId ? Number(seedId) : 0);
+  
+  // 处理评分
+  const { mutate: rateSeed } = rateSeedMutation;// 初始化评分
+  React.useEffect(() => {
+    if (seedDetail?.score) {
+      setRating(seedDetail.score);
+    }
+  }, [seedDetail]);
+
+  // 获取磁力链接
+  React.useEffect(() => {
+    const fetchMagnetLink = async () => {
       if (!seedId) return;
-
-      setLoading(true);      try {
-        const detailRes = await getSeedDetail(Number(seedId));
-
-        if (detailRes) {
-          setSeedDetail(detailRes);
-          setRating(detailRes.score || 0);
+      
+      try {
+        const response = await request.get(`http://localhost:8080/torrent/download/${seedId}`).promise;
+        console.log("获取磁力链接响应:", response);
+        if (response && response.data) {
+          console.log("种子详情磁力链接:", response.data.magnetUrl);
+          setUrlLoad(response.data.magnetUrl || "");
         }
-        const urldata=await request.get(`http://localhost:8080/torrent/download/${seedId}`);
-        console.log("种子详情数据:", urldata);
-
-        const url= urldata.data?.magnetUrl || "";
-        console.log("种子详情磁力链接:", url);
-        setUrlLoad(url);//
-
       } catch (error) {
-        console.error("获取数据失败:", error);
-        toast.error("获取种子详情失败");
-      } finally {
-        setLoading(false);
+        console.error("获取磁力链接失败:", error);
       }
     };
-
-    fetchData();
+    
+    fetchMagnetLink();
   }, [seedId]);
+
   // 提交评分
   const handleSubmitRating = async () => {
     if (rating === 0) {
@@ -58,34 +60,29 @@ export default function SeedDetailPage() {
     }
 
     try {
-      const res = await rateSeed(Number(seedId), rating);
-      console.log("评分结果:", res);
-      if (res.status==='success') {
-        toast.success(`感谢您的评分: ${rating}星`, {
-          duration: 2000,
-          icon: '⭐',
-        });
-        
-        // 短暂延迟后刷新页面，让用户有时间看到 toast 消息
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-        
-        // 立即更新本地状态
-        if (seedDetail) {
-          setSeedDetail({
-            ...seedDetail,
-            score: rating,
-            scoreCount: (seedDetail.scoreCount || 0) + 1,
-          });
+      rateSeed(
+        { seedId: Number(seedId), rating },
+        {
+          onSuccess: () => {
+            toast.success(`感谢您的评分: ${rating}星`, {
+              duration: 2000,
+              icon: '⭐',
+            });
+            
+            // 刷新数据
+            refetch();
+          },
+          onError: (error) => {
+            console.error("评分失败:", error);
+            toast.error("评分失败");
+          }
         }
-      }
+      );
     } catch (error) {
       console.error("评分失败:", error);
       toast.error("评分失败");
     }
   };
-
   // 处理私信
   const handleSendMessage = async () => {
     if (!seedDetail?.publisherId) {
@@ -119,7 +116,7 @@ export default function SeedDetailPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Navbar name="种子详情">
         <Toaster position="top-center" />
@@ -129,12 +126,21 @@ export default function SeedDetailPage() {
       </Navbar>
     );
   }
-  if (!seedDetail) {
+  
+  if (isError || !seedDetail) {
     return (
       <Navbar name="种子中心">
         <Toaster position="top-center" />
         <div className="bg-white rounded-lg shadow p-6 text-center">
           未找到种子信息
+          <div className="mt-3">
+            <button 
+              onClick={() => refetch()}
+              className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
+            >
+              重试
+            </button>
+          </div>
         </div>
       </Navbar>
     );

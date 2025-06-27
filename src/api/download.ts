@@ -29,10 +29,10 @@ export async function getDownloadRecords(): Promise<DownloadRecord[]> {
  */
 export async function downloadResource(torrentId: number) {
   try {
-    console.log('开始下载资源，ID:', torrentId);
-    const res=await request.download(`/torrent/download/${torrentId}`);
-    console.log('下载资源成功:', res);
-    return { success: true };
+    const response =await request.get(`/torrent/download/${torrentId}`).promise;
+    const url= response.data?.downloadUrl;
+    const res=await request.download(url).promise;
+    return res;
   } catch (error) {
     console.error('下载资源出错:', error);
     throw error;

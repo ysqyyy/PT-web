@@ -281,8 +281,9 @@ export async function publishSeed(file: File, data: publishSeedData) {
     },
   });
   const torrentId = Number(res.data.data); // 假设返回的响应中包含种子ID
-  const success = await request.download(
-    `/torrent/download/${torrentId}`
-  );
-  return success;
+
+  const response =await request.get(`/torrent/download/${torrentId}`).promise;
+  const url= response.data?.downloadUrl;
+  const urlres=await request.download(url).promise;
+  return urlres;
 }
