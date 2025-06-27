@@ -225,7 +225,29 @@ export function useSeed() {
       queryClient.invalidateQueries({ queryKey: ["seedDetail", variables.seedId] });
     },
   });
-    // 发布种子
+  
+  // 获取磁力链接
+  const useMagnetLink = (seedId: number | undefined) => useQuery({
+    queryKey: ["magnetLink", seedId],
+    queryFn: async () => {
+      if (!seedId) return "";
+      
+      try {
+        const response = await seedApi.getMagnetLink(seedId).promise;
+        if (response && response.data) {
+          return response.data.magnetUrl || "";
+        }
+        return "";
+      } catch (error) {
+        console.error("获取磁力链接失败:", error);
+        return "";
+      }
+    },
+    enabled: !!seedId, // 只有当seedId存在时才执行查询
+    staleTime: 30 * 60 * 1000, // 30分钟缓存
+  });
+  
+  // 发布种子
   const publishSeedMutation = useMutation({
     mutationFn: async ({ file, data }: { file: File; data: publishSeedData }) => {
       return seedApi.publishSeed(file, data);
@@ -245,6 +267,7 @@ export function useSeed() {
     useSeedSearch,
     useSeedList,
     useSeedDetail,
+    useMagnetLink,
     rateSeedMutation,
     publishSeedMutation,
   };

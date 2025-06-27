@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Comment } from '@/types/comment';
-import { generateComments } from '@/mock/comment';
+// import { Comment } from '@/types/comment';
+// import { generateComments } from '@/mock/comment';
 
 export default async function handler(
   req: NextApiRequest,
@@ -18,13 +18,13 @@ export default async function handler(
     }
     
     // 生成随机评论数据作为模拟数据
-    const comments: Comment[] = generateComments(parseInt(seedId, 10), 10);
+    // const comments: Comment[] = generateComments(parseInt(seedId, 10), 10);
 
     // 返回评论数据
     return res.status(200).json({
       success: true,
       message: '获取评论成功',
-      data: comments
+      // data: comments
     });
   } catch (error) {
     console.error('获取评论失败:', error);

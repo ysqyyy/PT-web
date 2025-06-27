@@ -4,6 +4,7 @@ import { authApi } from "@/apinew/authApi"; // 导入你提供的 API 层
 import auth from "@/utils/auth";
 import { UserInfo } from "@/types/user";
 import eventBus from "@/utils/eventBus";
+import toast from "react-hot-toast";
 /**
  * 用户认证相关的 hook，包含登录、登出、注册等功能
  */
@@ -238,22 +239,12 @@ export function useAuth() {
   // 登出 mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      try {
-        // 调用登出接口（可选）
-        await authApi.logout().promise;
-      } catch (error) {
-        console.error("登出请求失败:", error);
-        // 失败时继续执行清理操作
-      } finally {
-        // 无论接口是否成功，都清除本地存储
-        auth.removeToken();
-        localStorage.removeItem("userInfo");
-        // 清除查询缓存
-        queryClient.setQueryData(["userInfo"], null);
-        // 可以选择性地使其他可能的用户相关查询失效
-        queryClient.invalidateQueries({ queryKey: ["userSettings"] });
-        return { success: true };
-      }
+      // 无论接口是否成功，都清除本地存储
+      auth.removeToken();
+      localStorage.removeItem("userInfo");
+      // 清除查询缓存
+      queryClient.setQueryData(["userInfo"], null);
+      return { success: true };
     },
   });
 
@@ -270,6 +261,7 @@ export function useAuth() {
     },
     onError: (error: any) => {
       console.error("注册失败:", error);
+      toast.error(error?.message || "注册失败，请稍后重试");
       return {
         code: 500,
         message: error?.message || "注册失败，请稍后重试",
@@ -278,35 +270,8 @@ export function useAuth() {
     },
   });
 
-  // 重置密码 mutation
-  const resetPasswordMutation = useMutation({
-    mutationFn: async (data: {
-      email: string;
-      captcha: string;
-      password: string;
-    }) => {
-      const response = await authApi.resetPassword(data).promise;
-      return response;
-    },
-  });
-
-  // 获取验证码 mutation
-  const getCaptchaMutation = useMutation({
-    mutationFn: async (email: string) => {
-      const response = await authApi.getCaptcha(email).promise;
-      return response;
-    },
-  });
-
   // 刷新用户信息
   const refreshUserInfo = async () => {
-    // 这里可以添加获取最新用户信息的 API 调用
-    // 然后更新缓存
-    // 示例：
-    // const userInfo = await fetchUserInfo();
-    // queryClient.setQueryData(['userInfo'], userInfo);
-
-    // 或者只是使查询失效，强制重新获取
     queryClient.invalidateQueries({ queryKey: ["userInfo"] });
   };
 
@@ -320,16 +285,12 @@ export function useAuth() {
     login: loginMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
     register: registerMutation.mutateAsync,
-    resetPassword: resetPasswordMutation.mutateAsync,
-    getCaptcha: getCaptchaMutation.mutateAsync,
     refreshUserInfo,
 
     // 状态
     loginLoading: loginMutation.isPending,
     logoutLoading: logoutMutation.isPending,
     registerLoading: registerMutation.isPending,
-    resetPasswordLoading: resetPasswordMutation.isPending,
-    getCaptchaLoading: getCaptchaMutation.isPending,
   };
 }
 

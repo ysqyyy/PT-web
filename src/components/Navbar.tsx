@@ -2,10 +2,9 @@
 
 import Link from 'next/link';
 import clsx from 'clsx';
-import React, { ReactNode, useState, useEffect } from "react";
+import React, { ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
-import { logout } from '@/api/login';
-import type { UserInfo } from '@/types/user';
+import { useAuth } from '@/hooks/useAuth';
 type NavbarProps = {
   children: ReactNode;
   name: string;
@@ -18,28 +17,16 @@ const navItems = [
 ];
 
 export default function Navbar({ children, name }: NavbarProps) {
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const router = useRouter();
-
-  // 获取用户信息
-  useEffect(() => {
-    const storedUserInfo = localStorage.getItem('userInfo');
-    if (storedUserInfo) {
-      try {
-        const parsedUserInfo = JSON.parse(storedUserInfo);
-        setUserInfo(parsedUserInfo);
-      } catch (error) {
-        console.error('解析用户信息失败:', error);
-      }
-    }
-  }, []);
+  const [showDropdown, setShowDropdown] = useState(false);  const router = useRouter();
+  const { logout, user } = useAuth();
+  
+  // 使用 useAuth 钩子中的 user 信息，不再需要从 localStorage 手动获取
 
   // 处理登出
   const handleLogout = async () => {
     try {
       await logout();
-      setUserInfo(null);
+      setShowDropdown(false);
       setShowDropdown(false);
       router.push('/login');
     } catch (error) {
@@ -66,30 +53,28 @@ export default function Navbar({ children, name }: NavbarProps) {
               {item.name}
             </Link>
           ))}
-        </div>
-
-        {/* 用户头像和用户名 */}
-        {userInfo && (
+        </div>        {/* 用户头像和用户名 */}
+        {user && (
           <div className="relative">
             <div 
               className="flex items-center gap-3 cursor-pointer bg-white/15 px-4 py-2 rounded-lg hover:bg-white/20 transition-all duration-300" 
               onClick={() => setShowDropdown(!showDropdown)}
             >
-              <span className="text-white font-medium">{userInfo.user_name}</span>
+              <span className="text-white font-medium">{user.user_name}</span>
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white overflow-hidden border-2 border-white/30 shadow-md">
-                {userInfo.avatar_url ? (
+                {user.avatar_url ? (
                   <img 
-                    src={userInfo.avatar_url} 
-                    alt={userInfo.user_name} 
+                    src={user.avatar_url} 
+                    alt={user.user_name} 
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
-                      target.parentElement!.textContent = userInfo.user_name.charAt(0).toUpperCase();
+                      target.parentElement!.textContent = user.user_name.charAt(0).toUpperCase();
                     }}
                   />
                 ) : (
-                  <span>{userInfo.user_name.charAt(0).toUpperCase()}</span>
+                  <span>{user.user_name.charAt(0).toUpperCase()}</span>
                 )}
               </div>
             </div>            {/* 下拉菜单 */}
@@ -105,8 +90,8 @@ export default function Navbar({ children, name }: NavbarProps) {
                 <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black/5 z-20 overflow-hidden">
                   <div className="py-1">
                     <div className="px-4 py-3 bg-gradient-to-r from-[#5E8B7E]/10 to-[#4F7A6F]/10 border-b border-gray-200">
-                      <p className="text-sm font-medium text-gray-700">{userInfo.user_name}</p>
-                      <p className="text-xs text-gray-500 mt-1">用户等级: {userInfo.user_level || 1}</p>
+                      <p className="text-sm font-medium text-gray-700">{user.user_name}</p>
+                      <p className="text-xs text-gray-500 mt-1">用户等级: {user.user_level || 1}</p>
                     </div>
                     <Link
                       href="/home/user/profile"

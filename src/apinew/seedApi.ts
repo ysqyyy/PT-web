@@ -97,6 +97,10 @@ export const seedApi = {
   getSeedDetail: (id: number) => 
     request.get(`/torrent/info/${id}`),
   
+  // 获取磁力链接
+  getMagnetLink: (seedId: number) =>
+    request.get(`/torrent/download/${seedId}`),
+
   // 评分种子
   rateSeed: (seedId: number, rating: number) => 
     request.post("/api/values/ratings", {
@@ -121,10 +125,6 @@ export const seedApi = {
    
      // 创建FormData对象
      const formData = new FormData();
-   
-    
-   
-     // 添加其他字段
      formData.append("torrent_name", data.name);
      formData.append("category_id", categoryId || "0");
      formData.append("torrent_description", data.description);
@@ -133,12 +133,7 @@ export const seedApi = {
      if (data.price !== undefined) {
        formData.append("origin_price", data.price.toString());
      }
-     // formData.append("tag", '1');
-     // formData.append("tag", '2');
-   
-     // if (tagIds && tagIds.length > 0) {
-     //   formData.append("tag", JSON.stringify(tagIds));
-     // }
+
      // 如果tagIds不为空，但长度为0，需要传递一个空数组而不是null
      if (tagIds) {
        // 对于每个标签ID，添加一个单独的tag参数
@@ -146,7 +141,6 @@ export const seedApi = {
          formData.append("tag", tagId.toString()); // 使用tag_ids[]表示这是一个数组
        });
      } else {
-       // 如果没有标签，添加一个空字段
        formData.append("tag", "");
      }
    
@@ -157,10 +151,6 @@ export const seedApi = {
      });
    
      const token = auth.getToken();
-     // console.log("file:", file);
-     // console.log("instanceof File:", file instanceof File);
-     // console.log("file.name:", file.name);
-     // console.log("file.size:", file.size);
      let apiUrl = "";
      // 判断是否使用代理 - 生产环境或指定环境不使用代理
      // const isBrowser = typeof window !== 'undefined';

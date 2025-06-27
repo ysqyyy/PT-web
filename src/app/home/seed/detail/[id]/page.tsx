@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import { useParams, useRouter } from "next/navigation";
-import request from "@/utils/request";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import Navbar from "@/components/Navbar";
 import CommentSection from "@/components/comment/CommentSection";
@@ -17,37 +16,19 @@ export default function SeedDetailPage() {
   const seedId = params?.id?.toString();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [urlload, setUrlLoad] = useState<string>("");
   
   // 使用useSeed hook
-  const { useSeedDetail, rateSeedMutation } = useSeed();
+  const { useSeedDetail, rateSeedMutation, useMagnetLink } = useSeed();
   const { data: seedDetail, isLoading, isError, refetch } = useSeedDetail(seedId ? Number(seedId) : 0);
-  const { mutate: rateSeed } = rateSeedMutation;// 初始化评分
+  const { data: magnetLink } = useMagnetLink(seedId ? Number(seedId) : undefined);
+  const { mutate: rateSeed } = rateSeedMutation;
+
+  // 初始化评分
   React.useEffect(() => {
     if (seedDetail?.score) {
       setRating(seedDetail.score);
     }
   }, [seedDetail]);
-
-  // 获取磁力链接
-  React.useEffect(() => {
-    const fetchMagnetLink = async () => {
-      if (!seedId) return;
-      
-      try {
-        const response = await request.get(`http://localhost:8080/torrent/download/${seedId}`).promise;
-        console.log("获取磁力链接响应:", response);
-        if (response && response.data) {
-          console.log("种子详情磁力链接:", response.data.magnetUrl);
-          setUrlLoad(response.data.magnetUrl || "");
-        }
-      } catch (error) {
-        console.error("获取磁力链接失败:", error);
-      }
-    };
-    
-    fetchMagnetLink();
-  }, [seedId]);
 
   // 提交评分
   const handleSubmitRating = async () => {
@@ -191,7 +172,7 @@ export default function SeedDetailPage() {
               发种人：{seedDetail.publisherName}
             </div>
             <div className="text-sm text-gray-500 mb-1">
-              磁力链接：{urlload}
+              磁力链接：{magnetLink}
             </div>
             <div className="flex flex-wrap gap-2">
               <DownloadBountyButton id={seedDetail.torrentId}/>

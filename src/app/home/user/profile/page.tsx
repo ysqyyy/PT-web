@@ -5,7 +5,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import Navbar from "@/components/Navbar";
 import UserProfileCard from "@/components/user/UserProfileCard";
 import ImageUpload from "@/components/user/ImageUpload";
-import BeginnerHandbook from "@/components/BeginnerHandbook";
+import BeginnerHandbook from "@/components/user/BeginnerHandbook";
 import { useUser } from "@/hooks/useUser";
 
 export default function ProfilePage() {
