@@ -1,48 +1,30 @@
 "use client";
 // pages/dashboard/downloads.tsx
-import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import Navbar from "@/components/Navbar";
-import { getDownloadRecords } from "@/api/download";
-import type { DownloadRecord } from "@/types/download";
+import { useDownload } from "@/hooks/useDownload";
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
 
 export default function DownloadsPage() {
-  const [downloadRecords, setDownloadRecords] = useState<DownloadRecord[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // 获取下载记录
-  useEffect(() => {
-    const fetchDownloadRecords = async () => {
-      try {
-        setLoading(true);
-        const records = await getDownloadRecords();
-        setDownloadRecords(records);
-        setError(null);
-      } catch (err) {
-        console.error("获取下载记录失败:", err);
-        setError("获取下载记录失败，请稍后重试");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDownloadRecords();
-  }, []);
+  const { useDownloadRecords } = useDownload();
+  const { 
+    data: downloadRecords = [], 
+    isLoading, 
+    isError
+  } = useDownloadRecords();
   return (
     <Navbar name="个人中心">
       <DashboardLayout title="我的下载">
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-xl font-semibold mb-4">下载记录</h2>
 
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-10">
               <p>正在加载下载记录...</p>
             </div>
-          ) : error ? (
+          ) : isError ? (
             <div className="text-center py-10 text-red-500">
-              <p>{error}</p>
+              <p>获取下载记录失败，请稍后重试</p>
             </div>
           ) : downloadRecords.length === 0 ? (
             <div className="text-center py-10 text-gray-500">

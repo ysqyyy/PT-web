@@ -177,12 +177,6 @@ export const seedApi = {
      formData.append("torrent_file", file);
        console.log("API URL for torrent file:", apiUrl);
      }
-   
-     // if (useProxy) {
-     //   // 将请求重定向到我们的代理
-     //   apiUrl = `/api/proxy?url=${encodeURIComponent('torrent/upload-torrent')}`;
-     // }
-   
      // 使用axios发送FormData
      const res = await axios.post('http://localhost:8080'+apiUrl, formData, {
        headers: {

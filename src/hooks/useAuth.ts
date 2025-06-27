@@ -1,6 +1,6 @@
 // hooks/useAuth.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authApi } from "@/api/authApi"; // 导入你提供的 API 层
+import { authApi } from "@/apinew/authApi"; // 导入你提供的 API 层
 import auth from "@/utils/auth";
 import { UserInfo } from "@/types/user";
 import eventBus from "@/utils/eventBus";

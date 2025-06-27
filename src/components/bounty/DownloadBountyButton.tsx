@@ -1,7 +1,5 @@
-import { useState } from "react";
-import { toast } from "react-hot-toast";
 import { useDebounceFn } from "@/hooks/useDebounceFn";
-import { downloadResource } from "@/api/download";
+import { useDownload } from "@/hooks/useDownload"; // 假设下载API在这个路径
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import { Download } from "lucide-react";
 
@@ -20,35 +18,32 @@ export default function DownloadBountyButton({
   hoverColor = BUTTON_STYLES.COLORS.secondary.hover, // 接收但不使用该参数
   onSuccess,
 }: DownloadBountyButtonProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const { downloadResourceMutation } = useDownload();
 
   // 下载资源
   const handleDownload = async () => {
     if (!id) return;
-    
-    try {
-      setIsLoading(true);
-      await downloadResource(id);
-      toast.success("资源下载已开始");
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
-      console.error("下载错误:", error);
-      toast.error("下载失败，请稍后重试");
-    } finally {
-      setIsLoading(false);
+    await downloadResourceMutation.mutateAsync(id);
+    // 成功的 toast 已经在 mutation 中处理
+    if (onSuccess) {
+      onSuccess();
     }
   };
   const debouncedHandleDownload = useDebounceFn(handleDownload, 800);
 
   return (
     <button
-      className={`${BUTTON_STYLES.STANDARD.padding} bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 py-2 px-4 flex items-center justify-center gap-1.5 cursor-pointer ${isLoading ? 'opacity-70' : ''}`}
+      className={`${
+        BUTTON_STYLES.STANDARD.padding
+      } bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 py-2 px-4 flex items-center justify-center gap-1.5 cursor-pointer ${
+        downloadResourceMutation.isPending
+          ? "opacity-70 cursor-not-allowed"
+          : ""
+      }`}
       onClick={debouncedHandleDownload}
-      disabled={isLoading}
+      disabled={downloadResourceMutation.isPending}
     >
-      {isLoading ? (
+      {downloadResourceMutation.isPending ? (
         <>
           <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
           <span>下载中...</span>

@@ -1,6 +1,6 @@
 // hooks/useSeed.ts
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
-import { seedApi } from "@/api/seedApi"; 
+import { seedApi } from "@/apinew/seedApi"; 
 import type { publishSeedData, SeedDetail, getSeedListParams } from "@/types/seed";
 import { getCategoryNameById } from "@/constants/categories";
 import { getTagNameById } from "@/constants/tags";

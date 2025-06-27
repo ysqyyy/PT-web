@@ -1,15 +1,16 @@
 "use client";
 import React, { useState } from "react";
-import Navbar from "../../../../../components/Navbar";
+import { toast, Toaster } from "react-hot-toast";
 import { useParams, useRouter } from "next/navigation";
-import { useSeed } from "@/hooks/useSeed";
+import request from "@/utils/request";
+import { BUTTON_STYLES } from "@/constants/buttonStyles";
+import Navbar from "@/components/Navbar";
 import CommentSection from "@/components/comment/CommentSection";
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
-import { BUTTON_STYLES } from "@/constants/buttonStyles";
-import { toast, Toaster } from "react-hot-toast";
+import { useSeed } from "@/hooks/useSeed";
 import { getConversations } from "@/api/message";
 import { Conversation } from "@/types/message";
-import request from "@/utils/request";
+
 export default function SeedDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -20,11 +21,7 @@ export default function SeedDetailPage() {
   
   // 使用useSeed hook
   const { useSeedDetail, rateSeedMutation } = useSeed();
-  
-  // 获取种子详情
   const { data: seedDetail, isLoading, isError, refetch } = useSeedDetail(seedId ? Number(seedId) : 0);
-  
-  // 处理评分
   const { mutate: rateSeed } = rateSeedMutation;// 初始化评分
   React.useEffect(() => {
     if (seedDetail?.score) {
