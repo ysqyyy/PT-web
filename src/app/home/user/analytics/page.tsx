@@ -1,13 +1,11 @@
 "use client";
 // pages/dashboard/analytics.tsx
-import { useEffect, useState } from "react";
 import DashboardLayout from "../../../../components/DashboardLayout";
-import { Line, Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend, BarElement } from "chart.js";
 import Navbar from "@/components/Navbar";
-import { getAnalyticsDashboard } from "@/api/analytics";
-import type { AnalyticsData } from "@/types/analytics";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAdmin } from "@/hooks/useAdmin";
 
 // 注册 chart.js 插件
 ChartJS.register(
@@ -22,28 +20,16 @@ ChartJS.register(
 );
 
 export function AnalyticsPage() {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const { useAnalyticsDashboard } = useAdmin();
+  
   // 获取数据分析数据
-  useEffect(() => {
-    const fetchAnalyticsData = async () => {
-      try {
-        setLoading(true);
-        const data = await getAnalyticsDashboard();
-        setAnalyticsData(data);
-        setError(null);
-      } catch (err) {
-        console.error("获取数据分析失败:", err);
-        setError("获取数据分析失败，请稍后重试");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnalyticsData();
-  }, []);
+  const {
+    data: analyticsData,
+    isLoading: loading,
+    error: queryError
+  } = useAnalyticsDashboard();
+  
+  const error = queryError ? "获取数据分析失败，请稍后重试" : null;
 
   // 获取最近4个月的标签
   const getMonthLabels = (): string[] => {

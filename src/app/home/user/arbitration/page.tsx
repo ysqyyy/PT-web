@@ -1,52 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import DashboardLayout from "@/components/DashboardLayout";
-import toast, { Toaster } from "react-hot-toast";
-import {
-  getArbitrationBounties,
-  rejectArbitration,
-  approveArbitration,
-} from "@/api/arbitration";
+import { Toaster } from "react-hot-toast";
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
-import type { ArbitrationBounty } from "@/types/bounty";
-import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useArbitration } from "@/hooks/useArbitration";
 export function ArbitrationPage() {
-  const [bounties, setBounties] = useState<ArbitrationBounty[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    getArbitrationBounties().then(setBounties);
-  }, []);
+  const { 
+    useArbitrationBounties,
+    rejectArbitrationMutation,
+    approveArbitrationMutation
+  } = useArbitration();
+    // 获取仲裁列表
+  const { 
+    data: bounties = []
+  } = useArbitrationBounties();
 
   // 驳回仲裁
-  const handleReject = async (submissionId: number) => {
+  const handleReject = (submissionId: number) => {
     if (!window.confirm("确定要驳回该仲裁请求吗？")) return;
-    setLoading(true);
-    try {
-      await rejectArbitration(submissionId);
-      toast.success("已驳回仲裁请求");
-      setBounties(bounties.filter((b) => b.submissionId !== submissionId));
-    } catch {
-      toast.error("操作失败");
-    } finally {
-      setLoading(false);
-    }
-  }; // 同意仲裁
-  const handleApprove = async (submissionId: number) => {
+    rejectArbitrationMutation.mutate(submissionId);
+  };
+
+  // 同意仲裁
+  const handleApprove = (submissionId: number) => {
     if (!window.confirm("确定要同意该仲裁请求吗？")) return;
-    setLoading(true);
-    try {
-      await approveArbitration(submissionId);
-      toast.success("已同意仲裁请求");
-      setBounties(bounties.filter((b) => b.submissionId !== submissionId));
-    } catch {
-      toast.error("操作失败");
-    } finally {
-      setLoading(false);
-    }
+    approveArbitrationMutation.mutate(submissionId);
   };
 
   return (
@@ -88,11 +68,11 @@ export function ArbitrationPage() {
                       <td className="px-4 py-2 space-x-2">
                         <div className="flex gap-2">
                           <button
-                            className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
+                            className="bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2"
                             onClick={() =>
                               handleApprove(item.submissionId || 0)
                             }
-                            disabled={loading}
+                            disabled={approveArbitrationMutation.isPending || rejectArbitrationMutation.isPending}
                           >
                             <span className="flex items-center justify-center gap-1.5">
                               同意仲裁
@@ -102,7 +82,7 @@ export function ArbitrationPage() {
                           <button
                             className="px-4 py-2 cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
                             onClick={() => handleReject(item.submissionId || 0)}
-                            disabled={loading}
+                            disabled={approveArbitrationMutation.isPending || rejectArbitrationMutation.isPending}
                           >
                             <span className="flex items-center justify-center gap-1.5">
                               驳回仲裁

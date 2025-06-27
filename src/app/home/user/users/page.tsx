@@ -1,19 +1,13 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { Table, Button, Select, message, Modal } from "antd";
+import { useState } from "react";
+import { Table, Button, Select, Modal } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import Navbar from "@/components/Navbar";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import {
-  getAllUsers,
-  setUserLevel,
-  getAllReports,
-  handleReport,
-  UserItem,
-  ReportItem,
-} from "@/api/admin";
+import { useAdmin } from "@/hooks/useAdmin";
+import { UserItem, ReportItem } from "@/apinew/adminApi";
 
 const levelOptions = [
   { value: 1, label: "1" },
@@ -25,55 +19,36 @@ const levelOptions = [
 ];
 
 export function UsersPage() {
-  // 用户管理
-  const [users, setUsers] = useState<UserItem[]>([]);
-  const [userLoading, setUserLoading] = useState(false);
+  // 使用useAdmin钩子
+  const { 
+    useAllUsers, 
+    useAllReports, 
+    setUserLevelMutation, 
+    handleReportMutation 
+  } = useAdmin();
+  
+  // 获取用户数据
+  const { 
+    data: users = [], 
+    isLoading: userLoading 
+  } = useAllUsers();
+  
+  // 获取举报数据
+  const { 
+    data: reports = [], 
+    isLoading: reportLoading 
+  } = useAllReports();
+
+  // 用户等级修改相关状态
   const [levelModal, setLevelModal] = useState<{ open: boolean; userId: number | null }>({ open: false, userId: null });
   const [selectedLevel, setSelectedLevel] = useState<number>(1);
 
-  // 举报管理
-  const [reports, setReports] = useState<ReportItem[]>([]);
-  const [reportLoading, setReportLoading] = useState(false);
-
-  // 加载数据
-  useEffect(() => {
-    fetchUsers();
-    fetchReports();
-  }, []);
-
-  const fetchUsers = async () => {
-    setUserLoading(true);
-    try {
-      const data = await getAllUsers();
-      setUsers(data);
-    } catch {
-      message.error("获取用户失败");
-    } finally {
-      setUserLoading(false);
-    }
-  };
-
-  const fetchReports = async () => {
-    setReportLoading(true);
-    try {
-      const data = await getAllReports();
-      setReports(data);
-    } catch {
-      message.error("获取举报失败");
-    } finally {
-      setReportLoading(false);
-    }
-  };
-
   // 设置为管理员
-  const handleSetAdmin = async (userId: number) => {
-    try {
-      await setUserLevel(userId, 7);
-      message.success("设置为管理员成功");
-      fetchUsers();
-    } catch {
-      message.error("操作失败");
-    }
+  const handleSetAdmin = (userId: number) => {
+    setUserLevelMutation.mutate({ 
+      userId, 
+      level: 7 
+    });
   };
 
   // 用户降级
@@ -86,29 +61,27 @@ export function UsersPage() {
     setSelectedLevel(value);
   };
 
-  const handleLevelSubmit = async () => {
+  const handleLevelSubmit = () => {
     if (levelModal.userId == null) return;
-    try {
-      await setUserLevel(levelModal.userId, selectedLevel);
-      message.success("用户等级已修改");
-      setLevelModal({ open: false, userId: null });
-      fetchUsers();
-    } catch {
-      message.error("操作失败");
-    }
+    
+    setUserLevelMutation.mutate({ 
+      userId: levelModal.userId, 
+      level: selectedLevel 
+    }, {
+      onSuccess: () => {
+        setLevelModal({ open: false, userId: null });
+      }
+    });
   };
 
   // 举报同意
-  const handleAgree = async (record: ReportItem) => {
-    try {
-      await handleReport(record.reportId, record.reportedUserId, record.commentId);
-      message.success("举报处理成功");
-      fetchReports();
-    } catch {
-      message.error("操作失败");
-    }
+  const handleAgree = (record: ReportItem) => {
+    handleReportMutation.mutate({
+      reportId: record.reportId,
+      userId: record.reportedUserId,
+      commentId: record.commentId
+    });
   };
-
   // 用户管理表格
   const userColumns: ColumnsType<UserItem> = [
     { title: "用户名", dataIndex: "userName", key: "userName" },
@@ -121,10 +94,20 @@ export function UsersPage() {
       key: "action",
       render: (_, record) => (
           <div>
-            <Button size="small" onClick={() => handleSetAdmin(record.userId)} style={{ marginRight: 8 }}>
+            <Button 
+              size="small" 
+              onClick={() => handleSetAdmin(record.userId)} 
+              style={{ marginRight: 8 }}
+              loading={setUserLevelMutation.isPending}
+              disabled={setUserLevelMutation.isPending}
+            >
               设置为管理员
             </Button>
-            <Button size="small" onClick={() => handleShowLevelModal(record.userId)}>
+            <Button 
+              size="small" 
+              onClick={() => handleShowLevelModal(record.userId)}
+              disabled={setUserLevelMutation.isPending}
+            >
               用户降级
             </Button>
           </div>
@@ -144,7 +127,13 @@ export function UsersPage() {
       title: "操作",
       key: "action",
       render: (_, record) => (
-          <Button size="small" type="primary" onClick={() => handleAgree(record)}>
+          <Button 
+            size="small" 
+            type="primary" 
+            onClick={() => handleAgree(record)}
+            loading={handleReportMutation.isPending}
+            disabled={handleReportMutation.isPending}
+          >
             同意
           </Button>
       ),
@@ -173,12 +162,12 @@ export function UsersPage() {
                 loading={reportLoading}
                 pagination={false}
             />
-          </div>
-          <Modal
+          </div>          <Modal
               open={levelModal.open}
               title="用户降级"
               onCancel={() => setLevelModal({ open: false, userId: null })}
               onOk={handleLevelSubmit}
+              confirmLoading={setUserLevelMutation.isPending}
           >
             <Select
                 style={{ width: "100%" }}
@@ -186,6 +175,7 @@ export function UsersPage() {
                 onChange={handleLevelChange}
                 options={levelOptions}
                 placeholder="请选择降级等级"
+                disabled={setUserLevelMutation.isPending}
             />
           </Modal>
         </DashboardLayout>

@@ -9,7 +9,7 @@ export async function getConversations(): Promise<Conversation[]> {
   try {
     const response = await request.get(
         "/api/messages/conversations"
-    );
+    ).promise;
     // 打印返回内容，调试用
     console.log("getConversations返回：", response);
 
@@ -54,7 +54,7 @@ export async function getConversationMessages(
   try {
     const response = await request.get(
         `/api/messages/conversations/${conversationId}`
-    );
+    ).promise;
     console.log("getConversationMessages返回：", response);
 
     const arr = response?.data?.data || response?.data || [];
@@ -96,7 +96,7 @@ export async function sendMessage(message: {
     const response = await request.post(
         "/api/messages/send",
         { data: message }
-    );
+    ).promise;
     return response.data;
   } catch (error) {
     console.error("发送消息失败:", error);
@@ -113,7 +113,7 @@ export async function markMessageAsRead(
     messageId: string
 ): Promise<{ success: boolean }> {
   try {
-    await request.put(`/api/messages/${messageId}/read`);
+    await request.put(`/api/messages/${messageId}/read`).promise;
     return { success: true };
   } catch (error) {
     console.error("标记消息已读失败:", error);
@@ -135,7 +135,7 @@ export async function createConversation(
         {
           data: { participantId: userId },
         }
-    );
+    ).promise;
     return response.data;
   } catch (error) {
     console.error("创建对话失败:", error);

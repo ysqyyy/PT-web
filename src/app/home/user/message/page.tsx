@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import DashboardLayout from "@/components/DashboardLayout";
 import Navbar from "@/components/Navbar";
 import {
@@ -12,7 +11,7 @@ import {
 import { useMessageService } from "@/services/useMessageService";
 import { useMessageStore } from "@/store/messageStore";
 import { Conversation, Message } from "@/types/message";
-import { getUserProfile } from "@/api/user";
+import { useUser } from "@/hooks/useUser";
 import { sendMessageWS } from "@/services/messageService";
 
 export default function MessagePage() {
@@ -41,38 +40,34 @@ export default function MessagePage() {
   // 滚动到底部的ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // 使用useUser hook获取用户资料
+  const { useUserProfile } = useUser();
+  const { data: userProfile, isLoading: isLoadingUserProfile } = useUserProfile();
+
   // 获取用户信息并连接WebSocket
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const userProfile = await getUserProfile();
-        setCurrentUser({
-          id: userProfile.id,
-          username: userProfile.username,
-          avatarUrl: userProfile.avatarUrl,
-        });
+    if (userProfile) {
+      // 当用户资料加载完成后设置用户信息
+      setCurrentUser({
+        id: userProfile.id,
+        username: userProfile.username,
+        avatarUrl: userProfile.avatarUrl,
+      });      // 连接WebSocket
+      messageService.connect(
+          userProfile.id.toString(),
+          localStorage.getItem("token") || ""
+      );
 
-        // 连接WebSocket
-        messageService.connect(
-            userProfile.id.toString(),
-            localStorage.getItem("token") || ""
-        );
-
-        // 加载会话列表
-        loadConversations();
-      } catch (error) {
-        console.error("获取用户信息失败:", error);
-      }
-    };
-
-    fetchUserProfile();
+      // 加载会话列表
+      loadConversations();
+    }
 
     // 组件卸载时断开WebSocket连接
     return () => {
       messageService.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userProfile]);
 
   // 监听WebSocket消息事件
   useEffect(() => {
