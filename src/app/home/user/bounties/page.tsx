@@ -1,16 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { MyBounty, AppendedBounty, SubmittedBounty } from "@/types/bounty";
 import DashboardLayout from "@/components/DashboardLayout";
-import {
-  getMyBounties,
-  cancelBounty,
-  confirmBounty,
-  arbitrateBounty,
-  getMyAppendedBounties,
-  getMySubmittedBounties,
-} from "@/api/bounties";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "@/components/Navbar";
 import { useDebounceFn } from "@/hooks/useDebounceFn";
@@ -20,46 +12,60 @@ import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
 import PublishBountyButton from "@/components/bounty/PublishBountyButton";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import { X, Check, FileUp } from "lucide-react";
+import { useBounty } from "@/hooks/useBounty";
 
 export default function MyBountiesPage() {
-  const [bounties, setBounties] = useState<MyBounty[]>([]);
-  const [appendedBounties, setAppendedBounties] = useState<AppendedBounty[]>(
-    []
-  );
-  const [submittedBounties, setSubmittedBounties] = useState<SubmittedBounty[]>(
-    []
-  );
-  const [activeTab, setActiveTab] = useState<
-    "published" | "appended" | "submitted"
-  >("published");
+  const {
+    useMyBounties,
+    useMyAppendedBounties,
+    useMySubmittedBounties,
+    cancelBountyMutation,
+    confirmBountyMutation,
+    arbitrateBountyMutation,
+  } = useBounty();
+
+  // 使用React Query获取数据
+  const { data: bounties = [], refetch: refetchMyBounties, isLoading: isLoadingMyBounties } = useMyBounties();
+  const { data: appendedBounties = [], refetch: refetchAppendedBounties, isLoading: isLoadingAppendedBounties } = useMyAppendedBounties();
+  const { data: submittedBounties = [], refetch: refetchSubmittedBounties, isLoading: isLoadingSubmittedBounties } = useMySubmittedBounties();
+
+  const [activeTab, setActiveTab] = useState<"published" | "appended" | "submitted">("published");
+
   // 仲裁弹窗相关状态
   const [showArbitrateModal, setShowArbitrateModal] = useState(false);
   const [arbitrateId, setArbitrateId] = useState<number | null>(null);
   const [arbitrateReason, setArbitrateReason] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = () => {
-    getMyBounties().then(setBounties);
-    getMyAppendedBounties().then(setAppendedBounties);
-    getMySubmittedBounties().then(setSubmittedBounties);
+  // 重新加载所有数据
+  const refreshAllData = () => {
+    refetchMyBounties();
+    refetchAppendedBounties();
+    refetchSubmittedBounties();
   };
+
   // 取消求种请求
   const handleCancel = async (bountyId: number) => {
     if (!window.confirm("确定要取消该求种请求吗？")) return;
-    await cancelBounty(bountyId);
-    toast.success("rejected求种请求");
-    loadData();
+    cancelBountyMutation.mutate(bountyId, {
+      onSuccess: () => {
+        toast.success("已取消求种请求");
+        refreshAllData();
+      },
+    });
   };
+
   // 确认资源成功
   const handleConfirm = async (submissionId: number) => {
     if (!window.confirm("确定要确认资源吗？")) return;
-    await confirmBounty(submissionId);
-    toast.success("已确认资源成功");
-    loadData();
-  }; // 打开仲裁弹窗
+    confirmBountyMutation.mutate(submissionId, {
+      onSuccess: () => {
+        toast.success("已确认资源成功");
+        refreshAllData();
+      },
+    });
+  };
+
+  // 打开仲裁弹窗
   const openArbitrateModal = (submissionId: number) => {
     setArbitrateId(submissionId);
     setArbitrateReason("");
@@ -74,34 +80,40 @@ export default function MyBountiesPage() {
   // 仲裁（弹窗提交）
   const handleArbitrate = async () => {
     if (!arbitrateId || !arbitrateReason) return;
-    await arbitrateBounty(arbitrateId, arbitrateReason);
-    toast.success("已提交仲裁申请");
-    closeArbitrateModal();
-    loadData();
+    arbitrateBountyMutation.mutate(
+      { submissionId: arbitrateId, reason: arbitrateReason },
+      {
+        onSuccess: () => {
+          toast.success("已提交仲裁申请");
+          closeArbitrateModal();
+          refreshAllData();
+        },
+      }
+    );
   };
-  // 取消求种请求 - 防抖处理
+
+  // 防抖处理
   const debouncedHandleCancel = useDebounceFn(
     (bountyId: unknown) => handleCancel(bountyId as number),
     800
   );
-  // 确认资源成功 - 防抖处理
   const debouncedHandleConfirm = useDebounceFn(
     (submissionId: unknown) => handleConfirm(submissionId as number),
     800
   );
-  // 打开仲裁弹窗 - 防抖处理
   const debouncedOpenArbitrateModal = useDebounceFn(
     (submissionId: unknown) => openArbitrateModal(submissionId as number),
     800
-  ); // 关闭仲裁弹窗 - 防抖处理
-  const debouncedCloseArbitrateModal = useDebounceFn(closeArbitrateModal, 800); // 仲裁（弹窗提交）- 防抖处理
+  );
+  const debouncedCloseArbitrateModal = useDebounceFn(closeArbitrateModal, 800);
   const debouncedHandleArbitrate = useDebounceFn(handleArbitrate, 800);
 
   return (
     <Navbar name="个人中心">
       <DashboardLayout title="我的悬赏">
         <div className="bg-white rounded-xl shadow p-6">
-          <Toaster position="top-center" /> {/* 选项卡 */}
+          <Toaster position="top-center" />
+          {/* 选项卡 */}
           <div className="mb-4 flex border-b">
             <button
               className={`px-4 py-2 font-medium ${
@@ -138,7 +150,7 @@ export default function MyBountiesPage() {
           {activeTab === "published" && (
             <div className="flex justify-between mb-4">
               <b className="text-lg">我的悬赏</b>
-              <PublishBountyButton onSuccess={loadData} />
+              <PublishBountyButton onSuccess={refreshAllData} />
             </div>
           )}
           {/* 表格 */}
@@ -168,69 +180,83 @@ export default function MyBountiesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {bounties.map((item, index) => (
-                      <tr key={`published-${item.bountyId}-${index}`}>
-                        <td className="px-4 py-2">{item.name}</td>
-                        <td className="px-4 py-2">
-                          <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
-                            {item.description}
-                          </div>
-                        </td>
-                        <td className="px-4 py-2">{item.reward_amount}元</td>
-                        <td className="px-4 py-2">{item.total_amount} 元</td>
-                        <td className="px-4 py-2">{item.status}</td>
-                        <td className="px-4 py-2 space-x-2">
-                          {/* pending显示追加和取消 */}
-                          {item.status === "pending" && (
-                            <div className="flex flex-col space-y-2">
-                              <AppendBountyButton
-                                bountyId={item.bountyId || 0}
-                                onSuccess={loadData}
-                                className={`${BUTTON_STYLES.STANDARD.padding} w-auto inline-block`}
-                              />
-                              <button
-                                className="px-4 py-2 cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
-                                onClick={() =>
-                                  debouncedHandleCancel(item.bountyId)
-                                }
-                              >
-                                <span>取消求种</span>
-                              </button>
-                            </div>
-                          )}
-                          {/* unconfirmed显示确认资源和仲裁 */}
-                          {item.status === "unconfirmed" && (
-                            <div className="flex flex-col space-y-2">
-                              <button
-                                className={`bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 inline-block flex items-center justify-center gap-1.5`}
-                                onClick={() =>
-                                  debouncedHandleConfirm(item.submissionId)
-                                }
-                              >
-                                <Check size={16} />
-                                确认资源
-                              </button>
-                              <button
-                                className={`bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 inline-block flex items-center justify-center gap-1.5`}
-                                onClick={() =>
-                                  debouncedOpenArbitrateModal(item.submissionId)
-                                }
-                              >
-                                <FileUp size={16} />
-                                申请仲裁
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-2">
-                          {(item.status === "unconfirmed" ||
-                            item.status === "approved" ||
-                            item.status === "under_review") && (
-                            <DownloadBountyButton id={item.torrentId || 0} />
-                          )}
+                    {isLoadingMyBounties ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
+                          加载中...
                         </td>
                       </tr>
-                    ))}
+                    ) : bounties.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
+                          暂无数据
+                        </td>
+                      </tr>
+                    ) : (
+                      bounties.map((item, index) => (
+                        <tr key={`published-${item.bountyId}-${index}`}>
+                          <td className="px-4 py-2">{item.name}</td>
+                          <td className="px-4 py-2">
+                            <div className="max-w-[200px] overflow-x-auto whitespace-nowrap">
+                              {item.description}
+                            </div>
+                          </td>
+                          <td className="px-4 py-2">{item.reward_amount}元</td>
+                          <td className="px-4 py-2">{item.total_amount} 元</td>
+                          <td className="px-4 py-2">{item.status}</td>
+                          <td className="px-4 py-2 space-x-2">
+                            {/* pending显示追加和取消 */}
+                            {item.status === "pending" && (
+                              <div className="flex flex-col space-y-2">
+                                <AppendBountyButton
+                                  bountyId={item.bountyId || 0}
+                                  onSuccess={refreshAllData}
+                                  className={`${BUTTON_STYLES.STANDARD.padding} w-auto inline-block`}
+                                />
+                                <button
+                                  className="px-4 py-2 cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
+                                  onClick={() =>
+                                    debouncedHandleCancel(item.bountyId)
+                                  }
+                                >
+                                  <span>取消求种</span>
+                                </button>
+                              </div>
+                            )}
+                            {/* unconfirmed显示确认资源和仲裁 */}
+                            {item.status === "unconfirmed" && (
+                              <div className="flex flex-col space-y-2">
+                                <button
+                                  className={`bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 inline-block flex items-center justify-center gap-1.5`}
+                                  onClick={() =>
+                                    debouncedHandleConfirm(item.submissionId)
+                                  }
+                                >
+                                  <Check size={16} />
+                                  确认资源
+                                </button>
+                                <button
+                                  className={`bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 inline-block flex items-center justify-center gap-1.5`}
+                                  onClick={() =>
+                                    debouncedOpenArbitrateModal(item.submissionId)
+                                  }
+                                >
+                                  <FileUp size={16} />
+                                  申请仲裁
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-2">
+                            {(item.status === "unconfirmed" ||
+                              item.status === "approved" ||
+                              item.status === "under_review") && (
+                              <DownloadBountyButton id={item.torrentId || 0} />
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -275,20 +301,18 @@ export default function MyBountiesPage() {
                         <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 space-x-2">
                           {item.status === "pending" && (
-                            <>
-                              <div className="flex space-x-2">
-                                <AppendBountyButton
-                                  bountyId={item.bountyId || 0}
-                                  onSuccess={loadData}
-                                  className="inline-block"
-                                />
-                                <SubmitSeedButton
-                                  bountyId={item.bountyId || 0}
-                                  onSuccess={loadData}
-                                  className="inline-block"
-                                />
-                              </div>
-                            </>
+                            <div className="flex space-x-2">
+                              <AppendBountyButton
+                                bountyId={item.bountyId || 0}
+                                onSuccess={refreshAllData}
+                                className="inline-block"
+                              />
+                              <SubmitSeedButton
+                                bountyId={item.bountyId || 0}
+                                onSuccess={refreshAllData}
+                                className="inline-block"
+                              />
+                            </div>
                           )}
                         </td>
                         <td className="px-4 py-2">
@@ -337,7 +361,6 @@ export default function MyBountiesPage() {
                         <td className="px-4 py-2">{item.publisher}</td>
                         <td className="px-4 py-2">{item.total_amount} 元</td>
                         <td className="px-4 py-2">{item.status}</td>
-
                         <td className="px-4 py-2">
                           {(item.status === "unconfirmed" ||
                             item.status === "approved" ||

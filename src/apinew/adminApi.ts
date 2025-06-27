@@ -16,8 +16,23 @@ export interface ReportsResponse {
 
 export interface ActionResponse {
   code: number;
-  message: string;  data: {
+  message: string;  
+  data: {
     success: boolean;
+  };
+}
+
+export interface ReviewsResponse {
+  code: number;
+  message: string;
+  data: {
+    list: Array<{
+      torrentId: number;
+      torrentName: string;
+      torrentDescription: string;
+      uploaderName: string;
+      uploadTime: string;
+    }>;
   };
 }
 
@@ -76,9 +91,39 @@ export const adminApi = {
       reportId,
       userId,
       commentId,
-    }),    /**
-     * 获取数据分析仪表盘数据
-     */
-    getAnalyticsDashboard: () => 
-      request.get<AnalyticsData>('/analyse/summary')
+    }),
+    
+  /**
+   * 获取数据分析仪表盘数据
+   */
+  getAnalyticsDashboard: () => 
+    request.get<AnalyticsData>('/analyse/summary'),
+    
+  /**
+   * 获取待审核资源列表
+   */
+  getPendingReviews: () => 
+    request.get<ReviewsResponse>('/api/admin/torrents/pending'),
+  
+  /**
+   * 批准资源
+   * @param id 资源ID
+   */
+  approveResource: (id: number) => 
+    request.post<ActionResponse>('/api/admin/review', {
+      torrentId: id,
+      action: "approve"
+    }),
+  
+  /**
+   * 拒绝资源
+   * @param id 资源ID
+   * @param reason 拒绝原因
+   */
+  rejectResource: (id: number, reason: string) => 
+    request.post<ActionResponse>('/api/admin/review', {
+      torrentId: id,
+      action: "reject",
+      reason: reason
+    })
 };

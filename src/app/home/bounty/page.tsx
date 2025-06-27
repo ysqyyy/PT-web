@@ -1,34 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { BountyListItem } from "@/types/bounty";
-import { getBountyList } from "@/api/bounties";
 import Navbar from "@/components/Navbar";
 import { Toaster } from "react-hot-toast";
 import AppendBountyButton from "@/components/bounty/AppendBountyButton";
 import SubmitSeedButton from "@/components/bounty/SubmitSeedButton";
 import PublishBountyButton from "@/components/bounty/PublishBountyButton";
 import { Coins, User, FileText } from "lucide-react";
+import { useBounty } from "@/hooks/useBounty";
 
 export default function BountyPage() {
-  const [bounties, setBounties] = useState<BountyListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchBounties();
-  }, []);
-
-  const fetchBounties = async () => {
-    setLoading(true);
-    try {
-      const data = await getBountyList();
-      setBounties(data);
-    } catch (error) {
-      console.error("获取悬赏列表失败", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { useBountyList } = useBounty();
+  
+  // 使用 React Query 获取悬赏列表
+  const { data: bounties = [], isLoading, refetch } = useBountyList();
 
   // 获取状态的中文名称
   const getStatusName = (status: string | undefined) => {
@@ -58,11 +42,11 @@ export default function BountyPage() {
             资源悬赏
           </h1>
           <div className="flex items-center gap-2">
-            <PublishBountyButton onSuccess={fetchBounties} className="transform hover:scale-105 transition-all duration-300 shadow-md hover:shadow-lg" />
+            <PublishBountyButton onSuccess={refetch} className="transform hover:scale-105 transition-all duration-300 shadow-md hover:shadow-lg" />
           </div>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="flex flex-col items-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#5E8B7E] shadow-md"></div>
@@ -141,16 +125,15 @@ export default function BountyPage() {
                     </div>
                     
                     {item.status === "pending" && (
-                      <div className="flex flex-col gap-3 md:ml-6 mt-5 md:mt-0">
-                        <SubmitSeedButton
+                      <div className="flex flex-col gap-3 md:ml-6 mt-5 md:mt-0">                        <SubmitSeedButton
                           bountyId={item.bountyId || 0}
-                          onSuccess={() => fetchBounties()}
+                          onSuccess={() => refetch()}
                           bgColor="bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F]"
                           hoverColor="hover:from-[#4F7A6F] hover:to-[#3D685F]"
                         />
                         <AppendBountyButton
                           bountyId={item.bountyId || 0}
-                          onSuccess={() => fetchBounties()}
+                          onSuccess={() => refetch()}
                           bgColor="bg-gradient-to-r from-[#6B7C79] to-[#556B66]"
                           hoverColor="hover:from-[#556B66] hover:to-[#455A56]"
                         />

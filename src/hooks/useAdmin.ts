@@ -2,8 +2,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/apinew/adminApi";
 import { toast } from "react-hot-toast";
+import { ReviewItem } from "@/types/review";
+
 /**
- * 管理员功能相关的 hook，包含用户管理、举报管理、查看数据分析等功能
+ * 管理员功能相关的 hook，包含用户管理、举报管理、查看数据分析、资源审核等功能
  */
 export function useAdmin() {
   const queryClient = useQueryClient();
@@ -96,7 +98,6 @@ export function useAdmin() {
   const isAdmin = (userRole?: string) => {
     return userRole === "admin" || userRole === "super_admin";
   };
-
   // 获取数据分析仪表盘数据
   const useAnalyticsDashboard = () =>
     useQuery({
@@ -123,6 +124,62 @@ export function useAdmin() {
       staleTime: 10 * 60 * 1000, // 10分钟缓存
       refetchOnWindowFocus: false,
     });
+    
+  // 获取待审核资源
+  const usePendingReviews = () => 
+    useQuery({
+      queryKey: ["admin", "reviews"],
+      queryFn: async () => {
+        try {
+          const response = await adminApi.getPendingReviews().promise;
+          // 将API返回的数据转换为前端需要的格式
+          return response.data.list.map(item => ({
+            id: item.torrentId,
+            name: item.torrentName,
+            description: item.torrentDescription,
+            uploader: item.uploaderName,
+            date: item.uploadTime,
+          } as ReviewItem)) || [];
+        } catch (error) {
+          console.error("获取待审核资源失败:", error);
+          throw error;
+        }
+      },
+      staleTime: 2 * 60 * 1000, // 2分钟缓存
+      refetchOnWindowFocus: false,
+    });
+  
+  // 批准资源
+  const approveResourceMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return adminApi.approveResource(id);
+    },
+    onSuccess: () => {
+      toast.success("资源已批准");
+      // 重新获取待审核资源列表
+      queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] });
+    },
+    onError: (error) => {
+      console.error("批准资源失败:", error);
+      toast.error(`批准失败: ${error instanceof Error ? error.message : "未知错误"}`);
+    },
+  });
+  
+  // 拒绝资源
+  const rejectResourceMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      return adminApi.rejectResource(id, reason);
+    },
+    onSuccess: () => {
+      toast.success("资源已拒绝");
+      // 重新获取待审核资源列表
+      queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] });
+    },
+    onError: (error) => {
+      console.error("拒绝资源失败:", error);
+      toast.error(`拒绝失败: ${error instanceof Error ? error.message : "未知错误"}`);
+    },
+  });
 
   return {
     useAllUsers,
@@ -131,5 +188,8 @@ export function useAdmin() {
     handleReportMutation,
     isAdmin,
     useAnalyticsDashboard,
+    usePendingReviews,
+    approveResourceMutation,
+    rejectResourceMutation,
   };
 }

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import toast from "react-hot-toast";
-import { publishBounty } from "@/api/bounties";
 import { categoryMap } from "@/constants/categories";
 import { tagMap } from "@/constants/tags";
 import { Coins, X, Tag, FileText, HelpCircle } from "lucide-react";
+import { useBounty } from "@/hooks/useBounty";
 
 interface PublishBountyButtonProps {
   onSuccess?: () => void;
@@ -13,15 +13,15 @@ interface PublishBountyButtonProps {
 
 export default function PublishBountyButton({
   onSuccess,
-  className = '',
+  className = "",
 }: PublishBountyButtonProps) {
+  const { publishBountyMutation } = useBounty();
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
   const [category, setCategory] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const openModal = () => {
     setTitle("");
@@ -31,7 +31,7 @@ export default function PublishBountyButton({
     setSelectedTags([]);
     setShowModal(true);
   };
-  
+
   const closeModal = () => {
     setShowModal(false);
     setTitle("");
@@ -40,30 +40,25 @@ export default function PublishBountyButton({
     setCategory("");
     setSelectedTags([]);
   };
-  
   const handlePublish = async () => {
     if (!title || !amount || !category) {
       toast.error("请填写完整信息");
       return;
     }
-    
-    setLoading(true);
-    try {
-      await publishBounty(title, Number(amount), desc, category, selectedTags);
-      toast.success("已发布悬赏");
-      closeModal();
-      onSuccess?.();
-    } catch (err) {
-      toast.error("发布失败");
-      console.error("发布悬赏失败:", err);
-    } finally {
-      setLoading(false);
-    }
+    await publishBountyMutation.mutateAsync({
+      title,
+      bounty: Number(amount),
+      description: desc,
+      category,
+      tags: selectedTags,
+    });
+    closeModal();
+    onSuccess?.();
   };
 
   const toggleTag = (tagId: string) => {
     if (selectedTags.includes(tagId)) {
-      setSelectedTags(selectedTags.filter(id => id !== tagId));
+      setSelectedTags(selectedTags.filter((id) => id !== tagId));
     } else {
       if (selectedTags.length < 5) {
         setSelectedTags([...selectedTags, tagId]);
@@ -74,7 +69,9 @@ export default function PublishBountyButton({
   };
 
   return (
-    <>      <button
+    <>
+      {" "}
+      <button
         data-testid="publish-bounty-btn"
         className={`${BUTTON_STYLES.STANDARD.padding} bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 ${className}`}
         onClick={openModal}
@@ -84,7 +81,6 @@ export default function PublishBountyButton({
           发布悬赏
         </span>
       </button>
-      
       {showModal && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50 overflow-y-auto pt-10 pb-10"
@@ -96,14 +92,14 @@ export default function PublishBountyButton({
                 <div className="h-6 w-1 bg-gradient-to-b from-[#5E8B7E] to-[#4F7A6F] rounded-full mr-3 shadow-sm"></div>
                 发布悬赏
               </h2>
-              <button 
-                onClick={closeModal} 
+              <button
+                onClick={closeModal}
                 className="text-[#6B7C79] cursor-pointer hover:text-[#3D4D49] transition-colors p-1 rounded-full hover:bg-[#F1F4F3]"
               >
                 <X size={20} />
               </button>
             </div>
-            
+
             {/* 资源标题 */}
             <div className="mb-5">
               <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
@@ -118,7 +114,7 @@ export default function PublishBountyButton({
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
-            
+
             {/* 分类选择 */}
             <div className="mb-5">
               <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
@@ -132,26 +128,29 @@ export default function PublishBountyButton({
               >
                 <option value="">请选择分类</option>
                 {Object.entries(categoryMap).map(([name, id]) => (
-                  <option key={id} value={id}>{name}</option>
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
                 ))}
               </select>
             </div>
-            
+
             {/* 标签选择 */}
             <div className="mb-5">
               <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
                 <Tag size={16} className="mr-1.5 text-[#5E8B7E]" />
-                标签 <span className="text-[#8CA29F] text-sm ml-1">(最多5个)</span>
+                标签{" "}
+                <span className="text-[#8CA29F] text-sm ml-1">(最多5个)</span>
               </label>
               <div className="flex flex-wrap gap-2 mt-1 bg-[#F9FAF9] p-3 rounded-lg border border-[#E0E5E3]">
                 {Object.entries(tagMap).map(([id, name]) => (
-                  <div 
+                  <div
                     key={id}
                     onClick={() => toggleTag(id)}
                     className={`px-3 py-1.5 rounded-full text-sm cursor-pointer transition duration-200 shadow-sm ${
-                      selectedTags.includes(id) 
-                        ? 'bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white' 
-                        : 'bg-[#F1F4F3] text-[#556B66] hover:bg-[#E0E5E3]'
+                      selectedTags.includes(id)
+                        ? "bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white"
+                        : "bg-[#F1F4F3] text-[#556B66] hover:bg-[#E0E5E3]"
                     }`}
                   >
                     {name}
@@ -159,7 +158,7 @@ export default function PublishBountyButton({
                 ))}
               </div>
             </div>
-            
+
             {/* 悬赏金额 */}
             <div className="mb-5">
               <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
@@ -180,7 +179,7 @@ export default function PublishBountyButton({
                 </span>
               </div>
             </div>
-            
+
             {/* 资源描述 */}
             <div className="mb-6">
               <label className="block mb-2 font-medium text-[#3D4D49] flex items-center">
@@ -195,24 +194,26 @@ export default function PublishBountyButton({
                 rows={4}
               />
             </div>
-            
+
             {/* 操作按钮 */}
             <div className="flex justify-end space-x-3 pt-4 border-t border-[#E0E5E3]">
               <button
                 onClick={closeModal}
                 className="px-5 py-2 bg-[#F1F4F3] text-[#556B66] cursor-pointer rounded-lg hover:bg-[#E0E5E3] transition duration-200 shadow-sm"
-                disabled={loading}
+                disabled={ publishBountyMutation.isPending}
               >
                 取消
               </button>
               <button
                 onClick={handlePublish}
                 className={`px-5 py-2 bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white cursor-pointer rounded-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition duration-200 shadow-md flex items-center gap-2 ${
-                  (!title || !amount || !category || loading) ? 'opacity-50 cursor-not-allowed' : ''
+                  !title || !amount || !category || publishBountyMutation.isPending
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
-                disabled={!title || !amount || !category || loading}
+                disabled={!title || !amount || !category ||  publishBountyMutation.isPending}
               >
-                {loading ? (
+                { publishBountyMutation.isPending ? (
                   <>
                     <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-1"></div>
                     发布中...

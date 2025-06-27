@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useDebounceFn } from "@/hooks/useDebounceFn";
-import { submitSeed } from "@/api/bounties";
 import { Upload, Button } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { BUTTON_STYLES } from "@/constants/buttonStyles";
 import { FileUp, X, Check } from "lucide-react";
+import { useBounty } from "@/hooks/useBounty";
 
 interface SubmitSeedButtonProps {
   bountyId: number;
@@ -24,10 +24,10 @@ export default function SubmitSeedButton({
   onSuccess,
   className = '',
 }: SubmitSeedButtonProps) {
+  const { submitSeedMutation } = useBounty();
   // 弹窗相关状态
   const [showSeedModal, setShowSeedModal] = useState(false);
   const [seedFile, setSeedFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // antd Upload 组件的自定义 beforeUpload
   const beforeUpload = (file: File) => {
@@ -50,10 +50,7 @@ export default function SubmitSeedButton({
   // 提交种子响应（支持文件上传）
   const handleSubmitSeed = async () => {
     if (!bountyId || !seedFile) return;
-    
-    try {
-      setIsSubmitting(true);
-      await submitSeed(bountyId, seedFile);
+      await submitSeedMutation.mutateAsync({ bountyId, seedFile });
       toast.success("已提交种子");
       closeSeedModal();
       
@@ -61,12 +58,7 @@ export default function SubmitSeedButton({
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error) {
-      console.error("提交种子失败:", error);
-      toast.error("提交种子失败，请稍后重试");
-    } finally {
-      setIsSubmitting(false);
-    }
+  
   };
 
   // 防抖处理
@@ -99,7 +91,7 @@ export default function SubmitSeedButton({
               <button 
                 onClick={debouncedCloseSeedModal} 
                 className="text-[#6B7C79]  cursor-pointer hover:text-[#3D4D49] transition-colors p-1 rounded-full hover:bg-[#F1F4F3]"
-                disabled={isSubmitting}
+                disabled={submitSeedMutation.isPending}
               >
                 <X size={18} />
               </button>
@@ -139,18 +131,18 @@ export default function SubmitSeedButton({
               <button
                 onClick={debouncedCloseSeedModal}
                 className="px-4 py-2  cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
-                disabled={isSubmitting}
+                disabled={ submitSeedMutation.isPending}
               >
                 取消
               </button>
               <button
                 onClick={debouncedHandleSubmitSeed}
                 className={`px-4 py-2 bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] text-white rounded-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-colors shadow-md flex items-center gap-1.5 ${
-                  (!seedFile || isSubmitting) ? 'opacity-50 cursor-not-allowed' : ''
+                  (!seedFile ||  submitSeedMutation.isPending) ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
-                disabled={!seedFile || isSubmitting}
+                disabled={!seedFile ||  submitSeedMutation.isPending}
               >
-                {isSubmitting ? (
+                { submitSeedMutation.isPending ? (
                   <>
                     <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
                     提交中...

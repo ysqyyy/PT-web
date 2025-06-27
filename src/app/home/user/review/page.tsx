@@ -1,57 +1,26 @@
 // pages/dashboard/review.tsx
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Toaster } from "react-hot-toast";
 import DashboardLayout from "@/components/DashboardLayout";
 import Navbar from "@/components/Navbar";
-import toast, { Toaster } from "react-hot-toast";
 import DownloadBountyButton from "@/components/bounty/DownloadBountyButton";
-import { BUTTON_STYLES } from "@/constants/buttonStyles";
-import { ReviewItem } from "@/types/review";
-import {
-  getPendingReviews,
-  approveResource,
-  rejectResource,
-} from "@/api/review";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { BUTTON_STYLES } from "@/constants/buttonStyles";
+import { useAdmin } from "@/hooks/useAdmin";
 
 export function ResourceReviewPage() {
-  const [reviews, setReviews] = useState<ReviewItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { usePendingReviews, approveResourceMutation, rejectResourceMutation } =
+    useAdmin();
+  const { data: reviews = [], isLoading: loading } = usePendingReviews();
+
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [currentItemId, setCurrentItemId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
-  // 从API获取数据
-  useEffect(() => {
-    const fetchReviews = async () => {
-      setLoading(true);
-      try {
-        const data = await getPendingReviews();
-        setReviews(data);
-      } catch (error) {
-        toast.error("获取待审核资源失败");
-        console.error("获取数据错误:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchReviews();
-  }, []);
-
-  const handleApprove = async (id: number) => {
+  const handleApprove = (id: number) => {
     if (!confirm("确定要通过该资源吗？")) return;
-    setLoading(true);
-    try {
-      await approveResource(id);
-      toast.success("资源已通过");
-      setReviews((prevReviews) => prevReviews.filter((item) => item.id !== id));
-    } catch (error) {
-      toast.error("操作失败，请重试");
-      console.error("Approval error:", error);
-    } finally {
-      setLoading(false);
-    }
+    approveResourceMutation.mutate(id);
   };
 
   const openRejectModal = (id: number) => {
@@ -66,26 +35,18 @@ export function ResourceReviewPage() {
     setRejectReason("");
   };
 
-  const handleRejectSubmit = async () => {
+  const handleRejectSubmit = () => {
     if (!currentItemId || !rejectReason.trim()) {
-      toast.error("请输入拒绝原因");
       return;
     }
-    setLoading(true);
-    try {
-      await rejectResource(currentItemId, rejectReason);
-      toast.success("资源已拒绝");
-      // 更新状态，移除已拒绝的资源
-      setReviews((prevReviews) =>
-        prevReviews.filter((item) => item.id !== currentItemId)
-      );
-      closeRejectModal();
-    } catch (error) {
-      toast.error("操作失败，请重试");
-      console.error("Rejection error:", error);
-    } finally {
-      setLoading(false);
-    }
+    rejectResourceMutation.mutate(
+      { id: currentItemId, reason: rejectReason },
+      {
+        onSuccess: () => {
+          closeRejectModal();
+        },
+      }
+    );
   };
 
   return (
@@ -136,7 +97,10 @@ export function ResourceReviewPage() {
                         <button
                           onClick={() => handleApprove(item.id)}
                           className={` bg-gradient-to-r from-[#5E8B7E] to-[#4F7A6F] cursor-pointer text-white rounded-lg shadow-md hover:shadow-lg hover:from-[#4F7A6F] hover:to-[#3D685F] transition-all duration-300 px-4 py-2 `}
-                          disabled={loading}
+                          disabled={
+                            approveResourceMutation.isPending ||
+                            rejectResourceMutation.isPending
+                          }
                         >
                           <span className="flex items-center justify-center gap-1.5">
                             通过
@@ -145,7 +109,10 @@ export function ResourceReviewPage() {
                         <button
                           onClick={() => openRejectModal(item.id)}
                           className="px-4 py-2 cursor-pointer bg-[#F1F4F3] text-[#556B66] rounded-lg hover:bg-[#E0E5E3] transition-colors shadow-sm"
-                          disabled={loading}
+                          disabled={
+                            approveResourceMutation.isPending ||
+                            rejectResourceMutation.isPending
+                          }
                         >
                           <span className="flex items-center justify-center gap-1.5">
                             拒绝
@@ -190,14 +157,16 @@ export function ResourceReviewPage() {
                   <button
                     onClick={closeRejectModal}
                     className={`${BUTTON_STYLES.COLORS.gray.bg} ${BUTTON_STYLES.COLORS.gray.hover} text-white ${BUTTON_STYLES.STANDARD.padding} rounded`}
-                    disabled={loading}
+                    disabled={rejectResourceMutation.isPending}
                   >
                     取消
                   </button>
                   <button
                     onClick={handleRejectSubmit}
                     className={`${BUTTON_STYLES.COLORS.primary.bg} ${BUTTON_STYLES.COLORS.primary.hover} text-white ${BUTTON_STYLES.STANDARD.padding} rounded`}
-                    disabled={loading || !rejectReason.trim()}
+                    disabled={
+                      rejectResourceMutation.isPending || !rejectReason.trim()
+                    }
                   >
                     确认拒绝
                   </button>
