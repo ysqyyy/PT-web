@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import clsx from 'clsx';
+import Image from 'next/image';
 import React, { ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from '@/hooks/useAuth';
@@ -53,7 +54,8 @@ export default function Navbar({ children, name }: NavbarProps) {
               {item.name}
             </Link>
           ))}
-        </div>        {/* 用户头像和用户名 */}
+        </div>
+        {/* 用户头像和用户名 */}
         {user && (
           <div className="relative">
             <div 
@@ -63,14 +65,18 @@ export default function Navbar({ children, name }: NavbarProps) {
               <span className="text-white font-medium">{user.user_name}</span>
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white overflow-hidden border-2 border-white/30 shadow-md">
                 {user.avatar_url ? (
-                  <img 
+                  <Image 
                     src={user.avatar_url} 
                     alt={user.user_name} 
+                    width={32}
+                    height={32}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
-                      target.parentElement!.textContent = user.user_name.charAt(0).toUpperCase();
+                      if (target.parentElement) {
+                        target.parentElement.textContent = user.user_name.charAt(0).toUpperCase();
+                      }
                     }}
                   />
                 ) : (

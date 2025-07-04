@@ -77,7 +77,7 @@ export default function RegisterPage() {
         <div className="p-8">
           <div className="flex justify-center mb-6">
             <Image
-              src="/RadioKing.png"
+              src="/RadioKing.webp"
               alt="Logo"
               width={200}
               height={200}

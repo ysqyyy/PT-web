@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import type { MyBounty, AppendedBounty, SubmittedBounty } from "@/types/bounty";
 import DashboardLayout from "@/components/DashboardLayout";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "@/components/Navbar";

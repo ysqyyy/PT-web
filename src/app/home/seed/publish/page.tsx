@@ -1,30 +1,43 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../../../../components/Navbar";
 import { useRouter } from "next/navigation";
 import { Upload, Button, message, Input, Select } from "antd";
-import type { UploadFile, UploadProps } from "antd/es/upload/interface";
+import type { UploadProps } from "antd/es/upload/interface";
 import { UploadOutlined } from "@ant-design/icons";
 import { useSeed } from "@/hooks/useSeed";
-import { publishSeedData } from "@/types/seed";
 import { tagMap } from "@/constants/tags";
+import { useSeedPublishStore } from "@/store/seedPublishStore";
 const { TextArea } = Input;
 const { Option } = Select;
 
 export default function SeedPublish() {
   const router = useRouter();
   const { publishSeedMutation } = useSeed();
-  const [formData, setFormData] = useState<publishSeedData>({
-    name: "",
-    description: "",
-    tags: [],
-    price: 0,
-    category: "电影",
-  });
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [normalFileList, setNormalFileList] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
+  
+  // 使用 Zustand store 替代本地状态
+  const { 
+    formData, 
+    fileList, 
+    normalFileList, 
+    updateFormData, 
+    setFileList, 
+    setNormalFileList,
+    resetState
+  } = useSeedPublishStore();
+
+  // 从 store 中获取数据
+  useEffect(() => {
+    // 组件销毁时不重置数据，以便保留表单状态
+    return () => {
+      // 如果发布成功则重置状态，这样下次进入时是干净的表单
+      if (publishSuccess) {
+        resetState();
+      }
+    };
+  }, [publishSuccess, resetState]);
 
   // 获取所有标签
   const allTags = Object.values(tagMap);
@@ -96,10 +109,10 @@ export default function SeedPublish() {
       const updatedFormData = {
         ...formData,
         fileType: hasTorrentFile ? "torrent" : "normal",
-      };      
-      const result = await publishSeedMutation.mutateAsync({ 
-        file, 
-        data: updatedFormData 
+      };
+      const result = await publishSeedMutation.mutateAsync({
+        file,
+        data: updatedFormData,
       });
       //返回值判断
       if (result.success) {
@@ -456,11 +469,10 @@ export default function SeedPublish() {
                         </svg>
                         名称 <span className="text-[#E67E65] ml-1">*</span>
                       </label>
-                      <Input
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
+                      <Input                value={formData.name}
+                onChange={(e) =>
+                  updateFormData({ name: e.target.value })
+                }
                         className="w-full"
                         required
                         placeholder="请输入种子名称"
@@ -507,7 +519,6 @@ export default function SeedPublish() {
                       </label>
 
                       <div className="space-y-4">
-                        
                         {/* Torrent文件上传 */}
                         <div
                           className={`border border-dashed rounded-xl p-4 transition-all duration-300 
@@ -651,8 +662,7 @@ export default function SeedPublish() {
                         min={0}
                         value={formData.price}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
+                          updateFormData({
                             price: Number(e.target.value),
                           })
                         }
@@ -708,12 +718,16 @@ export default function SeedPublish() {
                       <Select
                         value={formData.category}
                         onChange={(value) =>
-                          setFormData({ ...formData, category: value })
+                          updateFormData({ category: value })
                         }
                         className="w-full"
                         placeholder="请选择分类"
                         size="large"
-                        dropdownClassName="rounded-xl border border-[#E0E5E3] shadow-lg"
+                        classNames={{
+                          popup: {
+                            root: "rounded-xl border border-[#E0E5E3] shadow-lg",
+                          },
+                        }}
                       >
                         {presets.categories.map((category) => (
                           <Option key={category} value={category}>
@@ -777,8 +791,7 @@ export default function SeedPublish() {
                         const currentTags = [...(formData.tags || [])];
                         if (currentTags.includes(tag)) {
                           // 如果已选中，则移除
-                          setFormData({
-                            ...formData,
+                          updateFormData({
                             tags: currentTags.filter((t) => t !== tag),
                           });
                         } else {
@@ -788,8 +801,7 @@ export default function SeedPublish() {
                             message.warning("最多只能选择5个标签");
                             return;
                           }
-                          setFormData({
-                            ...formData,
+                          updateFormData({
                             tags: [...currentTags, tag],
                           });
                         }
@@ -856,8 +868,7 @@ export default function SeedPublish() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setFormData({
-                                ...formData,
+                              updateFormData({
                                 tags: (formData.tags || []).filter(
                                   (t) => t !== tag
                                 ),
@@ -934,7 +945,7 @@ export default function SeedPublish() {
               <TextArea
                 value={formData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  updateFormData({ description: e.target.value })
                 }
                 className="w-full"
                 rows={5}

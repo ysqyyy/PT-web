@@ -50,7 +50,7 @@ export default function LoginPage() {
           className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-8 w-full max-w-md space-y-6"
         >
           <Image
-            src="/RadioKing.png"
+            src="/RadioKing.webp"
             alt="Logo"
             width={300}
             height={300}

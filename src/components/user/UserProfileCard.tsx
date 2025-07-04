@@ -1,4 +1,5 @@
 import { UserProfile } from "@/types/user";
+import Image from 'next/image';
 
 // 用户等级标签映射
 const LEVEL_LABELS: Record<number, { label: string; color: string }> = {
@@ -71,12 +72,16 @@ export default function UserProfileCard({
       {/* 头部：头像和基本信息 */}
       <div className="flex items-center gap-4 mb-6">
         <div className="relative">
-          <img
+          <Image
             src={userProfile.avatarUrl || "/default-avatar.svg"}
             alt={`${userProfile.username}的头像`}
+            width={80}
+            height={80}
             className="w-20 h-20 rounded-full object-cover border-2 border-teal-100 shadow-md"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = "/default-avatar.svg";
+              // TypeScript 类型断言更安全的方式
+              const imgElement = e.target as HTMLImageElement;
+              imgElement.src = "/default-avatar.svg";
             }}
           />
           <span

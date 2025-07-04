@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import { createConversation } from "@/api/message";
 
@@ -79,15 +80,19 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
         onClick={handleAvatarClick}
       >
         {avatarUrl ? (
-          <img
+          <Image
             src={avatarUrl}
             alt={username || "用户头像"}
+            width={size === 'sm' ? 32 : size === 'md' ? 40 : 48}
+            height={size === 'sm' ? 32 : size === 'md' ? 40 : 48}
             className="rounded-full object-cover w-full h-full"
             onError={(e) => {
               // 如果图片加载失败，显示用户名首字母
               const target = e.target as HTMLImageElement;
               target.style.display = "none";
-              target.parentElement!.textContent = getInitial();
+              if (target.parentElement) {
+                target.parentElement.textContent = getInitial();
+              }
             }}
           />
         ) : (

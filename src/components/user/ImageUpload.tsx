@@ -1,4 +1,5 @@
 import React, { useState, useRef, ChangeEvent } from 'react';
+import Image from 'next/image';
 
 interface ImageUploadProps {
   initialImageUrl?: string;
@@ -56,12 +57,16 @@ export default function ImageUpload({
         className="w-24 h-24 rounded-full overflow-hidden border-2 border-teal-100 cursor-pointer relative group"
         onClick={triggerFileInput}
       >
-        <img 
+        <Image 
           src={previewUrl} 
-          alt="头像预览" 
+          alt="头像预览"
+          width={96}
+          height={96}
           className="w-full h-full object-cover"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = defaultImage;
+            // 更安全的类型断言和错误处理
+            const imgElement = e.target as HTMLImageElement;
+            imgElement.src = defaultImage;
           }}
         />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

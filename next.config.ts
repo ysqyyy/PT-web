@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
     // 同时保存在内存中的页面数
     pagesBufferLength: 5,
   },
+  // 配置允许的图片域名
+  images: {
+    domains: ['localhost'], // 允许从localhost加载图片
+  },
   // 优化构建速度
   swcMinify: true, // 使用SWC进行压缩而非Terser
   // 忽略错误的构建，用于开发环境
